@@ -1,0 +1,37 @@
+{
+  "name": "bryanai",
+  "version": "1.0.0",
+  "description": "Sistema de Otimização de Currículos e Job Fit com IA",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "tailwind:build": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css",
+    "tailwind:watch": "tailwindcss -i ./public/css/input.css -o ./public/css/output.css --watch"
+  },
+  "keywords": [
+    "curriculo",
+    "job-fit",
+    "ai",
+    "gemini",
+    "express",
+    "mysql"
+  ],
+  "author": "Bryan Rodrigues de Andrade",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "html-to-docx": "^1.8.0",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.11.0",
+    "puppeteer": "^23.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "tailwindcss": "^3.4.10"
+  }
+}

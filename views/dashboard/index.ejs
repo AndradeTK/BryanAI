@@ -1,0 +1,272 @@
+<% const pageTitle = 'Dashboard'; %>
+<%- include('../partials/layout-start', { title: pageTitle }) %>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Score Médio -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Score Médio</p>
+                <p class="text-3xl font-bold text-gray-800 mt-1">
+                    <%= stats && stats.media_score ? Math.round(stats.media_score) : '--' %>
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">Baseado em <%= stats ? stats.total : 0 %> gerações</p>
+    </div>
+
+    <!-- Currículos Gerados -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Concluídos</p>
+                <p class="text-3xl font-bold text-green-600 mt-1"><%= stats ? stats.concluidos : 0 %></p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2"><%= stats ? stats.falhas : 0 %> falhas registradas</p>
+    </div>
+
+    <!-- Completude do Currículo -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 font-medium">Completude</p>
+                <% var completudeClass = validacao && validacao.completude >= 80 ? 'text-green-600' : validacao && validacao.completude >= 50 ? 'text-yellow-600' : 'text-red-600'; %>
+                <p class="text-3xl font-bold <%= completudeClass %> mt-1"><%= validacao ? validacao.completude : 0 %>%</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+            </div>
+        </div>
+        <% var barClass = validacao && validacao.completude >= 80 ? 'bg-green-600' : validacao && validacao.completude >= 50 ? 'bg-yellow-600' : 'bg-red-600'; %>
+        <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+            <div class="h-2 rounded-full <%= barClass %>" style="width: <%= validacao ? validacao.completude : 0 %>%"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Alertas de completude -->
+<% if (validacao && validacao.issues && validacao.issues.length > 0) { %>
+<div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-8">
+    <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <div>
+            <h4 class="font-medium text-yellow-800">Atenção: Complete seu currículo</h4>
+            <ul class="mt-2 text-sm text-yellow-700 space-y-1">
+                <% validacao.issues.forEach(function(issue) { %>
+                    <li>• <%= issue.campo %>: <%= issue.mensagem %></li>
+                <% }); %>
+            </ul>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<!-- Currículos Gerados para Download -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+    <div class="p-6 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800">📁 Currículos Gerados</h3>
+        <p class="text-sm text-gray-500 mt-1">Visualize e baixe seus currículos otimizados</p>
+    </div>
+    <div class="p-6">
+        <% if (curriculos && curriculos.length > 0) { %>
+        <div class="space-y-3">
+            <% curriculos.forEach(function(c) { %>
+            <% if (c.filename) { %>
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-800"><%= c.vaga_titulo %></p>
+                        <p class="text-xs text-gray-500">
+                            Score: <span class="font-semibold <%= c.score >= 80 ? 'text-green-600' : c.score >= 60 ? 'text-yellow-600' : 'text-red-600' %>"><%= c.score %></span>
+                            • <%= new Date(c.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) %>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openPdfViewer('/api/arquivos/<%= c.filename %>', '<%= c.vaga_titulo %>')" class="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition" title="Visualizar">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </button>
+                    <a href="/api/arquivos/<%= c.filename %>" download class="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition" title="Baixar">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <% } %>
+            <% }); %>
+        </div>
+        <% } else { %>
+        <div class="text-center py-8 text-gray-500">
+            <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+            </svg>
+            <p>Nenhum arquivo disponível</p>
+            <p class="text-sm text-gray-400 mt-1">Gere currículos via extensão ou Job Fit</p>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Histórico Recente -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">Histórico de Gerações</h3>
+        </div>
+        <div class="p-6">
+            <% if (historico && historico.length > 0) { %>
+            <div class="space-y-4">
+                <% historico.forEach(function(h) { %>
+                <% var circleClass = h.status === 'concluido' ? (h.score >= 80 ? 'bg-green-500' : h.score >= 60 ? 'bg-yellow-500' : 'bg-red-500') : 'bg-gray-400'; %>
+                <% var statusClass = h.status === 'concluido' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; %>
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm <%= circleClass %>">
+                            <%= h.status === 'concluido' ? h.score : '--' %>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-800"><%= h.vaga_titulo %></p>
+                            <p class="text-xs text-gray-500"><%= new Date(h.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %></p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-medium <%= statusClass %>">
+                        <%= h.status %>
+                    </span>
+                </div>
+                <% }); %>
+            </div>
+            <% } else { %>
+            <div class="text-center py-8 text-gray-500">
+                <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <p>Nenhum currículo gerado ainda</p>
+                <a href="/jobfit" class="text-primary-600 hover:underline text-sm mt-1 block">Gerar primeiro currículo →</a>
+            </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">Ações Rápidas</h3>
+        </div>
+        <div class="p-6 space-y-3">
+            <a href="/jobfit" class="flex items-center gap-4 p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition">
+                <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-800">Nova Análise Job Fit</p>
+                    <p class="text-sm text-gray-500">Analise compatibilidade com uma vaga</p>
+                </div>
+            </a>
+            <a href="/perfil/form" class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <div class="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-800">Editar Perfil</p>
+                    <p class="text-sm text-gray-500">Atualize suas informações pessoais</p>
+                </div>
+            </a>
+            <a href="/experiencias/form" class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                <div class="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-800">Adicionar Experiência</p>
+                    <p class="text-sm text-gray-500">Adicione novas experiências profissionais</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Visualizador de PDF -->
+<div id="pdfModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+            <h3 id="pdfModalTitle" class="text-lg font-semibold text-gray-800">Visualizar Currículo</h3>
+            <div class="flex items-center gap-2">
+                <a id="pdfDownloadBtn" href="#" download class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Baixar
+                </a>
+                <button onclick="closePdfViewer()" class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 p-4 bg-gray-100">
+            <iframe id="pdfFrame" class="w-full h-full rounded-lg border border-gray-300" src=""></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+function openPdfViewer(url, title) {
+    document.getElementById('pdfModalTitle').textContent = title || 'Visualizar Currículo';
+    // Usa o endpoint /view para visualização inline
+    const viewUrl = url.replace('/api/arquivos/', '/api/arquivos/') + '/view';
+    document.getElementById('pdfFrame').src = viewUrl;
+    document.getElementById('pdfDownloadBtn').href = url;
+    document.getElementById('pdfModal').classList.remove('hidden');
+    document.getElementById('pdfModal').classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePdfViewer() {
+    document.getElementById('pdfModal').classList.add('hidden');
+    document.getElementById('pdfModal').classList.remove('flex');
+    document.getElementById('pdfFrame').src = '';
+    document.body.style.overflow = '';
+}
+
+// Fechar modal com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closePdfViewer();
+});
+
+// Fechar modal clicando fora
+document.getElementById('pdfModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closePdfViewer();
+});
+</script>
+
+<%- include('../partials/layout-end') %>

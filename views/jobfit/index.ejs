@@ -1,0 +1,266 @@
+<% const pageTitle = 'Job Fit Analysis'; %>
+<%- include('../partials/layout-start', { title: pageTitle }) %>
+
+<div class="max-w-4xl mx-auto">
+    <!-- Status do Currículo -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-800">Status do Currículo</h3>
+                <% var completudeColor = validacao && validacao.completude >= 80 ? 'text-green-600' : validacao && validacao.completude >= 50 ? 'text-yellow-600' : 'text-red-600'; %>
+                <p class="text-sm text-gray-500">Completude: <span class="font-medium <%= completudeColor %>"><%= validacao ? validacao.completude : 0 %>%</span></p>
+            </div>
+            <div class="w-24 h-24">
+                <% var circleColor = validacao && validacao.completude >= 80 ? 'text-green-500' : validacao && validacao.completude >= 50 ? 'text-yellow-500' : 'text-red-500'; %>
+                <svg viewBox="0 0 36 36" class="w-full h-full">
+                    <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    <path class="<%= circleColor %>" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"
+                          stroke-dasharray="<%= validacao ? validacao.completude : 0 %>, 100"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulário de Análise -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-primary-600 to-primary-700">
+            <h3 class="text-xl font-semibold text-white flex items-center gap-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                </svg>
+                Análise de Job Fit & Geração de Currículo
+            </h3>
+            <p class="text-primary-100 mt-1">Cole a descrição da vaga para analisar compatibilidade e gerar currículo otimizado</p>
+        </div>
+
+        <form id="jobFitForm" class="p-6 space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Título da Vaga *</label>
+                <input type="text" name="titulo" id="titulo" required
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
+                       placeholder="Ex: Desenvolvedor Full Stack Jr.">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Descrição da Vaga *</label>
+                <textarea name="descricao" id="descricao" rows="10" required
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                          placeholder="Cole aqui a descrição completa da vaga, incluindo requisitos, responsabilidades e benefícios..."></textarea>
+            </div>
+
+            <div class="flex gap-4">
+                <button type="button" onclick="analyzeJob()" class="flex-1 bg-primary-600 text-white py-3 px-6 rounded-lg hover:bg-primary-700 transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                    Analisar Compatibilidade
+                </button>
+                <button type="button" onclick="generateResume('pdf')" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Gerar Currículo (PDF)
+                </button>
+            </div>
+
+            <div class="flex justify-center">
+                <button type="button" onclick="generateResume('docx')" class="text-gray-500 hover:text-gray-700 text-sm flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d indow="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Ou gerar em formato Word (.docx)
+                </button>
+            </div>
+        </form>
+
+        <!-- Resultado da Análise -->
+        <div id="analysisResult" class="hidden border-t border-gray-200">
+            <div class="p-6">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4">Resultado da Análise</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div id="scoreValue" class="text-4xl font-bold text-primary-600">--</div>
+                        <p class="text-sm text-gray-500">Score de Compatibilidade</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div id="levelValue" class="text-lg font-semibold text-gray-800">--</div>
+                        <p class="text-sm text-gray-500">Nível</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div id="probabilityValue" class="text-lg font-semibold text-gray-800">--</div>
+                        <p class="text-sm text-gray-500">Chance de Entrevista</p>
+                    </div>
+                </div>
+
+                <div id="summaryText" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <p class="text-blue-800"></p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h5 class="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Pontos Fortes
+                        </h5>
+                        <ul id="strengthsList" class="space-y-2 text-sm text-gray-600">
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            Gaps/Melhorias
+                        </h5>
+                        <ul id="gapsList" class="space-y-2 text-sm text-gray-600">
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h5 class="font-medium text-gray-800 mb-3">Keywords Importantes</h5>
+                    <div id="keywordsList" class="flex flex-wrap gap-2">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 text-center">
+            <div class="w-16 h-16 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-gray-600 font-medium">Analisando com IA...</p>
+            <p class="text-gray-400 text-sm mt-1">Isso pode levar alguns segundos</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showLoading() {
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+    }
+    
+    function hideLoading() {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+    }
+
+    async function analyzeJob() {
+        const titulo = document.getElementById('titulo').value.trim();
+        const descricao = document.getElementById('descricao').value.trim();
+
+        if (!titulo || !descricao) {
+            alert('Preencha o título e a descrição da vaga');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const response = await fetch('/api/jobfit/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo, descricao })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayResults(data.data);
+            } else {
+                alert('Erro: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao analisar. Tente novamente.');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    async function generateResume(formato) {
+        const titulo = document.getElementById('titulo').value.trim();
+        const descricao = document.getElementById('descricao').value.trim();
+
+        if (!titulo || !descricao) {
+            alert('Preencha o título e a descrição da vaga');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const response = await fetch('/api/jobfit/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ titulo, descricao, formato })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayResults(data.data.analise);
+                
+                // Download do arquivo
+                if (data.data.arquivo) {
+                    const link = document.createElement('a');
+                    link.href = data.data.arquivo;
+                    link.download = '';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            } else {
+                alert('Erro: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao gerar. Tente novamente.');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function displayResults(data) {
+        document.getElementById('analysisResult').classList.remove('hidden');
+        
+        document.getElementById('scoreValue').textContent = data.score || '--';
+        document.getElementById('levelValue').textContent = data.fit || data.nivel_compatibilidade || '--';
+        document.getElementById('probabilityValue').textContent = data.probabilidade_entrevista || '--';
+        
+        const summaryEl = document.getElementById('summaryText').querySelector('p');
+        summaryEl.textContent = data.resumo || data.resumo_executivo || '';
+
+        const strengthsList = document.getElementById('strengthsList');
+        strengthsList.innerHTML = '';
+        if (data.pontos_fortes && data.pontos_fortes.length) {
+            data.pontos_fortes.forEach(function(item) {
+                strengthsList.innerHTML += '<li class="flex items-start gap-2"><span class="text-green-500">✓</span> ' + item + '</li>';
+            });
+        }
+
+        const gapsList = document.getElementById('gapsList');
+        gapsList.innerHTML = '';
+        if (data.gaps && data.gaps.length) {
+            data.gaps.forEach(function(item) {
+                gapsList.innerHTML += '<li class="flex items-start gap-2"><span class="text-red-500">!</span> ' + item + '</li>';
+            });
+        }
+
+        const keywordsList = document.getElementById('keywordsList');
+        keywordsList.innerHTML = '';
+        if (data.keywords && data.keywords.length) {
+            data.keywords.forEach(function(kw) {
+                keywordsList.innerHTML += '<span class="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">' + kw + '</span>';
+            });
+        }
+
+        document.getElementById('analysisResult').scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+<%- include('../partials/layout-end') %>

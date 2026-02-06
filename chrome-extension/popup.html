@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BryanAI - Job Fit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            width: 380px;
+            background: #f8fafc;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+        
+        .content {
+            padding: 16px;
+        }
+        
+        .status-box {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .status-box.success {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+        
+        .status-box.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .status-box h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .status-box p {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #16a34a;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+        
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .result-box {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .result-box.visible {
+            display: block;
+        }
+        
+        .score-display {
+            text-align: center;
+            padding: 16px;
+        }
+        
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .score-circle.high { background: #22c55e; }
+        .score-circle.medium { background: #f59e0b; }
+        .score-circle.low { background: #ef4444; }
+        
+        .result-summary {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .footer {
+            padding: 12px 16px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .footer a {
+            font-size: 11px;
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.visible {
+            display: block;
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .config-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .config-section summary {
+            font-size: 12px;
+            font-weight: 500;
+            color: #6b7280;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 BryanAI</h1>
+        <p>Análise de Job Fit & Gerador de Currículo</p>
+    </div>
+
+    <div class="content">
+        <!-- Status da conexão -->
+        <div id="connectionStatus" class="status-box">
+            <h3>Verificando conexão...</h3>
+            <p>Conectando ao servidor local</p>
+        </div>
+
+        <!-- Formulário -->
+        <form id="jobForm">
+            <div class="form-group">
+                <label for="titulo">Título da Vaga</label>
+                <input type="text" id="titulo" placeholder="Ex: Desenvolvedor Full Stack Jr." required>
+            </div>
+            
+            <div class="form-group">
+                <label for="descricao">Descrição da Vaga</label>
+                <textarea id="descricao" placeholder="Cole a descrição da vaga aqui ou clique em 'Capturar da Página'" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="idioma">Idioma do Currículo</label>
+                <select id="idioma" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white;">
+                    <option value="pt-BR">🇧🇷 Português (Brasil)</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="fr">🇫🇷 Français</option>
+                </select>
+            </div>
+
+            <button type="button" id="captureBtn" class="btn btn-secondary">
+                📋 Capturar da Página
+            </button>
+            
+            <button type="button" id="analyzeBtn" class="btn btn-primary">
+                🔍 Analisar Compatibilidade
+            </button>
+            
+            <button type="button" id="generateBtn" class="btn btn-success">
+                📄 Gerar Currículo Otimizado
+            </button>
+        </form>
+
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p style="font-size: 12px; color: #6b7280;">Processando com IA...</p>
+        </div>
+
+        <!-- Resultado -->
+        <div id="resultBox" class="result-box">
+            <div class="score-display">
+                <div id="scoreCircle" class="score-circle">--</div>
+                <h3 id="fitLevel" style="font-size: 14px; font-weight: 600; color: #374151;">-</h3>
+                <p id="resultSummary" class="result-summary"></p>
+            </div>
+        </div>
+
+        <!-- Configurações -->
+        <details class="config-section">
+            <summary>⚙️ Configurações</summary>
+            <div style="margin-top: 12px;">
+                <div class="form-group">
+                    <label for="serverUrl">URL do Servidor</label>
+                    <input type="text" id="serverUrl" value="http://localhost:3000">
+                </div>
+                <button type="button" id="saveConfig" class="btn btn-secondary">Salvar</button>
+            </div>
+        </details>
+    </div>
+
+    <div class="footer">
+        <a href="http://localhost:3000" target="_blank">Abrir Dashboard Completo →</a>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>

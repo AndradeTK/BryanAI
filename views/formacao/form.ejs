@@ -1,0 +1,73 @@
+<% const pageTitle = formacao ? 'Editar Formação/Projeto' : 'Nova Formação/Projeto'; %>
+<%- include('../partials/layout-start', { title: pageTitle }) %>
+
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800"><%= formacao ? 'Editar' : 'Nova' %> Formação/Projeto</h3>
+        </div>
+        
+        <form action="<%= formacao ? '/formacao/' + formacao.id : '/formacao' %>" method="POST" class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo *</label>
+                    <select name="tipo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        <option value="Formação" <%= formacao && formacao.tipo === 'Formação' ? 'selected' : '' %>>Formação Acadêmica</option>
+                        <option value="Projeto" <%= formacao && formacao.tipo === 'Projeto' ? 'selected' : '' %>>Projeto</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        <option value="Em andamento" <%= formacao && formacao.status === 'Em andamento' ? 'selected' : '' %>>Em andamento</option>
+                        <option value="Concluído" <%= formacao && formacao.status === 'Concluído' ? 'selected' : '' %>>Concluído</option>
+                        <option value="Pausado" <%= formacao && formacao.status === 'Pausado' ? 'selected' : '' %>>Pausado</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Título/Curso *</label>
+                    <input type="text" name="titulo_curso" required
+                           value="<%= formacao ? formacao.titulo_curso : '' %>"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                           placeholder="Ex: Bacharelado em Ciência da Computação">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Instituição/Projeto *</label>
+                    <input type="text" name="instituicao_projeto" required
+                           value="<%= formacao ? formacao.instituicao_projeto : '' %>"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                           placeholder="Ex: Universidade Federal ou Nome do Projeto">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição Detalhada</label>
+                    <textarea name="descricao_detalhada" rows="4"
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                              placeholder="Descreva sobre o curso, tecnologias utilizadas no projeto..."><%= formacao ? formacao.descricao_detalhada : '' %></textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Link do Projeto (se aplicável)</label>
+                    <input type="url" name="link_projeto"
+                           value="<%= formacao ? formacao.link_projeto : '' %>"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                           placeholder="https://github.com/seu-usuario/projeto">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <a href="/formacao" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition">
+                    Salvar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/layout-end') %>

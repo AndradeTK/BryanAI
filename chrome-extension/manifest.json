@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "BryanAI - Job Fit Analyzer",
+  "version": "1.0.0",
+  "description": "Capture job descriptions from LinkedIn, Gupy, and other job sites to analyze compatibility and generate optimized resumes.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "downloads"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.linkedin.com/*",
+        "*://*.gupy.io/*",
+        "*://*.indeed.com/*",
+        "*://*.glassdoor.com/*",
+        "*://*.vagas.com.br/*",
+        "*://*.catho.com.br/*",
+        "*://*.infojobs.com.br/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
