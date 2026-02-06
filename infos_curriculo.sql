@@ -1,61 +1,70 @@
--- --------------------------------------------------------
--- Servidor:                     127.0.0.1
--- Versão do servidor:           8.0.43 - MySQL Community Server - GPL
--- OS do Servidor:               Win64
--- HeidiSQL Versão:              12.11.0.7065
--- --------------------------------------------------------
+-- Criação do banco de dados (ajuste o nome se desejar)
+CREATE DATABASE IF NOT EXISTS `infos_curriculo`;
+USE `infos_curriculo`;
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET NAMES utf8 */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+-- 1. Tabela de Perfil Profissional (Dados Mestres)
+CREATE TABLE IF NOT EXISTS `perfil` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `nome_completo` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(150),
+    `telefone` VARCHAR(20),
+    `localizacao` VARCHAR(255),
+    `linkedin` VARCHAR(255),
+    `github` VARCHAR(255),
+    `resumo_base` TEXT,
+    `data_nascimento` DATE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Copiando dados para a tabela infos_curriculo.educacao_e_cursos: ~4 rows (aproximadamente)
-INSERT INTO `educacao_e_cursos` (`id`, `emissor_instituicao`, `titulo_do_curso`, `descricao`, `destaque`) VALUES
-	(1, 'Google', 'Fundamentos de Suporte de TI (IT Support Professional)', 'Certificação profissional que cobre troubleshooting, redes, sistemas operacionais e segurança.', 'Sim'),
-	(2, 'Cisco', 'IT Customer Support Basics', 'Foco em suporte ao cliente técnico e resolução de problemas de hardware e software.', 'Sim'),
-	(3, 'Fundação Bradesco', 'Administrador de Banco de Dados', 'Fundamentos de SQL, modelagem de dados e gerenciamento de bases.', 'Sim'),
-	(4, 'Origamid', 'Web Design & Front-End', 'Desenvolvimento de interfaces modernas com foco em HTML, CSS e UX.', 'Sim');
+-- 2. Tabela de Experiências Profissionais
+CREATE TABLE IF NOT EXISTS `experiencias` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `empresa` VARCHAR(255) NOT NULL,
+    `cargo` VARCHAR(150) NOT NULL,
+    `data_inicio` VARCHAR(50),
+    `data_fim` VARCHAR(50),
+    `descricao_atividades` TEXT,
+    `principais_conquistas` TEXT,
+    `categoria` VARCHAR(100), -- Ex: Tecnologia, Administrativa
+    `tags_tecnicas` TEXT        -- Armazena skills como 'Node.js, Docker'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Copiando dados para a tabela infos_curriculo.experiencias: ~2 rows (aproximadamente)
-INSERT INTO `experiencias` (`id`, `empresa`, `cargo`, `data_inicio`, `data_fim`, `descricao_atividades`, `principais_conquistas`, `categoria`, `tags_tecnicas`) VALUES
-	(1, 'Tribunal de Justiça do Estado de São Paulo - Comarca de Salto', 'Estagiário Administrativo', 'Janeiro/2025', 'Dezembro/2025', 'Auxiliar no recebimento e preparação de cargas dos expedientes/de processos físicos da unidade.\nAuxiliar no acondicionamento, empacotamento e embalagem de material...', 'Desenvolvimento e implementação de um sistema em Excel para controle de prazos e desarquivamentos...', 'Administrativa', NULL),
-	(2, 'Freelancer', 'Desenvolvedor de Software Full Stack / Web Developer', 'Outubro/2025', 'Atual', 'Criação de fluxos de automação com n8n e Node.js para processamento de dados em tempo real...', 'Arquitetura de uma solução completa de automação em três camadas...', 'Tecnologia', 'Node.js, n8n, JavaScript, Docker, VPS, PM2, Express.js, PostgreSQL, MySQL, APIs REST');
+-- 3. Tabela de Formação e Projetos Pessoais
+CREATE TABLE IF NOT EXISTS `formacao_e_projetos` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `tipo` ENUM('Educação', 'Projeto Pessoal / Freelance') NOT NULL,
+    `instituicao_projeto` VARCHAR(255),
+    `titulo_curso` VARCHAR(255),
+    `status` VARCHAR(100),
+    `descricao_detalhada` TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Copiando dados para a tabela infos_curriculo.formacao_e_projetos: ~3 rows (aproximadamente)
-INSERT INTO `formacao_e_projetos` (`id`, `tipo`, `instituicao_projeto`, `titulo_curso`, `status`, `descricao_detalhada`) VALUES
-	(1, 'Educação', 'Instituto Federal de Educação, Ciência e Tecnologia de São Paulo - IFSP', 'Curso Técnico em Informática para Internet Integrado ao Ensino Médio', 'Concluído (Dezembro/2025)', 'Formação técnica focada em desenvolvimento web, lógica de programação, banco de dados e redes de computadores.'),
-	(2, 'Educação', 'Instituto Federal de Educação, Ciência e Tecnologia de São Paulo - IFSP', 'Curso Técnico em Administração', 'Em andamento (Previsão: Julho/2026)', 'Foco em rotinas administrativas, gestão de processos, logística e controles internos.'),
-	(3, 'Projeto Pessoal / Freelance', 'Sistema de Automação Shopee', 'Desenvolvedor de Automação', 'Concluído (Outubro/2025)', 'Desenvolvimento de uma solução completa integrando n8n, API da Shopee e Node.js...');
+-- 4. Tabela de Educação Extra e Cursos (Certificações)
+CREATE TABLE IF NOT EXISTS `educacao_e_cursos` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `emissor_instituicao` VARCHAR(255),
+    `titulo_do_curso` VARCHAR(255),
+    `descricao` TEXT,
+    `destaque` ENUM('Sim', 'Não') DEFAULT 'Não'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Copiando dados para a tabela infos_curriculo.historico_geracoes: ~10 rows (aproximadamente)
-INSERT INTO `historico_geracoes` (`id`, `vaga_titulo`, `score`, `keywords_focadas`, `status`, `pdf_path`, `created_at`, `createdAt`, `updatedAt`) VALUES
-	(1, 'Desenvolvedor FullStack Jr.', 85, NULL, 'concluido', NULL, '2026-01-20 23:29:06', '2026-01-20 23:29:06', '2026-01-20 23:29:11'),
-	(2, 'Desenvolvedor FullStack Jr.', NULL, NULL, 'falha', NULL, '2026-01-20 23:31:18', '2026-01-20 23:31:18', '2026-01-20 23:31:18'),
-	(3, 'Desenvolvedor FullStack Jr.', NULL, NULL, 'falha', NULL, '2026-01-20 23:34:15', '2026-01-20 23:34:15', '2026-01-20 23:34:16'),
-	(4, 'Desenvolvedor FullStack Jr.', NULL, NULL, 'falha', NULL, '2026-01-20 23:36:22', '2026-01-20 23:36:22', '2026-01-20 23:36:23'),
-	(5, 'Desenvolvedor FullStack Jr.', NULL, NULL, 'falha', NULL, '2026-01-20 23:36:51', '2026-01-20 23:36:51', '2026-01-20 23:36:51'),
-	(6, 'Desenvolvedor FullStack Jr.', NULL, NULL, 'falha', NULL, '2026-01-20 23:43:41', '2026-01-20 23:43:41', '2026-01-20 23:43:43'),
-	(7, 'Desenvolvedor FullStack Jr.', NULL, NULL, 'falha', NULL, '2026-01-20 23:44:04', '2026-01-20 23:44:04', '2026-01-20 23:44:07'),
-	(8, 'Desenvolvedor FullStack Jr.', NULL, NULL, 'falha', NULL, '2026-01-20 23:45:30', '2026-01-20 23:45:30', '2026-01-20 23:45:32'),
-	(9, 'Desenvolvedor FullStack Jr.', NULL, NULL, 'falha', NULL, '2026-01-20 23:48:44', '2026-01-20 23:48:44', '2026-01-20 23:48:47'),
-	(10, 'Desenvolvedor FullStack Jr.', 95, NULL, 'concluido', 'C:\\Users\\Bryan Andrade\\Documents\\CurriculoAI\\src\\templates\\CV_Bryan_10.pdf', '2026-01-20 23:49:29', '2026-01-20 23:49:29', '2026-01-20 23:49:52');
+-- 5. Tabela de Idiomas
+CREATE TABLE IF NOT EXISTS `idiomas` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `idioma` VARCHAR(100) NOT NULL,
+    `nivel_cefr` VARCHAR(100),
+    `certificacao_exame` VARCHAR(255),
+    `historico_de_escolas` TEXT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Copiando dados para a tabela infos_curriculo.idiomas: ~2 rows (aproximadamente)
-INSERT INTO `idiomas` (`id`, `idioma`, `nivel_cefr`, `certificacao_exame`, `historico_de_escolas`) VALUES
-	(1, 'Inglês', 'B2 - Intermediário Avançado / Advanced', 'Duolingo English Test - 115 pontos', 'CNA Salto - Master 1 (2025).\nInflux Salto - Conversação Avançada (2024-2025)...'),
-	(2, 'Português', 'Nativo (Native)', NULL, NULL);
-
--- Copiando dados para a tabela infos_curriculo.perfil: ~0 rows (aproximadamente)
-INSERT INTO `perfil` (`id`, `nome_completo`, `email`, `telefone`, `localizacao`, `linkedin`, `github`, `resumo_base`, `data_nascimento`) VALUES
-	(1, 'Bryan Rodrigues de Andrade', 'bryanrodriguesdeandrade@gmail.com', '+55 11 91479-6414', 'Salto, São Paulo, Brasil', 'https://www.linkedin.com/in/andradetk/', 'https://github.com/AndradeTK', 'Profissional com sólida formação técnica em Informática e Administração pelo IFSP. Possuo experiência prática em rotinas administrativas complexas no Tribunal de Justiça (TJSP), onde desenvolvi sistemas de automação em Excel para otimização de fluxos. Atuo também como Desenvolvedor Full Stack freelancer, com foco em Node.js, n8n e integração de APIs financeiras e de automação. Inglês nível avançado (B2) e certificado em Suporte de TI pelo Google. Atualmente focado em criar soluções tecnológicas que otimizam processos de negócio.', '2007-08-29');
-
-/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
+-- 6. Tabela de Histórico de Gerações (Log de Atividade)
+CREATE TABLE IF NOT EXISTS `historico_geracoes` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `vaga_titulo` VARCHAR(255),
+    `score` INT DEFAULT NULL,
+    `keywords_focadas` TEXT,
+    `status` ENUM('concluido', 'falha') DEFAULT 'concluido',
+    `pdf_path` VARCHAR(500),
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updatedAt` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `createdAt` DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

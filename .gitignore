@@ -4,6 +4,7 @@ package-lock.json
 
 # Environment variables
 .env
+minhas_infos_curriculo.sql
 
 # Generated files
 public/css/output.css
