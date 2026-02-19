@@ -66,15 +66,25 @@ async function rewriteResume(curriculo, vaga, analise = null, idioma = 'pt-BR') 
     
     // Mapeia idioma para instruções
     const idiomaInstrucoes = {
-        'pt-BR': 'Escreva TODO o conteúdo em Português do Brasil.',
-        'en': 'Write ALL content in English.',
-        'fr': 'Rédigez TOUT le contenu en français.'
+        'pt-BR': {
+            instrucao: 'Escreva TODO o conteúdo em Português do Brasil.',
+            verbos: 'Use verbos de ação no passado: Desenvolvi, Implementei, Liderei, Otimizei, Entreguei, Alcancei, etc.'
+        },
+        'en': {
+            instrucao: 'Write ALL content in English. This includes the professional summary, job titles, bullet points, and all descriptions.',
+            verbos: 'Use past tense action verbs: Developed, Implemented, Led, Optimized, Delivered, Achieved, Spearheaded, Architected, etc.'
+        },
+        'fr': {
+            instrucao: 'Rédigez TOUT le contenu en français. Cela inclut le résumé professionnel, les titres de poste, les points clés et toutes les descriptions.',
+            verbos: 'Utilisez des verbes d\'action au passé: Développé, Implémenté, Dirigé, Optimisé, Livré, Atteint, Piloté, Architecturé, etc.'
+        }
     };
-    const instrucaoIdioma = idiomaInstrucoes[idioma] || idiomaInstrucoes['pt-BR'];
+    const langConfig = idiomaInstrucoes[idioma] || idiomaInstrucoes['pt-BR'];
 
     const prompt = `${WRITER_SYSTEM_PROMPT}
 
-IDIOMA OBRIGATÓRIO: ${instrucaoIdioma}
+IDIOMA OBRIGATÓRIO: ${langConfig.instrucao}
+${langConfig.verbos}
 
 DADOS ORIGINAIS DO CANDIDATO:
 ${JSON.stringify(curriculo, null, 2)}

@@ -144,7 +144,8 @@ const JobFitController = {
                 formacao: curriculo.formacao,
                 cursos: curriculo.cursos_certificacoes,
                 idiomas: curriculo.idiomas,
-                vaga: { titulo, descricao }
+                vaga: { titulo, descricao },
+                lang: idioma
             });
 
             // Converte para o formato solicitado

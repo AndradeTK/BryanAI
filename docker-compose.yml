@@ -1,0 +1,24 @@
+services:
+  # Aplicação Node.js
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bryanai-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=sua_senha_aqui
+      - DB_NAME=infos_curriculo
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-sua_chave_aqui}
+      - CORS_ORIGIN=*
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./generated:/app/generated

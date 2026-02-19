@@ -200,7 +200,7 @@ function addFloatingButton() {
     btn.innerHTML = `
         <div style="
             position: fixed;
-            bottom: 20px;
+            bottom: 60px;
             right: 20px;
             z-index: 10000;
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
