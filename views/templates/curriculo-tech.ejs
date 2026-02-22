@@ -21,7 +21,10 @@
             devops: 'DevOps & Cloud',
             tools: 'Ferramentas',
             methodologies: 'Metodologias',
-            others: 'Outras Tecnologias'
+            others: 'Outras Tecnologias',
+            present: 'Atual',
+            completed: 'Concluído',
+            inProgress: 'Em andamento'
         },
         'en': {
             summary: 'About Me',
@@ -37,26 +40,60 @@
             devops: 'DevOps & Cloud',
             tools: 'Tools',
             methodologies: 'Methodologies',
-            others: 'Other Technologies'
+            others: 'Other Technologies',
+            present: 'Present',
+            completed: 'Completed',
+            inProgress: 'In Progress'
         },
-        'es': {
-            summary: 'Sobre Mí',
-            skills: 'Stack Tecnológico',
-            experience: 'Experiencia Profesional',
-            education: 'Formación',
-            languages: 'Idiomas',
-            certifications: 'Certificaciones',
-            projects: 'Proyectos Open Source / Personales',
+        'fr': {
+            summary: 'À propos de moi',
+            skills: 'Stack Technique',
+            experience: 'Expérience Professionnelle',
+            education: 'Formation',
+            languages: 'Langues',
+            certifications: 'Certifications',
+            projects: 'Projets Open Source / Personnels',
             backend: 'Backend',
             frontend: 'Frontend',
-            databases: 'Bases de Datos',
+            databases: 'Bases de Données',
             devops: 'DevOps & Cloud',
-            tools: 'Herramientas',
-            methodologies: 'Metodologías',
-            others: 'Otras Tecnologías'
+            tools: 'Outils',
+            methodologies: 'Méthodologies',
+            others: 'Autres Technologies',
+            present: 'Présent',
+            completed: 'Terminé',
+            inProgress: 'En cours'
         }
     };
     const t = translations[lang] || translations['pt-BR'];
+    
+    // Mapeamento de traduções dinâmicas (português → outros idiomas)
+    const dynamicTranslations = {
+        'Nativo': { 'en': 'Native', 'es': 'Nativo', 'fr': 'Natif' },
+        'Fluente': { 'en': 'Fluent', 'es': 'Fluido', 'fr': 'Courant' },
+        'Avançado': { 'en': 'Advanced', 'es': 'Avanzado', 'fr': 'Avancé' },
+        'Intermediário': { 'en': 'Intermediate', 'es': 'Intermedio', 'fr': 'Intermédiaire' },
+        'Básico': { 'en': 'Basic', 'es': 'Básico', 'fr': 'Débutant' },
+        'Português': { 'en': 'Portuguese', 'es': 'Portugués', 'fr': 'Portugais' },
+        'Inglês': { 'en': 'English', 'es': 'Inglés', 'fr': 'Anglais' },
+        'Francês': { 'en': 'French', 'es': 'Francés', 'fr': 'Français' },
+        'Alemão': { 'en': 'German', 'es': 'Alemán', 'fr': 'Allemand' },
+        'Concluído': { 'en': 'Completed', 'es': 'Completado', 'fr': 'Terminé' },
+        'Em andamento': { 'en': 'In Progress', 'es': 'En progreso', 'fr': 'En cours' },
+        'Cursando': { 'en': 'In Progress', 'es': 'En curso', 'fr': 'En cours' }
+    };
+    
+    function translateText(text) {
+        if (!text || lang === 'pt-BR') return text;
+        const langKey = lang.split('-')[0];
+        let translated = text;
+        Object.keys(dynamicTranslations).forEach(ptWord => {
+            if (translated.includes(ptWord) && dynamicTranslations[ptWord][langKey]) {
+                translated = translated.replace(new RegExp(ptWord, 'gi'), dynamicTranslations[ptWord][langKey]);
+            }
+        });
+        return translated;
+    }
     
     // Ordem padrão para devs: Skills primeiro
     const defaultOrder = ['summary', 'skills', 'experience', 'projects', 'education', 'certifications', 'languages'];
@@ -686,8 +723,8 @@
                 <% if (idiomas && idiomas.length > 0) { %>
                     <% idiomas.forEach(i => { %>
                     <span class="language-item">
-                        <span class="language-name"><%= i.idioma %></span>
-                        <span class="language-level">(<%= i.nivel_cefr %>)</span>
+                        <span class="language-name"><%= translateText(i.idioma) %></span>
+                        <span class="language-level">(<%= translateText(i.nivel_cefr) %>)</span>
                     </span>
                     <% }); %>
                 <% } else { %>

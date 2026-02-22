@@ -14,7 +14,15 @@
             education: 'Formação Acadêmica',
             languages: 'Idiomas',
             certifications: 'Certificações',
-            projects: 'Projetos'
+            projects: 'Projetos',
+            present: 'Atual',
+            completed: 'Concluído',
+            inProgress: 'Em andamento',
+            native: 'Nativo',
+            fluent: 'Fluente',
+            advanced: 'Avançado',
+            intermediate: 'Intermediário',
+            basic: 'Básico'
         },
         'en': {
             summary: 'Professional Summary',
@@ -23,7 +31,15 @@
             education: 'Education',
             languages: 'Languages',
             certifications: 'Certifications',
-            projects: 'Projects'
+            projects: 'Projects',
+            present: 'Present',
+            completed: 'Completed',
+            inProgress: 'In Progress',
+            native: 'Native',
+            fluent: 'Fluent',
+            advanced: 'Advanced',
+            intermediate: 'Intermediate',
+            basic: 'Basic'
         },
         'es': {
             summary: 'Resumen Profesional',
@@ -32,10 +48,64 @@
             education: 'Formación Académica',
             languages: 'Idiomas',
             certifications: 'Certificaciones',
-            projects: 'Proyectos'
+            projects: 'Proyectos',
+            present: 'Actual',
+            completed: 'Completado',
+            inProgress: 'En progreso',
+            native: 'Nativo',
+            fluent: 'Fluido',
+            advanced: 'Avanzado',
+            intermediate: 'Intermedio',
+            basic: 'Básico'
+        },
+        'fr': {
+            summary: 'Résumé Professionnel',
+            experience: 'Expérience Professionnelle',
+            skills: 'Compétences Techniques',
+            education: 'Formation',
+            languages: 'Langues',
+            certifications: 'Certifications',
+            projects: 'Projets',
+            present: 'Présent',
+            completed: 'Terminé',
+            inProgress: 'En cours',
+            native: 'Natif',
+            fluent: 'Courant',
+            advanced: 'Avancé',
+            intermediate: 'Intermédiaire',
+            basic: 'Débutant'
         }
     };
     const t = translations[lang] || translations['pt-BR'];
+    
+    // Mapeamento de traduções dinâmicas
+    const dynamicTranslations = {
+        'Nativo': { 'en': 'Native', 'es': 'Nativo', 'fr': 'Natif' },
+        'Fluente': { 'en': 'Fluent', 'es': 'Fluido', 'fr': 'Courant' },
+        'Avançado': { 'en': 'Advanced', 'es': 'Avanzado', 'fr': 'Avancé' },
+        'Intermediário': { 'en': 'Intermediate', 'es': 'Intermedio', 'fr': 'Intermédiaire' },
+        'Básico': { 'en': 'Basic', 'es': 'Básico', 'fr': 'Débutant' },
+        'Português': { 'en': 'Portuguese', 'es': 'Portugués', 'fr': 'Portugais' },
+        'Inglês': { 'en': 'English', 'es': 'Inglés', 'fr': 'Anglais' },
+        'Espanhol': { 'en': 'Spanish', 'es': 'Español', 'fr': 'Espagnol' },
+        'Francês': { 'en': 'French', 'es': 'Francés', 'fr': 'Français' },
+        'Alemão': { 'en': 'German', 'es': 'Alemán', 'fr': 'Allemand' },
+        'Concluído': { 'en': 'Completed', 'es': 'Completado', 'fr': 'Terminé' },
+        'Em andamento': { 'en': 'In Progress', 'es': 'En progreso', 'fr': 'En cours' },
+        'Cursando': { 'en': 'In Progress', 'es': 'En curso', 'fr': 'En cours' }
+    };
+    
+    function translateText(text) {
+        if (!text || lang === 'pt-BR') return text;
+        const langKey = lang.split('-')[0];
+        let translated = text;
+        Object.keys(dynamicTranslations).forEach(ptWord => {
+            if (translated.includes(ptWord) && dynamicTranslations[ptWord][langKey]) {
+                translated = translated.replace(new RegExp(ptWord, 'gi'), dynamicTranslations[ptWord][langKey]);
+            }
+        });
+        return translated;
+    }
     
     // Ordem das seções (configurável)
     const defaultOrder = ['summary', 'experience', 'skills', 'education', 'certifications', 'languages', 'projects'];
@@ -474,8 +544,8 @@
                 <% if (idiomas && idiomas.length > 0) { %>
                     <% idiomas.forEach(i => { %>
                     <span class="language-item">
-                        <span class="language-name"><%= i.idioma %>:</span>
-                        <span class="language-level"><%= i.nivel_cefr %></span>
+                        <span class="language-name"><%= translateText(i.idioma) %>:</span>
+                        <span class="language-level"><%= translateText(i.nivel_cefr) %></span>
                     </span>
                     <% }); %>
                 <% } else { %>

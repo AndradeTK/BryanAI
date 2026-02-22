@@ -14,7 +14,17 @@
             education: 'Formação Acadêmica',
             languages: 'Idiomas',
             certifications: 'Certificações',
-            projects: 'Projetos'
+            projects: 'Projetos',
+            present: 'Atual',
+            completed: 'Concluído',
+            inProgress: 'Em andamento',
+            native: 'Nativo',
+            fluent: 'Fluente',
+            advanced: 'Avançado',
+            intermediate: 'Intermediário',
+            basic: 'Básico',
+            technical: 'Técnicas',
+            communication: 'Comunicação'
         },
         'en': {
             summary: 'Summary',
@@ -23,7 +33,17 @@
             education: 'Education',
             languages: 'Languages',
             certifications: 'Certifications',
-            projects: 'Projects'
+            projects: 'Projects',
+            present: 'Present',
+            completed: 'Completed',
+            inProgress: 'In Progress',
+            native: 'Native',
+            fluent: 'Fluent',
+            advanced: 'Advanced',
+            intermediate: 'Intermediate',
+            basic: 'Basic',
+            technical: 'Technical',
+            communication: 'Communication'
         },
         'es': {
             summary: 'Resumen Profesional',
@@ -32,10 +52,85 @@
             education: 'Formación Académica',
             languages: 'Idiomas',
             certifications: 'Certificaciones',
-            projects: 'Proyectos'
+            projects: 'Proyectos',
+            present: 'Actual',
+            completed: 'Completado',
+            inProgress: 'En progreso',
+            native: 'Nativo',
+            fluent: 'Fluido',
+            advanced: 'Avanzado',
+            intermediate: 'Intermedio',
+            basic: 'Básico',
+            technical: 'Técnicas',
+            communication: 'Comunicación'
+        },
+        'fr': {
+            summary: 'Résumé Professionnel',
+            experience: 'Expérience Professionnelle',
+            skills: 'Compétences',
+            education: 'Formation',
+            languages: 'Langues',
+            certifications: 'Certifications',
+            projects: 'Projets',
+            present: 'Présent',
+            completed: 'Terminé',
+            inProgress: 'En cours',
+            native: 'Natif',
+            fluent: 'Courant',
+            advanced: 'Avancé',
+            intermediate: 'Intermédiaire',
+            basic: 'Débutant',
+            technical: 'Techniques',
+            communication: 'Communication'
         }
     };
     const t = translations[lang] || translations['pt-BR'];
+    
+    // Mapeamento de traduções dinâmicas (português → outros idiomas)
+    const dynamicTranslations = {
+        // Níveis de idioma
+        'Nativo': { 'en': 'Native', 'es': 'Nativo', 'fr': 'Natif' },
+        'Fluente': { 'en': 'Fluent', 'es': 'Fluido', 'fr': 'Courant' },
+        'Avançado': { 'en': 'Advanced', 'es': 'Avanzado', 'fr': 'Avancé' },
+        'Intermediário': { 'en': 'Intermediate', 'es': 'Intermedio', 'fr': 'Intermédiaire' },
+        'Básico': { 'en': 'Basic', 'es': 'Básico', 'fr': 'Débutant' },
+        // Nomes de idiomas
+        'Português': { 'en': 'Portuguese', 'es': 'Portugués', 'fr': 'Portugais' },
+        'Inglês': { 'en': 'English', 'es': 'Inglés', 'fr': 'Anglais' },
+        'Espanhol': { 'en': 'Spanish', 'es': 'Español', 'fr': 'Espagnol' },
+        'Francês': { 'en': 'French', 'es': 'Francés', 'fr': 'Français' },
+        'Alemão': { 'en': 'German', 'es': 'Alemán', 'fr': 'Allemand' },
+        'Italiano': { 'en': 'Italian', 'es': 'Italiano', 'fr': 'Italien' },
+        'Japonês': { 'en': 'Japanese', 'es': 'Japonés', 'fr': 'Japonais' },
+        'Chinês': { 'en': 'Chinese', 'es': 'Chino', 'fr': 'Chinois' },
+        'Coreano': { 'en': 'Korean', 'es': 'Coreano', 'fr': 'Coréen' },
+        // Status de formação
+        'Concluído': { 'en': 'Completed', 'es': 'Completado', 'fr': 'Terminé' },
+        'Em andamento': { 'en': 'In Progress', 'es': 'En progreso', 'fr': 'En cours' },
+        'Cursando': { 'en': 'In Progress', 'es': 'En curso', 'fr': 'En cours' },
+        'Trancado': { 'en': 'On Hold', 'es': 'Suspendido', 'fr': 'Suspendu' },
+        // Tipos de formação
+        'Graduação': { 'en': 'Bachelor\'s Degree', 'es': 'Licenciatura', 'fr': 'Licence' },
+        'Pós-Graduação': { 'en': 'Postgraduate', 'es': 'Posgrado', 'fr': 'Master' },
+        'Mestrado': { 'en': 'Master\'s Degree', 'es': 'Maestría', 'fr': 'Master' },
+        'Doutorado': { 'en': 'Doctorate', 'es': 'Doctorado', 'fr': 'Doctorat' },
+        'Técnico': { 'en': 'Technical Degree', 'es': 'Técnico', 'fr': 'Diplôme Technique' },
+        'Tecnólogo': { 'en': 'Technology Degree', 'es': 'Tecnólogo', 'fr': 'Diplôme Technologique' }
+    };
+    
+    // Função para traduzir texto dinamicamente
+    function translateText(text) {
+        if (!text || lang === 'pt-BR') return text;
+        const langKey = lang.replace('-', '_').split('_')[0]; // 'en', 'es', 'fr'
+        // Tenta traduzir palavras conhecidas
+        let translated = text;
+        Object.keys(dynamicTranslations).forEach(ptWord => {
+            if (translated.includes(ptWord) && dynamicTranslations[ptWord][langKey]) {
+                translated = translated.replace(new RegExp(ptWord, 'gi'), dynamicTranslations[ptWord][langKey]);
+            }
+        });
+        return translated;
+    }
     
     // Ordem das seções (configurável)
     const defaultOrder = ['summary', 'experience', 'education', 'skills', 'certifications', 'languages', 'projects'];
@@ -385,7 +480,7 @@
                     </div>
                     <div class="experience-row">
                         <span class="job-title"><%= exp.cargo %></span>
-                        <span class="period"><%= exp.periodo || (exp.data_inicio + ' - ' + (exp.data_fim || 'Atual')) %></span>
+                        <span class="period"><%= exp.periodo || (exp.data_inicio + ' - ' + (exp.data_fim || t.present)) %></span>
                     </div>
                     <% 
                     // Suporta tanto bullets (do AI) quanto descricao_atividades (do banco)
@@ -437,8 +532,8 @@
                 <% } %>
                 <% if (idiomas && idiomas.length > 0) { %>
                 <div class="skills-row">
-                    <span class="skills-category-name">Comunicação:</span>
-                    <span class="skills-list-inline"><%= idiomas.map(i => i.idioma + ' (' + i.nivel_cefr + ')').join(', ') %></span>
+                    <span class="skills-category-name"><%= lang === 'en' ? 'Communication' : lang === 'es' ? 'Comunicación' : lang === 'fr' ? 'Communication' : 'Comunicação' %>:</span>
+                    <span class="skills-list-inline"><%= idiomas.map(i => translateText(i.idioma) + ' (' + translateText(i.nivel_cefr) + ')').join(', ') %></span>
                 </div>
                 <% } %>
             <% } else { %>
@@ -512,8 +607,8 @@
                 <% if (idiomas && idiomas.length > 0) { %>
                     <% idiomas.forEach(i => { %>
                     <div class="language-item">
-                        <span class="language-name"><%= i.idioma %>:</span>
-                        <span class="language-level"><%= i.nivel_cefr %></span>
+                        <span class="language-name"><%= translateText(i.idioma) %>:</span>
+                        <span class="language-level"><%= translateText(i.nivel_cefr) %></span>
                         <% if (i.certificacao_exame) { %>
                         (<%= i.certificacao_exame %>)
                         <% } %>

@@ -68,15 +68,31 @@ async function rewriteResume(curriculo, vaga, analise = null, idioma = 'pt-BR') 
     const idiomaInstrucoes = {
         'pt-BR': {
             instrucao: 'Escreva TODO o conteúdo em Português do Brasil.',
-            verbos: 'Use verbos de ação no passado: Desenvolvi, Implementei, Liderei, Otimizei, Entreguei, Alcancei, etc.'
+            verbos: 'Use verbos de ação no passado: Desenvolvi, Implementei, Liderei, Otimizei, Entreguei, Alcancei, etc.',
+            periodo: 'Use "Atual" para empregos atuais.',
+            extra: ''
         },
         'en': {
-            instrucao: 'Write ALL content in English. This includes the professional summary, job titles, bullet points, and all descriptions.',
-            verbos: 'Use past tense action verbs: Developed, Implemented, Led, Optimized, Delivered, Achieved, Spearheaded, Architected, etc.'
+            instrucao: 'Write ALL content in English. This is MANDATORY for EVERY field.',
+            verbos: 'Use past tense action verbs: Developed, Implemented, Led, Optimized, Delivered, Achieved, Spearheaded, Architected, etc.',
+            periodo: 'Use "Present" for current jobs, not "Atual".',
+            extra: `CRITICAL TRANSLATION RULES:
+- Job titles must be in English (e.g., "Desenvolvedor" → "Developer", "Analista" → "Analyst", "Estagiário" → "Intern")
+- All bullet points and descriptions in English
+- Professional summary in English
+- Skill categories in English
+- Date format: "Jan 2020 - Present" (not "Jan 2020 - Atual")
+- Even if the original is in Portuguese, OUTPUT MUST BE 100% IN ENGLISH`
         },
         'fr': {
-            instrucao: 'Rédigez TOUT le contenu en français. Cela inclut le résumé professionnel, les titres de poste, les points clés et toutes les descriptions.',
-            verbos: 'Utilisez des verbes d\'action au passé: Développé, Implémenté, Dirigé, Optimisé, Livré, Atteint, Piloté, Architecturé, etc.'
+            instrucao: 'Rédigez TOUT le contenu en français. C\'est OBLIGATOIRE pour CHAQUE champ.',
+            verbos: 'Utilisez des verbes d\'action au passé: Développé, Implémenté, Dirigé, Optimisé, Livré, Atteint, Piloté, Architecturé, etc.',
+            periodo: 'Utilisez "Présent" pour les emplois actuels.',
+            extra: `RÈGLES DE TRADUCTION CRITIQUES:
+- Les titres de poste doivent être en français (ex: "Developer" → "Développeur", "Analyst" → "Analyste")
+- Toutes les descriptions en français
+- Résumé professionnel en français
+- Format de date: "Jan 2020 - Présent"`
         }
     };
     const langConfig = idiomaInstrucoes[idioma] || idiomaInstrucoes['pt-BR'];
@@ -85,6 +101,8 @@ async function rewriteResume(curriculo, vaga, analise = null, idioma = 'pt-BR') 
 
 IDIOMA OBRIGATÓRIO: ${langConfig.instrucao}
 ${langConfig.verbos}
+${langConfig.periodo || ''}
+${langConfig.extra || ''}
 
 DADOS ORIGINAIS DO CANDIDATO:
 ${JSON.stringify(curriculo, null, 2)}
@@ -100,19 +118,25 @@ TAREFA: Reescreva o currículo otimizado para esta vaga.
 
 IMPORTANTE - ORDENAÇÃO CRONOLÓGICA:
 - As experiências devem estar em ordem CRONOLÓGICA REVERSA (mais recente primeiro)
-- Use a data_fim ou "Atual" para ordenar - experiências atuais sempre no topo
+- Use a data_fim ou "${langConfig.periodo?.includes('Present') ? 'Present' : langConfig.periodo?.includes('Présent') ? 'Présent' : 'Atual'}" para ordenar - experiências atuais sempre no topo
 - Depois ordene por data_inicio, do mais recente para o mais antigo
+
+IMPORTANTE - TRADUÇÕES:
+- O campo "periodo" deve estar no idioma solicitado (ex: "Jan 2020 - Present" para inglês, "Jan 2020 - Atual" para português)
+- O campo "cargo" deve estar no idioma solicitado (ex: "Software Developer" para inglês)
+- O "titulo_profissional" deve refletir o cargo alvo da vaga no idioma solicitado
 
 Retorne EXCLUSIVAMENTE um JSON:
 {
-    "resumo_profissional": "<resumo de 3-4 linhas otimizado para a vaga, em primeira pessoa>",
+    "titulo_profissional": "<título profissional otimizado para a vaga, no idioma solicitado>",
+    "resumo_profissional": "<resumo de 3-4 linhas otimizado para a vaga, em primeira pessoa, no idioma solicitado>",
     "experiencias": [
         {
-            "empresa": "<nome>",
-            "cargo": "<cargo otimizado se necessário>",
-            "periodo": "<data_inicio - data_fim>",
+            "empresa": "<nome da empresa>",
+            "cargo": "<cargo NO IDIOMA SOLICITADO>",
+            "periodo": "<data_inicio - data_fim NO IDIOMA SOLICITADO, ex: Jan 2020 - Present>",
             "bullets": [
-                "<bullet point 1 seguindo a fórmula mágica>",
+                "<bullet point 1 seguindo a fórmula mágica, NO IDIOMA SOLICITADO>",
                 "<bullet point 2>",
                 "<bullet point 3>"
             ]
@@ -123,7 +147,7 @@ Retorne EXCLUSIVAMENTE um JSON:
         "secundarias": ["<outras tecnologias>"]
     },
     "diferenciais": [
-        "<ponto diferencial 1>",
+        "<ponto diferencial 1, NO IDIOMA SOLICITADO>",
         "<ponto diferencial 2>"
     ],
     "keywords_otimizadas": ["<lista de keywords inseridas no currículo>"]
