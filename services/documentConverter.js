@@ -1,6 +1,7 @@
 /**
  * Service: Conversor de Documentos
  * Converte HTML para PDF (Puppeteer) e DOCX (html-to-docx)
+ * Extrai texto de PDF e DOCX para análise
  */
 
 const puppeteer = require('puppeteer');
@@ -10,6 +11,7 @@ const fs = require('fs').promises;
 
 // Diretório para salvar arquivos gerados
 const OUTPUT_DIR = path.join(__dirname, '..', 'generated');
+const UPLOADS_DIR = path.join(__dirname, '..', 'generated', 'uploads');
 
 /**
  * Garante que o diretório de output existe
@@ -17,6 +19,7 @@ const OUTPUT_DIR = path.join(__dirname, '..', 'generated');
 async function ensureOutputDir() {
     try {
         await fs.mkdir(OUTPUT_DIR, { recursive: true });
+        await fs.mkdir(UPLOADS_DIR, { recursive: true });
     } catch (error) {
         if (error.code !== 'EEXIST') throw error;
     }
@@ -207,11 +210,97 @@ function getOutputDir() {
     return OUTPUT_DIR;
 }
 
+/**
+ * Extrai texto de arquivo PDF
+ * @param {string} filePath - Caminho do arquivo PDF
+ * @returns {string} Texto extraído
+ */
+async function extractTextFromPdf(filePath) {
+    try {
+        // Usa pdf-parse para extração de texto
+        const pdfParse = require('pdf-parse');
+        const dataBuffer = await fs.readFile(filePath);
+        const data = await pdfParse(dataBuffer);
+        return data.text || '';
+    } catch (error) {
+        console.error('Erro ao extrair texto do PDF:', error);
+        
+        // Fallback: tenta usar Puppeteer para renderizar e extrair texto
+        try {
+            let browser;
+            try {
+                browser = await puppeteer.launch({
+                    headless: 'new',
+                    args: ['--no-sandbox', '--disable-setuid-sandbox']
+                });
+                const page = await browser.newPage();
+                
+                // Carrega PDF como data URL
+                const pdfBuffer = await fs.readFile(filePath);
+                const base64 = pdfBuffer.toString('base64');
+                const dataUrl = `data:application/pdf;base64,${base64}`;
+                
+                await page.goto(dataUrl, { waitUntil: 'networkidle0', timeout: 30000 });
+                
+                // Tenta extrair texto visível
+                const text = await page.evaluate(() => document.body.innerText);
+                return text || '';
+            } finally {
+                if (browser) await browser.close();
+            }
+        } catch (fallbackError) {
+            console.error('Fallback também falhou:', fallbackError);
+            throw new Error(`Falha ao extrair texto do PDF: ${error.message}`);
+        }
+    }
+}
+
+/**
+ * Extrai texto de arquivo DOCX
+ * @param {string} filePath - Caminho do arquivo DOCX
+ * @returns {string} Texto extraído
+ */
+async function extractTextFromDocx(filePath) {
+    try {
+        // Usa mammoth para extração de texto
+        const mammoth = require('mammoth');
+        const result = await mammoth.extractRawText({ path: filePath });
+        return result.value || '';
+    } catch (error) {
+        console.error('Erro ao extrair texto do DOCX:', error);
+        
+        // Fallback: tenta usar textract se disponível
+        try {
+            const textract = require('textract');
+            return new Promise((resolve, reject) => {
+                textract.fromFileWithPath(filePath, (err, text) => {
+                    if (err) reject(err);
+                    else resolve(text || '');
+                });
+            });
+        } catch (fallbackError) {
+            console.error('Fallback também falhou:', fallbackError);
+            throw new Error(`Falha ao extrair texto do DOCX: ${error.message}`);
+        }
+    }
+}
+
+/**
+ * Obtém o caminho do diretório de uploads
+ */
+function getUploadsDir() {
+    return UPLOADS_DIR;
+}
+
 module.exports = {
     htmlToPdf,
     htmlToDocx,
     generateFilename,
     listGeneratedFiles,
     deleteGeneratedFile,
-    getOutputDir
+    getOutputDir,
+    extractTextFromPdf,
+    extractTextFromDocx,
+    getUploadsDir,
+    ensureOutputDir
 };

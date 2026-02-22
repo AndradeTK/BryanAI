@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="<%= lang || 'pt-BR' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo - <%= perfil?.nome_completo || 'Nome' %></title>
+    <%
+    // Traduções dos títulos das seções
+    const translations = {
+        'pt-BR': {
+            summary: 'Resumo Profissional',
+            experience: 'Experiência Profissional',
+            skills: 'Habilidades Técnicas',
+            education: 'Formação Acadêmica',
+            languages: 'Idiomas',
+            certifications: 'Certificações',
+            projects: 'Projetos'
+        },
+        'en': {
+            summary: 'Professional Summary',
+            experience: 'Professional Experience',
+            skills: 'Technical Skills',
+            education: 'Education',
+            languages: 'Languages',
+            certifications: 'Certifications',
+            projects: 'Projects'
+        },
+        'es': {
+            summary: 'Resumen Profesional',
+            experience: 'Experiencia Profesional',
+            skills: 'Habilidades Técnicas',
+            education: 'Formación Académica',
+            languages: 'Idiomas',
+            certifications: 'Certificaciones',
+            projects: 'Proyectos'
+        }
+    };
+    const t = translations[lang] || translations['pt-BR'];
+    
+    // Ordem das seções (configurável)
+    const defaultOrder = ['summary', 'experience', 'skills', 'education', 'certifications', 'languages', 'projects'];
+    const sectionOrder = sectionsOrder || defaultOrder;
+    %>
+    <style>
+        /* ===========================================
+           TEMPLATE 1: MINIMALISTA MODERNO (Clean Tech)
+           - Tipografia limpa sans-serif
+           - Espaçamento generoso
+           - Linhas finas para separar seções
+           - 100% compatível com ATS
+           =========================================== */
+        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #2d3748;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm 18mm;
+        }
+        
+        /* ===== HEADER ===== */
+        header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        h1 {
+            font-size: 26pt;
+            font-weight: 600;
+            color: #1a202c;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .contact-info {
+            font-size: 9.5pt;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+        
+        .contact-info a {
+            color: #4a5568;
+            text-decoration: none;
+        }
+        
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        
+        .contact-separator {
+            margin: 0 8px;
+            color: #cbd5e0;
+        }
+        
+        /* ===== SECTIONS ===== */
+        section {
+            margin-bottom: 22px;
+        }
+        
+        h2 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1a202c;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* ===== RESUMO ===== */
+        .summary-text {
+            font-size: 10pt;
+            color: #4a5568;
+            text-align: justify;
+            line-height: 1.7;
+        }
+        
+        /* ===== EXPERIÊNCIA ===== */
+        .experience-item {
+            margin-bottom: 18px;
+            page-break-inside: avoid;
+        }
+        
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        
+        .job-title {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        
+        .period {
+            font-size: 9pt;
+            color: #718096;
+            font-weight: 400;
+        }
+        
+        .company-name {
+            font-size: 10pt;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 6px;
+        }
+        
+        .responsibilities {
+            margin-top: 8px;
+            padding-left: 18px;
+        }
+        
+        .responsibilities li {
+            margin-bottom: 4px;
+            color: #4a5568;
+            font-size: 9.5pt;
+            line-height: 1.5;
+        }
+        
+        /* ===== HABILIDADES ===== */
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+        }
+        
+        .skill-item {
+            font-size: 9.5pt;
+            color: #4a5568;
+            padding: 4px 10px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+        }
+        
+        .skill-category {
+            font-weight: 500;
+            margin-bottom: 8px;
+            margin-top: 10px;
+            font-size: 9pt;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .skill-category:first-child {
+            margin-top: 0;
+        }
+        
+        /* ===== FORMAÇÃO ===== */
+        .education-item {
+            margin-bottom: 12px;
+        }
+        
+        .education-title {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        
+        .education-institution {
+            font-size: 9.5pt;
+            color: #4a5568;
+        }
+        
+        .education-status {
+            font-size: 9pt;
+            color: #718096;
+        }
+        
+        /* ===== CERTIFICAÇÕES ===== */
+        .cert-item {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .cert-name {
+            font-size: 10pt;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .cert-issuer {
+            font-size: 9pt;
+            color: #718096;
+        }
+        
+        /* ===== IDIOMAS ===== */
+        .languages-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .language-item {
+            font-size: 10pt;
+        }
+        
+        .language-name {
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .language-level {
+            color: #718096;
+            font-size: 9pt;
+        }
+        
+        /* ===== PROJETOS ===== */
+        .project-item {
+            margin-bottom: 12px;
+        }
+        
+        .project-title {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        
+        .project-description {
+            font-size: 9.5pt;
+            color: #4a5568;
+        }
+        
+        .project-link {
+            font-size: 9pt;
+            color: #4a5568;
+            text-decoration: none;
+        }
+        
+        /* ===== PRINT OPTIMIZATION ===== */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .container {
+                padding: 12mm 15mm;
+            }
+            
+            section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ===== HEADER ===== -->
+        <header>
+            <h1><%= perfil?.nome_completo || '{{name}}' %></h1>
+            <div class="contact-info">
+                <% if (perfil?.email) { %><%= perfil.email %><% } else { %>{{email}}<% } %>
+                <% if (perfil?.telefone) { %><span class="contact-separator">|</span><%= perfil.telefone %><% } %>
+                <% if (perfil?.localizacao) { %><span class="contact-separator">|</span><%= perfil.localizacao %><% } %>
+                <% if (perfil?.linkedin) { %><br><a href="<%= perfil.linkedin %>"><%= perfil.linkedin.replace('https://www.linkedin.com/in/', 'linkedin.com/in/') %></a><% } %>
+                <% if (perfil?.github) { %><span class="contact-separator">|</span><a href="<%= perfil.github %>"><%= perfil.github.replace('https://github.com/', 'github.com/') %></a><% } %>
+                <% if (perfil?.portfolio) { %><span class="contact-separator">|</span><a href="<%= perfil.portfolio %>"><%= perfil.portfolio.replace('https://', '') %></a><% } %>
+            </div>
+        </header>
+
+        <% 
+        // Função para renderizar cada seção
+        function renderSection(sectionName) {
+            switch(sectionName) {
+                case 'summary':
+                    return renderSummary();
+                case 'experience':
+                    return renderExperience();
+                case 'skills':
+                    return renderSkills();
+                case 'education':
+                    return renderEducation();
+                case 'certifications':
+                    return renderCertifications();
+                case 'languages':
+                    return renderLanguages();
+                case 'projects':
+                    return renderProjects();
+                default:
+                    return '';
+            }
+        }
+        
+        function renderSummary() { %>
+        <!-- ===== RESUMO PROFISSIONAL ===== -->
+        <section>
+            <h2><%= t.summary %></h2>
+            <p class="summary-text"><%= curriculo?.resumo_profissional || perfil?.resumo_base || '{{professional_summary}}' %></p>
+        </section>
+        <% }
+        
+        function renderExperience() { %>
+        <!-- ===== EXPERIÊNCIA PROFISSIONAL ===== -->
+        <section>
+            <h2><%= t.experience %></h2>
+            <% if (curriculo?.experiencias && curriculo.experiencias.length > 0) { %>
+                <% curriculo.experiencias.forEach(exp => { %>
+                <article class="experience-item">
+                    <div class="experience-header">
+                        <span class="job-title"><%= exp.cargo %></span>
+                        <span class="period"><%= exp.periodo %></span>
+                    </div>
+                    <div class="company-name"><%= exp.empresa %></div>
+                    <% if (exp.bullets && exp.bullets.length > 0) { %>
+                    <ul class="responsibilities">
+                        <% exp.bullets.forEach(bullet => { %>
+                        <li><%= bullet %></li>
+                        <% }); %>
+                    </ul>
+                    <% } %>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{experience_list}} -->
+                <article class="experience-item">
+                    <div class="experience-header">
+                        <span class="job-title">{{job_title}}</span>
+                        <span class="period">{{period}}</span>
+                    </div>
+                    <div class="company-name">{{company}}</div>
+                    <ul class="responsibilities">
+                        <li>{{responsibility_1}}</li>
+                        <li>{{responsibility_2}}</li>
+                        <li>{{responsibility_3}}</li>
+                    </ul>
+                </article>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderSkills() { %>
+        <!-- ===== HABILIDADES TÉCNICAS ===== -->
+        <section>
+            <h2><%= t.skills %></h2>
+            <% if (curriculo?.habilidades_tecnicas) { %>
+                <% if (curriculo.habilidades_tecnicas.principais && curriculo.habilidades_tecnicas.principais.length > 0) { %>
+                <div class="skills-list">
+                    <% curriculo.habilidades_tecnicas.principais.forEach(skill => { %>
+                    <span class="skill-item"><%= skill %></span>
+                    <% }); %>
+                    <% if (curriculo.habilidades_tecnicas.secundarias) { %>
+                        <% curriculo.habilidades_tecnicas.secundarias.forEach(skill => { %>
+                        <span class="skill-item"><%= skill %></span>
+                        <% }); %>
+                    <% } %>
+                </div>
+                <% } %>
+            <% } else { %>
+                <!-- {{skills_list}} -->
+                <div class="skills-list">
+                    <span class="skill-item">{{skill_1}}</span>
+                    <span class="skill-item">{{skill_2}}</span>
+                    <span class="skill-item">{{skill_3}}</span>
+                </div>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderEducation() { %>
+        <!-- ===== FORMAÇÃO ACADÊMICA ===== -->
+        <section>
+            <h2><%= t.education %></h2>
+            <% if (formacao && formacao.length > 0) { %>
+                <% formacao.forEach(f => { %>
+                <article class="education-item">
+                    <div class="education-title"><%= f.titulo_curso %></div>
+                    <div class="education-institution"><%= f.instituicao_projeto %></div>
+                    <div class="education-status"><%= f.status %></div>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{education_list}} -->
+                <article class="education-item">
+                    <div class="education-title">{{degree}}</div>
+                    <div class="education-institution">{{institution}}</div>
+                    <div class="education-status">{{graduation_status}}</div>
+                </article>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderCertifications() { %>
+        <!-- ===== CERTIFICAÇÕES ===== -->
+        <% if ((cursos && cursos.length > 0) || !cursos) { %>
+        <section>
+            <h2><%= t.certifications %></h2>
+            <% if (cursos && cursos.length > 0) { %>
+                <% cursos.forEach(c => { %>
+                <div class="cert-item">
+                    <span class="cert-name"><%= c.titulo_do_curso %></span>
+                    <span class="cert-issuer"><%= c.emissor_instituicao %></span>
+                </div>
+                <% }); %>
+            <% } else { %>
+                <!-- {{certifications_list}} -->
+                <div class="cert-item">
+                    <span class="cert-name">{{certification_name}}</span>
+                    <span class="cert-issuer">{{issuer}}</span>
+                </div>
+            <% } %>
+        </section>
+        <% } %>
+        <% }
+        
+        function renderLanguages() { %>
+        <!-- ===== IDIOMAS ===== -->
+        <% if ((idiomas && idiomas.length > 0) || !idiomas) { %>
+        <section>
+            <h2><%= t.languages %></h2>
+            <div class="languages-list">
+                <% if (idiomas && idiomas.length > 0) { %>
+                    <% idiomas.forEach(i => { %>
+                    <span class="language-item">
+                        <span class="language-name"><%= i.idioma %>:</span>
+                        <span class="language-level"><%= i.nivel_cefr %></span>
+                    </span>
+                    <% }); %>
+                <% } else { %>
+                    <!-- {{languages_list}} -->
+                    <span class="language-item">
+                        <span class="language-name">{{language}}:</span>
+                        <span class="language-level">{{level}}</span>
+                    </span>
+                <% } %>
+            </div>
+        </section>
+        <% } %>
+        <% }
+        
+        function renderProjects() { %>
+        <!-- ===== PROJETOS ===== -->
+        <% if ((projetos && projetos.length > 0)) { %>
+        <section>
+            <h2><%= t.projects %></h2>
+            <% projetos.forEach(p => { %>
+            <article class="project-item">
+                <div class="project-title"><%= p.instituicao_projeto %></div>
+                <div class="project-description"><%= p.descricao_detalhada %></div>
+                <% if (p.link) { %><a class="project-link" href="<%= p.link %>"><%= p.link %></a><% } %>
+            </article>
+            <% }); %>
+        </section>
+        <% } %>
+        <% }
+        
+        // Renderiza seções na ordem configurada
+        sectionOrder.forEach(section => {
+            renderSection(section);
+        });
+        %>
+    </div>
+</body>
+</html>

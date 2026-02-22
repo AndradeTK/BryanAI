@@ -139,7 +139,79 @@ Retorne APENAS um JSON:
     }
 }
 
+/**
+ * Analisa currículo externo (texto extraído de PDF/DOCX) com vaga
+ * @param {string} textoExtraido - Texto extraído do arquivo
+ * @param {Object} vaga - Dados da vaga (titulo, descricao)
+ * @returns {Object} Análise de compatibilidade
+ */
+async function analyzeExternalResume(textoExtraido, vaga) {
+    const model = genAI.getGenerativeModel(modelConfig);
+
+    const prompt = `${ANALYZER_SYSTEM_PROMPT}
+
+CURRÍCULO DO CANDIDATO (texto extraído de arquivo):
+---
+${textoExtraido.substring(0, 10000)}
+---
+
+VAGA ALVO:
+Título: ${vaga.titulo}
+Descrição:
+${vaga.descricao}
+
+TAREFA: Analise a compatibilidade entre este currículo e a vaga. 
+IMPORTANTE: O texto foi extraído automaticamente de um PDF/DOCX, ignore problemas de formatação.
+
+Retorne EXCLUSIVAMENTE um JSON no seguinte formato:
+{
+    "score": <número de 0 a 100>,
+    "nivel_compatibilidade": "<Baixo|Médio|Alto|Excelente>",
+    "resumo_executivo": "<análise em 2-3 frases>",
+    "candidato_identificado": {
+        "nome": "<nome extraído ou 'Não identificado'>",
+        "cargo_atual": "<cargo atual ou último>",
+        "experiencia_anos": "<estimativa de anos de experiência>"
+    },
+    "pontos_fortes": [
+        {"ponto": "<descrição>", "relevancia": "<Alta|Média>"}
+    ],
+    "gaps_identificados": [
+        {"gap": "<descrição>", "criticidade": "<Crítico|Importante|Menor>", "sugestao_acao": "<como resolver>"}
+    ],
+    "keywords_match": {
+        "presentes": ["<keywords do candidato que batem com a vaga>"],
+        "ausentes": ["<keywords importantes da vaga que faltam no currículo>"]
+    },
+    "recomendacoes_adaptacao": [
+        "<sugestão específica para adaptar o currículo para esta vaga>"
+    ],
+    "qualidade_curriculo": {
+        "nota": <1-10>,
+        "pontos_positivos": ["<o que está bom no formato/conteúdo>"],
+        "melhorias_sugeridas": ["<sugestões de melhoria de formato/conteúdo>"]
+    },
+    "probabilidade_entrevista": "<Baixa|Média|Alta|Muito Alta>",
+    "sugestao_proximos_passos": "<o que o candidato deve fazer para aumentar chances>"
+}`;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        const text = response.text();
+        
+        // Limpa o texto de possíveis marcações markdown
+        const cleanJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        
+        return JSON.parse(cleanJson);
+    } catch (error) {
+        console.error('Erro na análise de currículo externo:', error);
+        throw new Error(`Falha na análise de IA: ${error.message}`);
+    }
+}
+
 module.exports = {
     analyzeJobFit,
-    quickAnalysis
+    quickAnalysis,
+    analyzeExternalResume
 };

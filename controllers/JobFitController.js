@@ -4,7 +4,7 @@
  */
 
 const { HistoricoGeracao } = require('../models');
-const { aiAnalyzer, aiWriter, documentConverter, curriculoService } = require('../services');
+const { aiAnalyzer, aiWriter, documentConverter, curriculoService, userSettingsService } = require('../services');
 const path = require('path');
 const ejs = require('ejs');
 const fs = require('fs').promises;
@@ -111,7 +111,7 @@ const JobFitController = {
      * API: Gera currículo otimizado
      */
     async apiGenerate(req, res) {
-        const { titulo, descricao, formato = 'pdf', idioma = 'pt-BR' } = req.body;
+        const { titulo, descricao, formato = 'pdf', idioma = 'pt-BR', templateId } = req.body;
 
         if (!titulo || !descricao) {
             return res.status(400).json({
@@ -136,16 +136,22 @@ const JobFitController = {
             // Reescreve currículo otimizado
             const curriculoOtimizado = await aiWriter.rewriteResume(curriculo, { titulo, descricao }, analise, idioma);
 
+            // Obtém template a usar (do request ou o padrão)
+            const settings = await userSettingsService.getSettings();
+            const template = templateId || settings.templatePadrao;
+            const templatePath = await userSettingsService.getTemplatePath(template);
+
             // Renderiza template HTML
-            const templatePath = path.join(__dirname, '..', 'views', 'templates', 'curriculo.ejs');
             const html = await ejs.renderFile(templatePath, {
                 perfil: curriculo.perfil,
                 curriculo: curriculoOtimizado,
                 formacao: curriculo.formacao,
+                projetos: curriculo.projetos,
                 cursos: curriculo.cursos_certificacoes,
                 idiomas: curriculo.idiomas,
                 vaga: { titulo, descricao },
-                lang: idioma
+                lang: idioma,
+                sectionsOrder: settings.sectionsOrder
             });
 
             // Converte para o formato solicitado
@@ -216,6 +222,81 @@ const JobFitController = {
 
         } catch (error) {
             console.error('Erro na análise rápida:', error);
+            res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+    },
+
+    /**
+     * API: Analisa currículo externo (PDF/DOCX) com vaga
+     * Permite upload de arquivo para análise de compatibilidade
+     */
+    async apiAnalyzeUpload(req, res) {
+        const { titulo, descricao } = req.body;
+        const file = req.file;
+
+        if (!file) {
+            return res.status(400).json({
+                success: false,
+                error: 'Arquivo é obrigatório (PDF ou DOCX)'
+            });
+        }
+
+        if (!titulo || !descricao) {
+            // Remove arquivo se validação falhar
+            try {
+                await fs.unlink(file.path);
+            } catch (e) {}
+            return res.status(400).json({
+                success: false,
+                error: 'Título e descrição da vaga são obrigatórios'
+            });
+        }
+
+        try {
+            // Extrai texto do arquivo
+            let textoExtraido;
+            if (file.mimetype === 'application/pdf') {
+                textoExtraido = await documentConverter.extractTextFromPdf(file.path);
+            } else {
+                textoExtraido = await documentConverter.extractTextFromDocx(file.path);
+            }
+
+            if (!textoExtraido || textoExtraido.trim().length < 50) {
+                await fs.unlink(file.path);
+                return res.status(400).json({
+                    success: false,
+                    error: 'Não foi possível extrair texto suficiente do arquivo'
+                });
+            }
+
+            // Análise de Job Fit com texto extraído
+            const analise = await aiAnalyzer.analyzeExternalResume(textoExtraido, { titulo, descricao });
+
+            // Remove arquivo temporário após análise
+            try {
+                await fs.unlink(file.path);
+            } catch (e) {
+                console.error('Erro ao remover arquivo temporário:', e);
+            }
+
+            res.json({
+                success: true,
+                data: {
+                    analise,
+                    arquivoOriginal: file.originalname,
+                    caracteresExtraidos: textoExtraido.length
+                }
+            });
+
+        } catch (error) {
+            console.error('Erro na análise de upload:', error);
+            // Remove arquivo em caso de erro
+            try {
+                if (file?.path) await fs.unlink(file.path);
+            } catch (e) {}
             res.status(500).json({
                 success: false,
                 error: error.message

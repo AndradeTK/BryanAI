@@ -1,7 +1,7 @@
 <% const pageTitle = 'Job Fit Analysis'; %>
 <%- include('../partials/layout-start', { title: pageTitle }) %>
 
-<div class="max-w-4xl mx-auto">
+<div class="max-w-5xl mx-auto">
     <!-- Status do Currículo -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div class="flex items-center justify-between">
@@ -22,57 +22,157 @@
         </div>
     </div>
 
-    <!-- Formulário de Análise -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-primary-600 to-primary-700">
-            <h3 class="text-xl font-semibold text-white flex items-center gap-3">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+    <!-- Tabs de Navegação -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+        <div class="flex border-b border-gray-200">
+            <button onclick="switchTab('generate')" id="tab-generate" class="flex-1 py-4 px-6 text-center font-medium text-primary-600 border-b-2 border-primary-600 bg-primary-50 transition">
+                <svg class="w-5 h-5 inline-block mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                Análise de Job Fit & Geração de Currículo
-            </h3>
-            <p class="text-primary-100 mt-1">Cole a descrição da vaga para analisar compatibilidade e gerar currículo otimizado</p>
+                Gerar Currículo
+            </button>
+            <button onclick="switchTab('analyze')" id="tab-analyze" class="flex-1 py-4 px-6 text-center font-medium text-gray-500 hover:text-gray-700 transition">
+                <svg class="w-5 h-5 inline-block mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+                Analisar Currículo Externo
+            </button>
+            <button onclick="switchTab('templates')" id="tab-templates" class="flex-1 py-4 px-6 text-center font-medium text-gray-500 hover:text-gray-700 transition">
+                <svg class="w-5 h-5 inline-block mr-2 -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+                </svg>
+                Templates
+            </button>
         </div>
 
-        <form id="jobFitForm" class="p-6 space-y-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Título da Vaga *</label>
-                <input type="text" name="titulo" id="titulo" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
-                       placeholder="Ex: Desenvolvedor Full Stack Jr.">
+        <!-- TAB 1: Gerar Currículo -->
+        <div id="panel-generate" class="p-6">
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Análise de Job Fit & Geração de Currículo</h3>
+                <p class="text-gray-500">Cole a descrição da vaga para analisar compatibilidade e gerar currículo otimizado</p>
             </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Descrição da Vaga *</label>
-                <textarea name="descricao" id="descricao" rows="10" required
-                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                          placeholder="Cole aqui a descrição completa da vaga, incluindo requisitos, responsabilidades e benefícios..."></textarea>
+            <form id="jobFitForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Título da Vaga *</label>
+                    <input type="text" name="titulo" id="titulo" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-lg"
+                           placeholder="Ex: Desenvolvedor Full Stack Jr.">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição da Vaga *</label>
+                    <textarea name="descricao" id="descricao" rows="8" required
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                              placeholder="Cole aqui a descrição completa da vaga, incluindo requisitos, responsabilidades e benefícios..."></textarea>
+                </div>
+
+                <!-- Seleção de Template -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Template do Currículo</label>
+                    <div id="templateSelector" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <!-- Templates serão carregados via JavaScript -->
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="button" onclick="analyzeJob()" class="flex-1 bg-primary-600 text-white py-3 px-6 rounded-lg hover:bg-primary-700 transition flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        Analisar Compatibilidade
+                    </button>
+                    <button type="button" onclick="generateResume('pdf')" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Gerar Currículo (PDF)
+                    </button>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button type="button" onclick="generateResume('docx')" class="text-gray-500 hover:text-gray-700 text-sm flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Gerar em Word (.docx)
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 2: Analisar Currículo Externo -->
+        <div id="panel-analyze" class="p-6 hidden">
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Analisar Currículo Externo (PDF/DOCX)</h3>
+                <p class="text-gray-500">Faça upload de um currículo em PDF ou Word para analisar compatibilidade com uma vaga</p>
             </div>
 
-            <div class="flex gap-4">
-                <button type="button" onclick="analyzeJob()" class="flex-1 bg-primary-600 text-white py-3 px-6 rounded-lg hover:bg-primary-700 transition flex items-center justify-center gap-2">
+            <form id="uploadAnalysisForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Título da Vaga *</label>
+                    <input type="text" name="tituloUpload" id="tituloUpload" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                           placeholder="Ex: Desenvolvedor Full Stack Jr.">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Descrição da Vaga *</label>
+                    <textarea name="descricaoUpload" id="descricaoUpload" rows="6" required
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                              placeholder="Cole aqui a descrição completa da vaga..."></textarea>
+                </div>
+
+                <!-- Upload de Arquivo -->
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary-500 transition cursor-pointer" onclick="document.getElementById('fileUpload').click()">
+                    <input type="file" id="fileUpload" name="arquivo" accept=".pdf,.docx,.doc" class="hidden" onchange="handleFileSelect(event)">
+                    <div id="uploadPlaceholder">
+                        <svg class="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <p class="text-gray-600 mb-2">Clique para selecionar ou arraste o arquivo</p>
+                        <p class="text-sm text-gray-400">PDF ou DOCX (máximo 10MB)</p>
+                    </div>
+                    <div id="uploadFileInfo" class="hidden">
+                        <svg class="w-12 h-12 mx-auto text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="text-gray-800 font-medium" id="uploadFileName"></p>
+                        <p class="text-sm text-gray-400" id="uploadFileSize"></p>
+                    </div>
+                </div>
+
+                <button type="button" onclick="analyzeUploadedResume()" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                     </svg>
-                    Analisar Compatibilidade
+                    Analisar Currículo
                 </button>
-                <button type="button" onclick="generateResume('pdf')" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Gerar Currículo (PDF)
-                </button>
+            </form>
+        </div>
+
+        <!-- TAB 3: Templates -->
+        <div id="panel-templates" class="p-6 hidden">
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Gerenciar Templates</h3>
+                <p class="text-gray-500">Escolha o template padrão para geração de currículos</p>
             </div>
 
-            <div class="flex justify-center">
-                <button type="button" onclick="generateResume('docx')" class="text-gray-500 hover:text-gray-700 text-sm flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d indow="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Ou gerar em formato Word (.docx)
+            <div id="templatesGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Templates Preview -->
+            </div>
+
+            <div class="mt-8 border-t border-gray-200 pt-6">
+                <h4 class="text-lg font-medium text-gray-800 mb-4">Ordem das Seções</h4>
+                <p class="text-sm text-gray-500 mb-4">Arraste para reordenar as seções do currículo</p>
+                <div id="sectionsOrderList" class="space-y-2">
+                    <!-- Seções serão carregadas via JavaScript -->
+                </div>
+                <button onclick="saveSectionsOrder()" class="mt-4 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-900 transition text-sm">
+                    Salvar Ordem
                 </button>
             </div>
-        </form>
+        </div>
 
         <!-- Resultado da Análise -->
         <div id="analysisResult" class="hidden border-t border-gray-200">
@@ -96,6 +196,16 @@
 
                 <div id="summaryText" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                     <p class="text-blue-800"></p>
+                </div>
+
+                <!-- Info do candidato (para uploads) -->
+                <div id="candidateInfo" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+                    <h5 class="font-medium text-purple-800 mb-2">Candidato Identificado</h5>
+                    <div class="grid grid-cols-3 gap-4 text-sm">
+                        <div><span class="text-purple-600">Nome:</span> <span id="candidateName">--</span></div>
+                        <div><span class="text-purple-600">Cargo:</span> <span id="candidateRole">--</span></div>
+                        <div><span class="text-purple-600">Experiência:</span> <span id="candidateExp">--</span></div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -126,6 +236,21 @@
                     <div id="keywordsList" class="flex flex-wrap gap-2">
                     </div>
                 </div>
+
+                <!-- Qualidade do Currículo (para uploads) -->
+                <div id="qualitySection" class="hidden mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <h5 class="font-medium text-amber-800 mb-2">Qualidade do Currículo: <span id="qualityScore">--</span>/10</h5>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-amber-700 font-medium mb-1">Pontos Positivos:</p>
+                            <ul id="qualityPositive" class="list-disc list-inside text-amber-600"></ul>
+                        </div>
+                        <div>
+                            <p class="text-amber-700 font-medium mb-1">Melhorias Sugeridas:</p>
+                            <ul id="qualityImprovements" class="list-disc list-inside text-amber-600"></ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -141,6 +266,236 @@
 </div>
 
 <script>
+    // Estado da aplicação
+    let selectedTemplate = 'minimalista';
+    let currentTemplates = [];
+    let currentSectionsOrder = [];
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+        loadTemplates();
+        loadSettings();
+    });
+
+    // ===== TABS =====
+    function switchTab(tab) {
+        const tabs = ['generate', 'analyze', 'templates'];
+        tabs.forEach(t => {
+            document.getElementById('tab-' + t).classList.remove('text-primary-600', 'border-primary-600', 'bg-primary-50', 'border-b-2');
+            document.getElementById('tab-' + t).classList.add('text-gray-500');
+            document.getElementById('panel-' + t).classList.add('hidden');
+        });
+        document.getElementById('tab-' + tab).classList.remove('text-gray-500');
+        document.getElementById('tab-' + tab).classList.add('text-primary-600', 'border-primary-600', 'bg-primary-50', 'border-b-2');
+        document.getElementById('panel-' + tab).classList.remove('hidden');
+        
+        // Esconde resultado ao trocar de tab
+        document.getElementById('analysisResult').classList.add('hidden');
+    }
+
+    // ===== TEMPLATES =====
+    async function loadTemplates() {
+        try {
+            const response = await fetch('/api/templates');
+            const data = await response.json();
+            if (data.success) {
+                currentTemplates = data.data;
+                renderTemplateSelector();
+                renderTemplatesGrid();
+            }
+        } catch (error) {
+            console.error('Erro ao carregar templates:', error);
+        }
+    }
+
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/settings');
+            const data = await response.json();
+            if (data.success) {
+                selectedTemplate = data.data.templatePadrao;
+                currentSectionsOrder = data.data.sectionsOrder;
+                renderSectionsOrder();
+                updateTemplateSelection();
+            }
+        } catch (error) {
+            console.error('Erro ao carregar settings:', error);
+        }
+    }
+
+    function renderTemplateSelector() {
+        const container = document.getElementById('templateSelector');
+        container.innerHTML = currentTemplates.map(t => `
+            <label class="template-option flex items-center p-3 border rounded-lg cursor-pointer transition ${t.isDefault ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-gray-300'}" data-template="${t.id}">
+                <input type="radio" name="template" value="${t.id}" ${t.isDefault ? 'checked' : ''} class="sr-only" onchange="selectTemplate('${t.id}')">
+                <div class="w-4 h-4 rounded-full border-2 mr-3 flex items-center justify-center ${t.isDefault ? 'border-primary-500' : 'border-gray-300'}">
+                    <div class="w-2 h-2 rounded-full ${t.isDefault ? 'bg-primary-500' : ''}"></div>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-800 text-sm">${t.nome}</p>
+                    <p class="text-xs text-gray-500">${t.descricao.substring(0, 50)}...</p>
+                </div>
+            </label>
+        `).join('');
+    }
+
+    function renderTemplatesGrid() {
+        const container = document.getElementById('templatesGrid');
+        container.innerHTML = currentTemplates.map(t => `
+            <div class="template-card border-2 rounded-xl overflow-hidden transition ${t.isDefault ? 'border-primary-500 shadow-lg' : 'border-gray-200'}" data-template="${t.id}">
+                <div class="h-32 flex items-center justify-center" style="background: ${t.previewColor}">
+                    <svg class="w-16 h-16 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div class="p-4">
+                    <h4 class="font-semibold text-gray-800">${t.nome}</h4>
+                    <p class="text-sm text-gray-500 mt-1">${t.descricao}</p>
+                    <button onclick="setDefaultTemplate('${t.id}')" class="mt-3 w-full py-2 px-3 text-sm rounded-lg transition ${t.isDefault ? 'bg-primary-100 text-primary-700 cursor-default' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}">
+                        ${t.isDefault ? '✓ Template Padrão' : 'Definir como Padrão'}
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function selectTemplate(templateId) {
+        selectedTemplate = templateId;
+        updateTemplateSelection();
+    }
+
+    function updateTemplateSelection() {
+        document.querySelectorAll('.template-option').forEach(el => {
+            const isSelected = el.dataset.template === selectedTemplate;
+            el.classList.toggle('border-primary-500', isSelected);
+            el.classList.toggle('bg-primary-50', isSelected);
+            el.classList.toggle('border-gray-200', !isSelected);
+            el.querySelector('input').checked = isSelected;
+            el.querySelector('.w-2').classList.toggle('bg-primary-500', isSelected);
+        });
+    }
+
+    async function setDefaultTemplate(templateId) {
+        try {
+            const response = await fetch('/api/templates/default', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ templateId })
+            });
+            const data = await response.json();
+            if (data.success) {
+                selectedTemplate = templateId;
+                currentTemplates = currentTemplates.map(t => ({ ...t, isDefault: t.id === templateId }));
+                renderTemplateSelector();
+                renderTemplatesGrid();
+                showNotification('Template padrão atualizado', 'success');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            showNotification('Erro ao salvar template', 'error');
+        }
+    }
+
+    // ===== SEÇÕES ORDER =====
+    function renderSectionsOrder() {
+        const sectionNames = {
+            summary: 'Resumo Profissional',
+            experience: 'Experiência',
+            skills: 'Habilidades',
+            education: 'Formação',
+            certifications: 'Certificações',
+            languages: 'Idiomas',
+            projects: 'Projetos'
+        };
+        
+        const container = document.getElementById('sectionsOrderList');
+        container.innerHTML = currentSectionsOrder.map((section, idx) => `
+            <div class="flex items-center bg-white border border-gray-200 rounded-lg px-4 py-3 cursor-move" draggable="true" data-section="${section}">
+                <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+                </svg>
+                <span class="text-gray-700">${sectionNames[section] || section}</span>
+            </div>
+        `).join('');
+        
+        // Adiciona drag and drop
+        initDragAndDrop();
+    }
+
+    function initDragAndDrop() {
+        const container = document.getElementById('sectionsOrderList');
+        const items = container.querySelectorAll('[draggable]');
+        
+        items.forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragend', handleDragEnd);
+        });
+    }
+
+    let draggedItem = null;
+
+    function handleDragStart(e) {
+        draggedItem = e.target;
+        e.target.classList.add('opacity-50');
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        const target = e.target.closest('[draggable]');
+        if (target && target !== draggedItem) {
+            target.classList.add('border-primary-500');
+        }
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const target = e.target.closest('[draggable]');
+        if (target && target !== draggedItem) {
+            const container = document.getElementById('sectionsOrderList');
+            const items = [...container.children];
+            const draggedIdx = items.indexOf(draggedItem);
+            const targetIdx = items.indexOf(target);
+            
+            if (draggedIdx < targetIdx) {
+                target.after(draggedItem);
+            } else {
+                target.before(draggedItem);
+            }
+            
+            updateSectionsOrderFromDOM();
+        }
+        document.querySelectorAll('[draggable]').forEach(el => el.classList.remove('border-primary-500'));
+    }
+
+    function handleDragEnd(e) {
+        e.target.classList.remove('opacity-50');
+    }
+
+    function updateSectionsOrderFromDOM() {
+        const container = document.getElementById('sectionsOrderList');
+        currentSectionsOrder = [...container.children].map(el => el.dataset.section);
+    }
+
+    async function saveSectionsOrder() {
+        try {
+            const response = await fetch('/api/settings/sections-order', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order: currentSectionsOrder })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotification('Ordem das seções salva', 'success');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            showNotification('Erro ao salvar ordem', 'error');
+        }
+    }
+
+    // ===== LOADING =====
     function showLoading() {
         document.getElementById('loadingOverlay').classList.remove('hidden');
     }
@@ -149,6 +504,7 @@
         document.getElementById('loadingOverlay').classList.add('hidden');
     }
 
+    // ===== ANÁLISE E GERAÇÃO =====
     async function analyzeJob() {
         const titulo = document.getElementById('titulo').value.trim();
         const descricao = document.getElementById('descricao').value.trim();
@@ -170,7 +526,7 @@
             const data = await response.json();
 
             if (data.success) {
-                displayResults(data.data);
+                displayResults(data.data.analise || data.data);
             } else {
                 alert('Erro: ' + data.error);
             }
@@ -197,7 +553,7 @@
             const response = await fetch('/api/jobfit/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo, descricao, formato })
+                body: JSON.stringify({ titulo, descricao, formato, templateId: selectedTemplate })
             });
 
             const data = await response.json();
@@ -206,10 +562,10 @@
                 displayResults(data.data.analise);
                 
                 // Download do arquivo
-                if (data.data.arquivo) {
+                if (data.data.arquivo?.path) {
                     const link = document.createElement('a');
-                    link.href = data.data.arquivo;
-                    link.download = '';
+                    link.href = '/api/arquivos/' + data.data.arquivo.nome;
+                    link.download = data.data.arquivo.nome;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -225,7 +581,71 @@
         }
     }
 
-    function displayResults(data) {
+    // ===== UPLOAD DE ARQUIVO =====
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            document.getElementById('uploadPlaceholder').classList.add('hidden');
+            document.getElementById('uploadFileInfo').classList.remove('hidden');
+            document.getElementById('uploadFileName').textContent = file.name;
+            document.getElementById('uploadFileSize').textContent = formatFileSize(file.size);
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async function analyzeUploadedResume() {
+        const titulo = document.getElementById('tituloUpload').value.trim();
+        const descricao = document.getElementById('descricaoUpload').value.trim();
+        const fileInput = document.getElementById('fileUpload');
+        const file = fileInput.files[0];
+
+        if (!titulo || !descricao) {
+            alert('Preencha o título e a descrição da vaga');
+            return;
+        }
+
+        if (!file) {
+            alert('Selecione um arquivo PDF ou DOCX');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const formData = new FormData();
+            formData.append('titulo', titulo);
+            formData.append('descricao', descricao);
+            formData.append('arquivo', file);
+
+            const response = await fetch('/api/jobfit/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayResults(data.data.analise, true);
+            } else {
+                alert('Erro: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Erro ao analisar arquivo. Tente novamente.');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // ===== DISPLAY RESULTS =====
+    function displayResults(data, isExternalResume = false) {
         document.getElementById('analysisResult').classList.remove('hidden');
         
         document.getElementById('scoreValue').textContent = data.score || '--';
@@ -235,31 +655,75 @@
         const summaryEl = document.getElementById('summaryText').querySelector('p');
         summaryEl.textContent = data.resumo || data.resumo_executivo || '';
 
+        // Info do candidato (para uploads)
+        if (isExternalResume && data.candidato_identificado) {
+            document.getElementById('candidateInfo').classList.remove('hidden');
+            document.getElementById('candidateName').textContent = data.candidato_identificado.nome || '--';
+            document.getElementById('candidateRole').textContent = data.candidato_identificado.cargo_atual || '--';
+            document.getElementById('candidateExp').textContent = data.candidato_identificado.experiencia_anos || '--';
+        } else {
+            document.getElementById('candidateInfo').classList.add('hidden');
+        }
+
+        // Pontos fortes
         const strengthsList = document.getElementById('strengthsList');
         strengthsList.innerHTML = '';
-        if (data.pontos_fortes && data.pontos_fortes.length) {
-            data.pontos_fortes.forEach(function(item) {
-                strengthsList.innerHTML += '<li class="flex items-start gap-2"><span class="text-green-500">✓</span> ' + item + '</li>';
-            });
-        }
+        const pontosFortes = data.pontos_fortes || [];
+        pontosFortes.forEach(function(item) {
+            const texto = typeof item === 'object' ? item.ponto : item;
+            strengthsList.innerHTML += '<li class="flex items-start gap-2"><span class="text-green-500">✓</span> ' + texto + '</li>';
+        });
 
+        // Gaps
         const gapsList = document.getElementById('gapsList');
         gapsList.innerHTML = '';
-        if (data.gaps && data.gaps.length) {
-            data.gaps.forEach(function(item) {
-                gapsList.innerHTML += '<li class="flex items-start gap-2"><span class="text-red-500">!</span> ' + item + '</li>';
-            });
-        }
+        const gaps = data.gaps || data.gaps_identificados || [];
+        gaps.forEach(function(item) {
+            const texto = typeof item === 'object' ? item.gap : item;
+            gapsList.innerHTML += '<li class="flex items-start gap-2"><span class="text-red-500">!</span> ' + texto + '</li>';
+        });
 
+        // Keywords
         const keywordsList = document.getElementById('keywordsList');
         keywordsList.innerHTML = '';
-        if (data.keywords && data.keywords.length) {
-            data.keywords.forEach(function(kw) {
-                keywordsList.innerHTML += '<span class="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">' + kw + '</span>';
-            });
+        const keywords = data.keywords || data.keywords_match?.presentes || [];
+        keywords.forEach(function(kw) {
+            keywordsList.innerHTML += '<span class="px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm">' + kw + '</span>';
+        });
+
+        // Qualidade do currículo (para uploads)
+        if (isExternalResume && data.qualidade_curriculo) {
+            document.getElementById('qualitySection').classList.remove('hidden');
+            document.getElementById('qualityScore').textContent = data.qualidade_curriculo.nota;
+            
+            const positiveList = document.getElementById('qualityPositive');
+            positiveList.innerHTML = (data.qualidade_curriculo.pontos_positivos || []).map(p => '<li>' + p + '</li>').join('');
+            
+            const improvementsList = document.getElementById('qualityImprovements');
+            improvementsList.innerHTML = (data.qualidade_curriculo.melhorias_sugeridas || []).map(m => '<li>' + m + '</li>').join('');
+        } else {
+            document.getElementById('qualitySection').classList.add('hidden');
         }
 
         document.getElementById('analysisResult').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ===== NOTIFICAÇÕES =====
+    function showNotification(message, type = 'info') {
+        const colors = {
+            success: 'bg-green-500',
+            error: 'bg-red-500',
+            info: 'bg-blue-500'
+        };
+        
+        const notification = document.createElement('div');
+        notification.className = `fixed bottom-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
     }
 </script>
 

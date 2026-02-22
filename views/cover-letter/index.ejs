@@ -1,0 +1,226 @@
+<% const pageTitle = 'Cover Letter'; %>
+<%- include('../partials/layout-start', { title: pageTitle }) %>
+
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">✉️ Gerador de Cover Letter</h1>
+        <p class="text-gray-600">Crie cartas de apresentação personalizadas para suas candidaturas</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Formulário -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Informações da Vaga</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="titulo" class="block text-sm font-medium text-gray-700 mb-1">Título da Vaga *</label>
+                        <input type="text" id="titulo" placeholder="Ex: Desenvolvedor Full Stack Senior" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="empresa" class="block text-sm font-medium text-gray-700 mb-1">Empresa</label>
+                        <input type="text" id="empresa" placeholder="Ex: Google, Microsoft, etc" 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">Descrição da Vaga *</label>
+                        <textarea id="descricao" rows="8" placeholder="Cole aqui a descrição completa da vaga..."
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Configurações</h3>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tom da Carta</label>
+                        <select id="tom" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="formal">Formal & Profissional</option>
+                            <option value="entusiasmado">Entusiasmado & Energético</option>
+                            <option value="confiante">Confiante & Direto</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Idioma</label>
+                        <select id="idioma" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
+                            <option value="pt-BR">Português</option>
+                            <option value="en">English</option>
+                            <option value="es">Español</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button onclick="generateCoverLetter()" class="w-full mt-6 px-6 py-4 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    Gerar Cover Letter
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <div class="bg-purple-50 border border-purple-200 rounded-xl p-6">
+                <h4 class="font-semibold text-purple-800 mb-3">💡 Dicas</h4>
+                <ul class="text-sm text-purple-700 space-y-2">
+                    <li>• Cole a descrição completa da vaga</li>
+                    <li>• Inclua requisitos e responsabilidades</li>
+                    <li>• A IA usará seus dados cadastrados</li>
+                    <li>• Gere múltiplas versões para comparar</li>
+                </ul>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h4 class="font-semibold text-gray-800 mb-3">Seus Dados</h4>
+                <% if (perfil) { %>
+                <div class="space-y-2 text-sm">
+                    <p><span class="text-gray-500">Nome:</span> <span class="text-gray-800"><%= perfil.nome_completo %></span></p>
+                    <p><span class="text-gray-500">Email:</span> <span class="text-gray-800"><%= perfil.email %></span></p>
+                    <% if (experiencias && experiencias.length > 0) { %>
+                    <p><span class="text-gray-500">Experiências:</span> <span class="text-gray-800"><%= experiencias.length %> cadastradas</span></p>
+                    <% } %>
+                </div>
+                <% } else { %>
+                <p class="text-sm text-yellow-600">Complete seu perfil para melhores resultados</p>
+                <a href="/perfil/form" class="text-primary-600 text-sm hover:underline">Completar perfil →</a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultado -->
+    <div id="resultado" class="mt-8 hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">📝 Sua Cover Letter</h3>
+                <div class="flex items-center gap-2">
+                    <button onclick="copyToClipboard()" class="px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Copiar
+                    </button>
+                    <button onclick="downloadCoverLetter()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Baixar
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div id="coverLetterText" class="prose max-w-none whitespace-pre-wrap font-serif text-gray-800 bg-gray-50 p-6 rounded-lg border border-gray-200"></div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                <div id="metadata" class="flex items-center gap-4 text-sm text-gray-500"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading -->
+<div id="loading" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+    <div class="bg-white rounded-xl p-8 text-center">
+        <div class="animate-spin w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full mx-auto mb-4"></div>
+        <p class="text-gray-800 font-medium">Gerando sua Cover Letter...</p>
+        <p class="text-sm text-gray-500 mt-1">Isso pode levar alguns segundos</p>
+    </div>
+</div>
+
+<script>
+let currentCoverLetter = '';
+
+async function generateCoverLetter() {
+    const titulo = document.getElementById('titulo').value.trim();
+    const empresa = document.getElementById('empresa').value.trim();
+    const descricao = document.getElementById('descricao').value.trim();
+    const tom = document.getElementById('tom').value;
+    const idioma = document.getElementById('idioma').value;
+    
+    if (!titulo || !descricao) {
+        alert('Preencha o título e a descrição da vaga');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        const response = await fetch('/api/cover-letter/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo, empresa, descricao, tom, idioma })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentCoverLetter = data.coverLetter;
+            document.getElementById('coverLetterText').textContent = data.coverLetter;
+            
+            const metadata = data.metadata;
+            document.getElementById('metadata').innerHTML = `
+                <span>📋 Tom: ${metadata.tom}</span>
+                <span>🌐 Idioma: ${metadata.idioma}</span>
+                <span>🕐 ${new Date(metadata.gerado_em).toLocaleString('pt-BR')}</span>
+            `;
+            
+            document.getElementById('resultado').classList.remove('hidden');
+            document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+        } else {
+            alert('Erro: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao gerar. Tente novamente.');
+    } finally {
+        hideLoading();
+    }
+}
+
+function copyToClipboard() {
+    navigator.clipboard.writeText(currentCoverLetter).then(() => {
+        showNotification('Cover Letter copiada!', 'success');
+    });
+}
+
+function downloadCoverLetter() {
+    const blob = new Blob([currentCoverLetter], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'cover-letter.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function showLoading() {
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('loading').classList.add('flex');
+}
+
+function hideLoading() {
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('loading').classList.remove('flex');
+}
+
+function showNotification(message, type = 'info') {
+    const colors = { success: 'bg-green-500', error: 'bg-red-500', info: 'bg-blue-500' };
+    const notification = document.createElement('div');
+    notification.className = `fixed bottom-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+</script>
+
+<%- include('../partials/layout-end') %>

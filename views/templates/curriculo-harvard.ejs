@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="<%= lang || 'pt-BR' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo - <%= perfil?.nome_completo || 'Nome' %></title>
+    <%
+    // Traduções dos títulos das seções
+    const translations = {
+        'pt-BR': {
+            summary: 'Resumo Profissional',
+            experience: 'Experiência Profissional',
+            skills: 'Habilidades',
+            education: 'Formação Acadêmica',
+            languages: 'Idiomas',
+            certifications: 'Certificações',
+            projects: 'Projetos'
+        },
+        'en': {
+            summary: 'Summary',
+            experience: 'Professional Experience',
+            skills: 'Skills',
+            education: 'Education',
+            languages: 'Languages',
+            certifications: 'Certifications',
+            projects: 'Projects'
+        },
+        'es': {
+            summary: 'Resumen Profesional',
+            experience: 'Experiencia Profesional',
+            skills: 'Habilidades',
+            education: 'Formación Académica',
+            languages: 'Idiomas',
+            certifications: 'Certificaciones',
+            projects: 'Proyectos'
+        }
+    };
+    const t = translations[lang] || translations['pt-BR'];
+    
+    // Ordem das seções (configurável)
+    const defaultOrder = ['summary', 'experience', 'education', 'skills', 'certifications', 'languages', 'projects'];
+    const sectionOrder = sectionsOrder || defaultOrder;
+    %>
+    <style>
+        /* ===========================================
+           TEMPLATE HARVARD / WSO (Headhunter Classic)
+           - Inspirado no modelo Harvard de currículos
+           - Fontes clássicas: Times New Roman / Arial
+           - Divisores horizontais entre seções
+           - Layout: Empresa à esquerda, Localização à direita
+           - Layout: Cargo à esquerda, Data à direita
+           - 100% compatível com ATS
+           =========================================== */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, Georgia, serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000000;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm 22mm;
+        }
+        
+        /* ===== HEADER ===== */
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #000000;
+        }
+        
+        h1 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 22pt;
+            font-weight: bold;
+            color: #000000;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .contact-info {
+            font-size: 10pt;
+            color: #333333;
+            line-height: 1.6;
+        }
+        
+        .contact-info a {
+            color: #000000;
+            text-decoration: none;
+        }
+        
+        .contact-separator {
+            margin: 0 6px;
+            color: #666666;
+        }
+        
+        /* ===== SECTIONS ===== */
+        section {
+            margin-bottom: 16px;
+        }
+        
+        h2 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #000000;
+        }
+        
+        /* ===== RESUMO ===== */
+        .summary-text {
+            font-size: 10.5pt;
+            color: #000000;
+            text-align: justify;
+            line-height: 1.5;
+        }
+        
+        /* ===== EXPERIÊNCIA ===== */
+        .experience-item {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+        }
+        
+        .experience-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        
+        .company-name {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #000000;
+        }
+        
+        .location {
+            font-size: 10pt;
+            font-style: italic;
+            color: #333333;
+        }
+        
+        .job-title {
+            font-style: italic;
+            font-size: 10.5pt;
+            color: #000000;
+        }
+        
+        .period {
+            font-size: 10pt;
+            color: #333333;
+        }
+        
+        .responsibilities {
+            margin-top: 6px;
+            padding-left: 20px;
+        }
+        
+        .responsibilities li {
+            margin-bottom: 3px;
+            color: #000000;
+            font-size: 10.5pt;
+            line-height: 1.4;
+        }
+        
+        /* ===== HABILIDADES ===== */
+        .skills-row {
+            margin-bottom: 6px;
+        }
+        
+        .skills-category-name {
+            font-weight: bold;
+            font-size: 10.5pt;
+        }
+        
+        .skills-list-inline {
+            font-size: 10.5pt;
+        }
+        
+        /* ===== FORMAÇÃO ===== */
+        .education-item {
+            margin-bottom: 10px;
+        }
+        
+        .education-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        
+        .institution-name {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #000000;
+        }
+        
+        .degree-title {
+            font-style: italic;
+            font-size: 10.5pt;
+            color: #000000;
+        }
+        
+        .education-status {
+            font-size: 10pt;
+            color: #333333;
+        }
+        
+        /* ===== CERTIFICAÇÕES ===== */
+        .cert-item {
+            margin-bottom: 4px;
+            font-size: 10.5pt;
+        }
+        
+        .cert-name {
+            font-weight: normal;
+            color: #000000;
+        }
+        
+        .cert-issuer {
+            font-style: italic;
+            color: #333333;
+        }
+        
+        /* ===== IDIOMAS ===== */
+        .languages-list {
+            font-size: 10.5pt;
+        }
+        
+        .language-item {
+            margin-bottom: 3px;
+        }
+        
+        .language-name {
+            font-weight: bold;
+            color: #000000;
+        }
+        
+        .language-level {
+            color: #333333;
+        }
+        
+        /* ===== PROJETOS ===== */
+        .project-item {
+            margin-bottom: 10px;
+        }
+        
+        .project-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        
+        .project-name {
+            font-weight: bold;
+            font-size: 10.5pt;
+            color: #000000;
+        }
+        
+        .project-link {
+            font-size: 9.5pt;
+            color: #333333;
+            text-decoration: none;
+        }
+        
+        .project-description {
+            font-size: 10pt;
+            color: #000000;
+            margin-top: 2px;
+        }
+        
+        .project-tech {
+            font-size: 9.5pt;
+            font-style: italic;
+            color: #333333;
+            margin-top: 2px;
+        }
+        
+        /* ===== PRINT OPTIMIZATION ===== */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .container {
+                padding: 15mm 20mm;
+            }
+            
+            section {
+                page-break-inside: avoid;
+            }
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ===== HEADER ===== -->
+        <header>
+            <h1><%= perfil?.nome_completo || '{{full_name}}' %></h1>
+            <div class="contact-info">
+                <% if (perfil) { %>
+                    <span><%= perfil.email %></span>
+                    <span class="contact-separator">|</span>
+                    <span><%= perfil.telefone %></span>
+                    <% if (perfil.localizacao) { %>
+                        <span class="contact-separator">|</span>
+                        <span><%= perfil.localizacao %></span>
+                    <% } %>
+                    <% if (perfil.linkedin || perfil.github) { %>
+                        <br>
+                        <% if (perfil.linkedin) { %>
+                            <a href="<%= perfil.linkedin %>"><%= perfil.linkedin.replace('https://www.', '').replace('https://', '') %></a>
+                        <% } %>
+                        <% if (perfil.linkedin && perfil.github) { %>
+                            <span class="contact-separator">|</span>
+                        <% } %>
+                        <% if (perfil.github) { %>
+                            <a href="<%= perfil.github %>"><%= perfil.github.replace('https://', '') %></a>
+                        <% } %>
+                    <% } %>
+                <% } else { %>
+                    <!-- {{email}} | {{phone}} | {{location}} -->
+                    <span>email@exemplo.com</span>
+                    <span class="contact-separator">|</span>
+                    <span>(11) 99999-9999</span>
+                    <span class="contact-separator">|</span>
+                    <span>São Paulo, SP</span>
+                <% } %>
+            </div>
+        </header>
+        
+        <!-- ===== SEÇÕES DINÂMICAS ===== -->
+        <%
+        // Funções para renderizar cada seção
+        function renderSummary() { %>
+        <!-- ===== RESUMO ===== -->
+        <section>
+            <h2><%= t.summary %></h2>
+            <% if (resumo) { %>
+                <p class="summary-text"><%= resumo %></p>
+            <% } else { %>
+                <!-- {{professional_summary}} -->
+                <p class="summary-text">Profissional com experiência sólida na área de atuação, buscando contribuir com resultados para a organização.</p>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderExperience() { %>
+        <!-- ===== EXPERIÊNCIA PROFISSIONAL ===== -->
+        <section>
+            <h2><%= t.experience %></h2>
+            <% if (experiencias && experiencias.length > 0) { %>
+                <% experiencias.forEach(exp => { %>
+                <article class="experience-item">
+                    <div class="experience-row">
+                        <span class="company-name"><%= exp.empresa %></span>
+                        <span class="location"><%= perfil?.localizacao || '' %></span>
+                    </div>
+                    <div class="experience-row">
+                        <span class="job-title"><%= exp.cargo %></span>
+                        <span class="period"><%= exp.data_inicio %> - <%= exp.data_fim || 'Atual' %></span>
+                    </div>
+                    <% if (exp.descricao_atividades) { %>
+                    <ul class="responsibilities">
+                        <% 
+                        const atividades = exp.descricao_atividades.split(/[;\n]/).filter(a => a.trim());
+                        atividades.forEach(atividade => { 
+                        %>
+                        <li><%= atividade.trim().replace(/^[-•]\s*/, '') %></li>
+                        <% }); %>
+                    </ul>
+                    <% } %>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{experience_list}} -->
+                <article class="experience-item">
+                    <div class="experience-row">
+                        <span class="company-name">Nome da Empresa</span>
+                        <span class="location">Cidade, Estado</span>
+                    </div>
+                    <div class="experience-row">
+                        <span class="job-title">Cargo Ocupado</span>
+                        <span class="period">Jan 2020 - Presente</span>
+                    </div>
+                    <ul class="responsibilities">
+                        <li>Responsabilidade ou conquista principal</li>
+                    </ul>
+                </article>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderSkills() { %>
+        <!-- ===== HABILIDADES ===== -->
+        <section>
+            <h2><%= t.skills %></h2>
+            <% if (perfil?.resumo_base) { 
+                // Extrair skills do resumo ou usar skills padrão
+                const skillsText = perfil.resumo_base;
+                const techMatch = skillsText.match(/(?:Python|JavaScript|TypeScript|Node\.js|React|Docker|AWS|SQL|Java|C\+\+|Go|Rust|Kubernetes)/gi);
+                const uniqueSkills = [...new Set(techMatch || [])];
+            %>
+                <% if (uniqueSkills.length > 0) { %>
+                <div class="skills-row">
+                    <span class="skills-category-name">Técnicas:</span>
+                    <span class="skills-list-inline"><%= uniqueSkills.join(', ') %></span>
+                </div>
+                <% } %>
+                <% if (idiomas && idiomas.length > 0) { %>
+                <div class="skills-row">
+                    <span class="skills-category-name">Comunicação:</span>
+                    <span class="skills-list-inline"><%= idiomas.map(i => i.idioma + ' (' + i.nivel_cefr + ')').join(', ') %></span>
+                </div>
+                <% } %>
+            <% } else { %>
+                <!-- {{skills_list}} -->
+                <div class="skills-row">
+                    <span class="skills-category-name">Técnicas:</span>
+                    <span class="skills-list-inline">Habilidade 1, Habilidade 2, Habilidade 3</span>
+                </div>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderEducation() { %>
+        <!-- ===== FORMAÇÃO ACADÊMICA ===== -->
+        <section>
+            <h2><%= t.education %></h2>
+            <% if (formacao && formacao.length > 0) { %>
+                <% formacao.forEach(f => { %>
+                <article class="education-item">
+                    <div class="education-row">
+                        <span class="institution-name"><%= f.instituicao_projeto %></span>
+                        <span class="education-status"><%= f.status %></span>
+                    </div>
+                    <div class="degree-title"><%= f.titulo_curso %></div>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{education_list}} -->
+                <article class="education-item">
+                    <div class="education-row">
+                        <span class="institution-name">Nome da Universidade</span>
+                        <span class="education-status">Concluído em 2020</span>
+                    </div>
+                    <div class="degree-title">Bacharelado em Área de Estudo</div>
+                </article>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderCertifications() { %>
+        <!-- ===== CERTIFICAÇÕES ===== -->
+        <% if ((cursos && cursos.length > 0) || !cursos) { %>
+        <section>
+            <h2><%= t.certifications %></h2>
+            <% if (cursos && cursos.length > 0) { %>
+                <% cursos.forEach(c => { %>
+                <div class="cert-item">
+                    <span class="cert-name"><%= c.titulo_do_curso %></span>
+                    <% if (c.emissor_instituicao) { %>
+                    - <span class="cert-issuer"><%= c.emissor_instituicao %></span>
+                    <% } %>
+                </div>
+                <% }); %>
+            <% } else { %>
+                <!-- {{certifications_list}} -->
+                <div class="cert-item">
+                    <span class="cert-name">Nome da Certificação</span> - 
+                    <span class="cert-issuer">Instituição Emissora</span>
+                </div>
+            <% } %>
+        </section>
+        <% } %>
+        <% }
+        
+        function renderLanguages() { %>
+        <!-- ===== IDIOMAS ===== -->
+        <% if ((idiomas && idiomas.length > 0) || !idiomas) { %>
+        <section>
+            <h2><%= t.languages %></h2>
+            <div class="languages-list">
+                <% if (idiomas && idiomas.length > 0) { %>
+                    <% idiomas.forEach(i => { %>
+                    <div class="language-item">
+                        <span class="language-name"><%= i.idioma %>:</span>
+                        <span class="language-level"><%= i.nivel_cefr %></span>
+                        <% if (i.certificacao_exame) { %>
+                        (<%= i.certificacao_exame %>)
+                        <% } %>
+                    </div>
+                    <% }); %>
+                <% } else { %>
+                    <!-- {{languages_list}} -->
+                    <div class="language-item">
+                        <span class="language-name">Português:</span>
+                        <span class="language-level">Nativo</span>
+                    </div>
+                    <div class="language-item">
+                        <span class="language-name">Inglês:</span>
+                        <span class="language-level">Fluente (C1)</span>
+                    </div>
+                <% } %>
+            </div>
+        </section>
+        <% } %>
+        <% }
+        
+        function renderProjects() { %>
+        <!-- ===== PROJETOS ===== -->
+        <% if ((projetos && projetos.length > 0) || !projetos) { %>
+        <section>
+            <h2><%= t.projects %></h2>
+            <% if (projetos && projetos.length > 0) { %>
+                <% projetos.forEach(p => { %>
+                <article class="project-item">
+                    <div class="project-row">
+                        <span class="project-name"><%= p.instituicao_projeto %></span>
+                        <% if (p.link) { %>
+                        <a class="project-link" href="<%= p.link %>"><%= p.link.replace('https://', '') %></a>
+                        <% } %>
+                    </div>
+                    <% if (p.descricao_detalhada) { %>
+                    <p class="project-description"><%= p.descricao_detalhada %></p>
+                    <% } %>
+                    <% if (p.tecnologias) { %>
+                    <p class="project-tech">Tecnologias: <%= p.tecnologias %></p>
+                    <% } %>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{projects_list}} -->
+                <article class="project-item">
+                    <div class="project-row">
+                        <span class="project-name">Nome do Projeto</span>
+                        <a class="project-link" href="#">github.com/usuario/projeto</a>
+                    </div>
+                    <p class="project-description">Descrição breve do projeto e seus objetivos.</p>
+                </article>
+            <% } %>
+        </section>
+        <% } %>
+        <% }
+        
+        // Mapeamento das funções de renderização
+        const sectionRenderers = {
+            summary: renderSummary,
+            experience: renderExperience,
+            skills: renderSkills,
+            education: renderEducation,
+            certifications: renderCertifications,
+            languages: renderLanguages,
+            projects: renderProjects
+        };
+        
+        // Renderizar seções na ordem configurada
+        sectionOrder.forEach(section => {
+            if (sectionRenderers[section]) {
+                sectionRenderers[section]();
+            }
+        });
+        %>
+    </div>
+</body>
+</html>

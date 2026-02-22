@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="<%= lang || 'pt-BR' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo - <%= perfil?.nome_completo || 'Nome' %></title>
+    <%
+    // Traduções dos títulos das seções
+    const translations = {
+        'pt-BR': {
+            summary: 'Resumo Profissional',
+            experience: 'Experiência Profissional',
+            skills: 'Competências Técnicas',
+            education: 'Formação Acadêmica',
+            languages: 'Idiomas',
+            certifications: 'Certificações e Cursos',
+            projects: 'Projetos Relevantes'
+        },
+        'en': {
+            summary: 'Executive Summary',
+            experience: 'Professional Experience',
+            skills: 'Core Competencies',
+            education: 'Education',
+            languages: 'Languages',
+            certifications: 'Certifications & Training',
+            projects: 'Key Projects'
+        },
+        'es': {
+            summary: 'Resumen Ejecutivo',
+            experience: 'Experiencia Profesional',
+            skills: 'Competencias Técnicas',
+            education: 'Formación Académica',
+            languages: 'Idiomas',
+            certifications: 'Certificaciones',
+            projects: 'Proyectos Clave'
+        }
+    };
+    const t = translations[lang] || translations['pt-BR'];
+    
+    // Ordem das seções (configurável)
+    const defaultOrder = ['summary', 'experience', 'skills', 'education', 'certifications', 'languages', 'projects'];
+    const sectionOrder = sectionsOrder || defaultOrder;
+    %>
+    <style>
+        /* ===========================================
+           TEMPLATE 2: PROFISSIONAL EXECUTIVO
+           - Uso sutil de cores (azul escuro)
+           - Layout mais denso para perfis sênior
+           - Tipografia profissional
+           - 100% compatível com ATS
+           =========================================== */
+        
+        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --primary-color: #1e3a5f;
+            --primary-light: #2c5282;
+            --accent-color: #2b6cb0;
+            --text-dark: #1a202c;
+            --text-medium: #4a5568;
+            --text-light: #718096;
+            --border-color: #e2e8f0;
+            --bg-subtle: #f8fafc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Source Sans Pro', 'Segoe UI', Tahoma, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: var(--text-dark);
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 16mm 18mm;
+        }
+        
+        /* ===== HEADER EXECUTIVO ===== */
+        header {
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 3px solid var(--primary-color);
+        }
+        
+        h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            color: var(--primary-color);
+            letter-spacing: -0.3px;
+            margin-bottom: 6px;
+        }
+        
+        .title-role {
+            font-size: 12pt;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+        }
+        
+        .contact-info {
+            font-size: 9pt;
+            color: var(--text-medium);
+            line-height: 1.6;
+        }
+        
+        .contact-info a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        .contact-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 16px;
+        }
+        
+        .contact-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        /* ===== SECTIONS ===== */
+        section {
+            margin-bottom: 18px;
+        }
+        
+        h2 {
+            font-size: 11pt;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 10px;
+            padding-bottom: 4px;
+            border-bottom: 1.5px solid var(--primary-color);
+        }
+        
+        /* ===== RESUMO EXECUTIVO ===== */
+        .summary-text {
+            font-size: 10pt;
+            color: var(--text-dark);
+            text-align: justify;
+            line-height: 1.6;
+            background: var(--bg-subtle);
+            padding: 12px 14px;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        /* ===== EXPERIÊNCIA (LAYOUT DENSO) ===== */
+        .experience-item {
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            page-break-inside: avoid;
+        }
+        
+        .experience-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 2px;
+        }
+        
+        .job-title {
+            font-size: 11pt;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .period {
+            font-size: 9pt;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        
+        .company-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+        
+        .company-name {
+            font-size: 10pt;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+        
+        .company-location {
+            font-size: 9pt;
+            color: var(--text-light);
+        }
+        
+        .responsibilities {
+            margin-top: 6px;
+            padding-left: 16px;
+        }
+        
+        .responsibilities li {
+            margin-bottom: 3px;
+            color: var(--text-medium);
+            font-size: 9.5pt;
+            line-height: 1.45;
+        }
+        
+        .responsibilities li strong {
+            color: var(--text-dark);
+        }
+        
+        /* ===== COMPETÊNCIAS ===== */
+        .skills-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .skill-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        
+        .skill-category-label {
+            font-weight: 600;
+            font-size: 9pt;
+            color: var(--primary-color);
+            min-width: 100px;
+            text-transform: uppercase;
+        }
+        
+        .skill-items {
+            font-size: 9.5pt;
+            color: var(--text-medium);
+            flex: 1;
+        }
+        
+        .skills-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .skill-tag {
+            font-size: 9pt;
+            color: var(--text-dark);
+            padding: 3px 10px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+        }
+        
+        .skill-tag.primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* ===== FORMAÇÃO ===== */
+        .education-item {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        
+        .education-main {
+            flex: 1;
+        }
+        
+        .education-title {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .education-institution {
+            font-size: 9.5pt;
+            color: var(--accent-color);
+        }
+        
+        .education-year {
+            font-size: 9pt;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+        
+        /* ===== CERTIFICAÇÕES ===== */
+        .certifications-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+        }
+        
+        .cert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 6px 0;
+            border-bottom: 1px dotted var(--border-color);
+        }
+        
+        .cert-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cert-name {
+            font-size: 9.5pt;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .cert-details {
+            font-size: 9pt;
+            color: var(--text-light);
+            text-align: right;
+        }
+        
+        /* ===== IDIOMAS ===== */
+        .languages-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .language-item {
+            font-size: 10pt;
+        }
+        
+        .language-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .language-level {
+            color: var(--accent-color);
+            font-size: 9pt;
+            font-weight: 500;
+        }
+        
+        /* ===== PROJETOS ===== */
+        .project-item {
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            background: var(--bg-subtle);
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .project-title {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .project-description {
+            font-size: 9.5pt;
+            color: var(--text-medium);
+            margin-top: 4px;
+        }
+        
+        .project-tech {
+            font-size: 9pt;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+        
+        /* ===== PRINT OPTIMIZATION ===== */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .container {
+                padding: 10mm 14mm;
+            }
+            
+            section {
+                page-break-inside: avoid;
+            }
+            
+            .experience-item {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ===== HEADER EXECUTIVO ===== -->
+        <header>
+            <h1><%= perfil?.nome_completo || '{{name}}' %></h1>
+            <% if (perfil?.titulo_profissional || curriculo?.titulo_profissional) { %>
+            <div class="title-role"><%= curriculo?.titulo_profissional || perfil?.titulo_profissional %></div>
+            <% } %>
+            <div class="contact-info">
+                <div class="contact-row">
+                    <span class="contact-item"><%= perfil?.email || '{{email}}' %></span>
+                    <% if (perfil?.telefone) { %><span class="contact-item"><%= perfil.telefone %></span><% } %>
+                    <% if (perfil?.localizacao) { %><span class="contact-item"><%= perfil.localizacao %></span><% } %>
+                </div>
+                <div class="contact-row">
+                    <% if (perfil?.linkedin) { %><span class="contact-item"><a href="<%= perfil.linkedin %>">LinkedIn</a></span><% } %>
+                    <% if (perfil?.github) { %><span class="contact-item"><a href="<%= perfil.github %>">GitHub</a></span><% } %>
+                    <% if (perfil?.portfolio) { %><span class="contact-item"><a href="<%= perfil.portfolio %>">Portfolio</a></span><% } %>
+                </div>
+            </div>
+        </header>
+
+        <% 
+        // Função para renderizar cada seção
+        function renderSection(sectionName) {
+            switch(sectionName) {
+                case 'summary':
+                    return renderSummary();
+                case 'experience':
+                    return renderExperience();
+                case 'skills':
+                    return renderSkills();
+                case 'education':
+                    return renderEducation();
+                case 'certifications':
+                    return renderCertifications();
+                case 'languages':
+                    return renderLanguages();
+                case 'projects':
+                    return renderProjects();
+                default:
+                    return '';
+            }
+        }
+        
+        function renderSummary() { %>
+        <!-- ===== RESUMO EXECUTIVO ===== -->
+        <section>
+            <h2><%= t.summary %></h2>
+            <p class="summary-text"><%= curriculo?.resumo_profissional || perfil?.resumo_base || '{{professional_summary}}' %></p>
+        </section>
+        <% }
+        
+        function renderExperience() { %>
+        <!-- ===== EXPERIÊNCIA PROFISSIONAL ===== -->
+        <section>
+            <h2><%= t.experience %></h2>
+            <% if (curriculo?.experiencias && curriculo.experiencias.length > 0) { %>
+                <% curriculo.experiencias.forEach(exp => { %>
+                <article class="experience-item">
+                    <div class="experience-header">
+                        <span class="job-title"><%= exp.cargo %></span>
+                        <span class="period"><%= exp.periodo %></span>
+                    </div>
+                    <div class="company-row">
+                        <span class="company-name"><%= exp.empresa %></span>
+                        <% if (exp.localizacao) { %><span class="company-location"><%= exp.localizacao %></span><% } %>
+                    </div>
+                    <% if (exp.bullets && exp.bullets.length > 0) { %>
+                    <ul class="responsibilities">
+                        <% exp.bullets.forEach(bullet => { %>
+                        <li><%= bullet %></li>
+                        <% }); %>
+                    </ul>
+                    <% } %>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{experience_list}} -->
+                <article class="experience-item">
+                    <div class="experience-header">
+                        <span class="job-title">{{job_title}}</span>
+                        <span class="period">{{period}}</span>
+                    </div>
+                    <div class="company-row">
+                        <span class="company-name">{{company}}</span>
+                        <span class="company-location">{{location}}</span>
+                    </div>
+                    <ul class="responsibilities">
+                        <li>{{responsibility_1}}</li>
+                        <li>{{responsibility_2}}</li>
+                    </ul>
+                </article>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderSkills() { %>
+        <!-- ===== COMPETÊNCIAS TÉCNICAS ===== -->
+        <section>
+            <h2><%= t.skills %></h2>
+            <% if (curriculo?.habilidades_tecnicas) { %>
+                <div class="skills-inline">
+                    <% if (curriculo.habilidades_tecnicas.principais) { %>
+                        <% curriculo.habilidades_tecnicas.principais.forEach(skill => { %>
+                        <span class="skill-tag primary"><%= skill %></span>
+                        <% }); %>
+                    <% } %>
+                    <% if (curriculo.habilidades_tecnicas.secundarias) { %>
+                        <% curriculo.habilidades_tecnicas.secundarias.forEach(skill => { %>
+                        <span class="skill-tag"><%= skill %></span>
+                        <% }); %>
+                    <% } %>
+                </div>
+            <% } else { %>
+                <!-- {{skills_list}} -->
+                <div class="skills-inline">
+                    <span class="skill-tag primary">{{skill_1}}</span>
+                    <span class="skill-tag primary">{{skill_2}}</span>
+                    <span class="skill-tag">{{skill_3}}</span>
+                </div>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderEducation() { %>
+        <!-- ===== FORMAÇÃO ACADÊMICA ===== -->
+        <section>
+            <h2><%= t.education %></h2>
+            <% if (formacao && formacao.length > 0) { %>
+                <% formacao.forEach(f => { %>
+                <article class="education-item">
+                    <div class="education-main">
+                        <div class="education-title"><%= f.titulo_curso %></div>
+                        <div class="education-institution"><%= f.instituicao_projeto %></div>
+                    </div>
+                    <div class="education-year"><%= f.status %></div>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{education_list}} -->
+                <article class="education-item">
+                    <div class="education-main">
+                        <div class="education-title">{{degree}}</div>
+                        <div class="education-institution">{{institution}}</div>
+                    </div>
+                    <div class="education-year">{{year}}</div>
+                </article>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderCertifications() { %>
+        <!-- ===== CERTIFICAÇÕES ===== -->
+        <% if ((cursos && cursos.length > 0) || !cursos) { %>
+        <section>
+            <h2><%= t.certifications %></h2>
+            <div class="certifications-grid">
+                <% if (cursos && cursos.length > 0) { %>
+                    <% cursos.forEach(c => { %>
+                    <div class="cert-item">
+                        <span class="cert-name"><%= c.titulo_do_curso %></span>
+                        <span class="cert-details"><%= c.emissor_instituicao %><% if (c.data_conclusao) { %> | <%= c.data_conclusao %><% } %></span>
+                    </div>
+                    <% }); %>
+                <% } else { %>
+                    <!-- {{certifications_list}} -->
+                    <div class="cert-item">
+                        <span class="cert-name">{{certification_name}}</span>
+                        <span class="cert-details">{{issuer}} | {{date}}</span>
+                    </div>
+                <% } %>
+            </div>
+        </section>
+        <% } %>
+        <% }
+        
+        function renderLanguages() { %>
+        <!-- ===== IDIOMAS ===== -->
+        <% if ((idiomas && idiomas.length > 0) || !idiomas) { %>
+        <section>
+            <h2><%= t.languages %></h2>
+            <div class="languages-list">
+                <% if (idiomas && idiomas.length > 0) { %>
+                    <% idiomas.forEach(i => { %>
+                    <span class="language-item">
+                        <span class="language-name"><%= i.idioma %></span>
+                        <span class="language-level">(<%= i.nivel_cefr %>)</span>
+                    </span>
+                    <% }); %>
+                <% } else { %>
+                    <!-- {{languages_list}} -->
+                    <span class="language-item">
+                        <span class="language-name">{{language}}</span>
+                        <span class="language-level">({{level}})</span>
+                    </span>
+                <% } %>
+            </div>
+        </section>
+        <% } %>
+        <% }
+        
+        function renderProjects() { %>
+        <!-- ===== PROJETOS ===== -->
+        <% if ((projetos && projetos.length > 0)) { %>
+        <section>
+            <h2><%= t.projects %></h2>
+            <% projetos.forEach(p => { %>
+            <article class="project-item">
+                <div class="project-title"><%= p.instituicao_projeto %></div>
+                <div class="project-description"><%= p.descricao_detalhada %></div>
+                <% if (p.tecnologias) { %><div class="project-tech">Tech: <%= p.tecnologias %></div><% } %>
+            </article>
+            <% }); %>
+        </section>
+        <% } %>
+        <% }
+        
+        // Renderiza seções na ordem configurada
+        sectionOrder.forEach(section => {
+            renderSection(section);
+        });
+        %>
+    </div>
+</body>
+</html>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="<%= lang || 'pt-BR' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículo - <%= perfil?.nome_completo || 'Nome' %></title>
+    <%
+    // Traduções dos títulos das seções
+    const translations = {
+        'pt-BR': {
+            summary: 'Sobre Mim',
+            skills: 'Stack Tecnológico',
+            experience: 'Experiência Profissional',
+            education: 'Formação',
+            languages: 'Idiomas',
+            certifications: 'Certificações',
+            projects: 'Projetos Open Source / Pessoais',
+            backend: 'Backend',
+            frontend: 'Frontend',
+            databases: 'Banco de Dados',
+            devops: 'DevOps & Cloud',
+            tools: 'Ferramentas',
+            methodologies: 'Metodologias',
+            others: 'Outras Tecnologias'
+        },
+        'en': {
+            summary: 'About Me',
+            skills: 'Tech Stack',
+            experience: 'Professional Experience',
+            education: 'Education',
+            languages: 'Languages',
+            certifications: 'Certifications',
+            projects: 'Open Source / Personal Projects',
+            backend: 'Backend',
+            frontend: 'Frontend',
+            databases: 'Databases',
+            devops: 'DevOps & Cloud',
+            tools: 'Tools',
+            methodologies: 'Methodologies',
+            others: 'Other Technologies'
+        },
+        'es': {
+            summary: 'Sobre Mí',
+            skills: 'Stack Tecnológico',
+            experience: 'Experiencia Profesional',
+            education: 'Formación',
+            languages: 'Idiomas',
+            certifications: 'Certificaciones',
+            projects: 'Proyectos Open Source / Personales',
+            backend: 'Backend',
+            frontend: 'Frontend',
+            databases: 'Bases de Datos',
+            devops: 'DevOps & Cloud',
+            tools: 'Herramientas',
+            methodologies: 'Metodologías',
+            others: 'Otras Tecnologías'
+        }
+    };
+    const t = translations[lang] || translations['pt-BR'];
+    
+    // Ordem padrão para devs: Skills primeiro
+    const defaultOrder = ['summary', 'skills', 'experience', 'projects', 'education', 'certifications', 'languages'];
+    const sectionOrder = sectionsOrder || defaultOrder;
+    
+    // Categorias de skills (pode ser customizado)
+    const defaultSkillCategories = {
+        backend: ['Node.js', 'Python', 'Java', 'C#', '.NET', 'PHP', 'Ruby', 'Go', 'Rust', 'Express', 'NestJS', 'FastAPI', 'Django', 'Spring Boot', 'Laravel'],
+        frontend: ['React', 'Vue.js', 'Angular', 'Next.js', 'Nuxt.js', 'TypeScript', 'JavaScript', 'HTML5', 'CSS3', 'Tailwind CSS', 'SASS', 'Bootstrap', 'jQuery', 'Redux', 'Svelte'],
+        databases: ['PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'SQLite', 'SQL Server', 'Oracle', 'Elasticsearch', 'DynamoDB', 'Firebase', 'Prisma', 'Sequelize'],
+        devops: ['Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'CI/CD', 'GitHub Actions', 'Jenkins', 'Terraform', 'Ansible', 'Linux', 'Nginx', 'Apache'],
+        tools: ['Git', 'VS Code', 'Jira', 'Confluence', 'Figma', 'Postman', 'Swagger', 'npm', 'yarn', 'Webpack', 'Vite'],
+        methodologies: ['Scrum', 'Kanban', 'Agile', 'TDD', 'BDD', 'Clean Code', 'SOLID', 'Design Patterns', 'Microservices', 'REST', 'GraphQL']
+    };
+    %>
+    <style>
+        /* ===========================================
+           TEMPLATE 3: FOCADO EM TECH / SKILLS
+           - Seção de Skills logo após o resumo
+           - Skills organizados por categoria
+           - Visual moderno para desenvolvedores
+           - 100% compatível com ATS
+           =========================================== */
+        
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #0f172a;
+            --accent-color: #3b82f6;
+            --accent-secondary: #10b981;
+            --text-dark: #1e293b;
+            --text-medium: #475569;
+            --text-light: #94a3b8;
+            --border-color: #e2e8f0;
+            --bg-code: #f1f5f9;
+            --tag-bg: #eff6ff;
+            --tag-border: #bfdbfe;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 10pt;
+            line-height: 1.55;
+            color: var(--text-dark);
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 16mm 18mm;
+        }
+        
+        /* ===== HEADER TECH ===== */
+        header {
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        h1 {
+            font-size: 22pt;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 4px;
+        }
+        
+        .role-title {
+            font-size: 11pt;
+            font-weight: 500;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+        
+        .contact-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 18px;
+            font-size: 9pt;
+            color: var(--text-medium);
+        }
+        
+        .contact-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .contact-item a {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8.5pt;
+        }
+        
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+        
+        /* ===== SECTIONS ===== */
+        section {
+            margin-bottom: 18px;
+        }
+        
+        h2 {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        h2::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+        
+        /* ===== RESUMO / ABOUT ===== */
+        .summary-text {
+            font-size: 10pt;
+            color: var(--text-medium);
+            line-height: 1.65;
+        }
+        
+        /* ===== TECH STACK (SKILLS) ===== */
+        .skills-section {
+            background: var(--bg-code);
+            padding: 14px 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .skill-category {
+            margin-bottom: 10px;
+        }
+        
+        .skill-category:last-child {
+            margin-bottom: 0;
+        }
+        
+        .skill-category-header {
+            font-size: 9pt;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .skill-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .skill-tag {
+            font-size: 9pt;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-color);
+            padding: 3px 8px;
+            background: var(--tag-bg);
+            border: 1px solid var(--tag-border);
+            border-radius: 3px;
+        }
+        
+        .skill-tag.highlight {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+        
+        /* Inline skills simples */
+        .skills-inline-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        /* ===== EXPERIÊNCIA ===== */
+        .experience-item {
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px dashed var(--border-color);
+            page-break-inside: avoid;
+        }
+        
+        .experience-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        
+        .job-title {
+            font-size: 11pt;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .period {
+            font-size: 9pt;
+            color: var(--text-light);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .company-info {
+            font-size: 10pt;
+            color: var(--accent-color);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+        
+        .responsibilities {
+            padding-left: 16px;
+            margin-top: 6px;
+        }
+        
+        .responsibilities li {
+            margin-bottom: 4px;
+            color: var(--text-medium);
+            font-size: 9.5pt;
+            line-height: 1.5;
+        }
+        
+        .tech-used {
+            margin-top: 8px;
+            font-size: 8.5pt;
+            color: var(--text-light);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .tech-used span {
+            color: var(--accent-secondary);
+        }
+        
+        /* ===== PROJETOS ===== */
+        .project-item {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            background: var(--bg-code);
+            border-left: 3px solid var(--accent-color);
+        }
+        
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        
+        .project-title {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .project-link {
+            font-size: 8.5pt;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        .project-description {
+            font-size: 9.5pt;
+            color: var(--text-medium);
+            margin-top: 4px;
+        }
+        
+        .project-tech {
+            margin-top: 6px;
+            font-size: 8.5pt;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-secondary);
+        }
+        
+        /* ===== FORMAÇÃO ===== */
+        .education-item {
+            margin-bottom: 10px;
+        }
+        
+        .education-title {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        .education-institution {
+            font-size: 9.5pt;
+            color: var(--accent-color);
+        }
+        
+        .education-status {
+            font-size: 9pt;
+            color: var(--text-light);
+        }
+        
+        /* ===== CERTIFICAÇÕES ===== */
+        .cert-grid {
+            display: grid;
+            gap: 6px;
+        }
+        
+        .cert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 9.5pt;
+        }
+        
+        .cert-name {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+        
+        .cert-issuer {
+            color: var(--text-light);
+            font-size: 9pt;
+        }
+        
+        /* ===== IDIOMAS ===== */
+        .languages-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 10pt;
+        }
+        
+        .language-item {
+            display: inline-flex;
+            gap: 4px;
+        }
+        
+        .language-name {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+        
+        .language-level {
+            color: var(--text-light);
+            font-size: 9pt;
+        }
+        
+        /* ===== PRINT OPTIMIZATION ===== */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .container {
+                padding: 10mm 14mm;
+            }
+            
+            .skills-section {
+                background: #f8fafc !important;
+            }
+            
+            section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ===== HEADER TECH ===== -->
+        <header>
+            <h1><%= perfil?.nome_completo || '{{name}}' %></h1>
+            <% if (perfil?.titulo_profissional || curriculo?.titulo_profissional) { %>
+            <div class="role-title"><%= curriculo?.titulo_profissional || perfil?.titulo_profissional || '{{role_title}}' %></div>
+            <% } else { %>
+            <div class="role-title">{{role_title}}</div>
+            <% } %>
+            <div class="contact-grid">
+                <span class="contact-item"><%= perfil?.email || '{{email}}' %></span>
+                <% if (perfil?.telefone) { %><span class="contact-item"><%= perfil.telefone %></span><% } %>
+                <% if (perfil?.localizacao) { %><span class="contact-item"><%= perfil.localizacao %></span><% } %>
+                <% if (perfil?.linkedin) { %><span class="contact-item"><a href="<%= perfil.linkedin %>">linkedin.com/in/<%= perfil.linkedin.split('/in/')[1]?.replace(/\/$/, '') || 'profile' %></a></span><% } %>
+                <% if (perfil?.github) { %><span class="contact-item"><a href="<%= perfil.github %>">github.com/<%= perfil.github.split('github.com/')[1]?.replace(/\/$/, '') || 'user' %></a></span><% } %>
+                <% if (perfil?.portfolio) { %><span class="contact-item"><a href="<%= perfil.portfolio %>"><%= perfil.portfolio.replace('https://', '').replace('http://', '') %></a></span><% } %>
+            </div>
+        </header>
+
+        <% 
+        // Função para renderizar cada seção
+        function renderSection(sectionName) {
+            switch(sectionName) {
+                case 'summary':
+                    return renderSummary();
+                case 'skills':
+                    return renderSkills();
+                case 'experience':
+                    return renderExperience();
+                case 'projects':
+                    return renderProjects();
+                case 'education':
+                    return renderEducation();
+                case 'certifications':
+                    return renderCertifications();
+                case 'languages':
+                    return renderLanguages();
+                default:
+                    return '';
+            }
+        }
+        
+        function renderSummary() { %>
+        <!-- ===== ABOUT / RESUMO ===== -->
+        <section>
+            <h2><%= t.summary %></h2>
+            <p class="summary-text"><%= curriculo?.resumo_profissional || perfil?.resumo_base || '{{professional_summary}}' %></p>
+        </section>
+        <% }
+        
+        function renderSkills() { %>
+        <!-- ===== TECH STACK ===== -->
+        <section>
+            <h2><%= t.skills %></h2>
+            <% if (curriculo?.habilidades_tecnicas?.categorias) { %>
+                <!-- Skills organizados por categoria -->
+                <div class="skills-section">
+                    <% Object.entries(curriculo.habilidades_tecnicas.categorias).forEach(([cat, skills]) => { %>
+                    <div class="skill-category">
+                        <div class="skill-category-header"><%= t[cat] || cat %></div>
+                        <div class="skill-tags">
+                            <% skills.forEach((skill, idx) => { %>
+                            <span class="skill-tag<%= idx < 3 ? ' highlight' : '' %>"><%= skill %></span>
+                            <% }); %>
+                        </div>
+                    </div>
+                    <% }); %>
+                </div>
+            <% } else if (curriculo?.habilidades_tecnicas) { %>
+                <!-- Skills simples (fallback) -->
+                <div class="skills-section">
+                    <div class="skills-inline-container">
+                    <% if (curriculo.habilidades_tecnicas.principais) { %>
+                        <% curriculo.habilidades_tecnicas.principais.forEach(skill => { %>
+                        <span class="skill-tag highlight"><%= skill %></span>
+                        <% }); %>
+                    <% } %>
+                    <% if (curriculo.habilidades_tecnicas.secundarias) { %>
+                        <% curriculo.habilidades_tecnicas.secundarias.forEach(skill => { %>
+                        <span class="skill-tag"><%= skill %></span>
+                        <% }); %>
+                    <% } %>
+                    </div>
+                </div>
+            <% } else { %>
+                <!-- {{skills_by_category}} -->
+                <div class="skills-section">
+                    <div class="skill-category">
+                        <div class="skill-category-header">Backend</div>
+                        <div class="skill-tags">
+                            <span class="skill-tag highlight">{{backend_skill_1}}</span>
+                            <span class="skill-tag">{{backend_skill_2}}</span>
+                        </div>
+                    </div>
+                    <div class="skill-category">
+                        <div class="skill-category-header">Frontend</div>
+                        <div class="skill-tags">
+                            <span class="skill-tag highlight">{{frontend_skill_1}}</span>
+                            <span class="skill-tag">{{frontend_skill_2}}</span>
+                        </div>
+                    </div>
+                    <div class="skill-category">
+                        <div class="skill-category-header">DevOps & Tools</div>
+                        <div class="skill-tags">
+                            <span class="skill-tag">{{devops_skill_1}}</span>
+                            <span class="skill-tag">{{tool_1}}</span>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderExperience() { %>
+        <!-- ===== EXPERIÊNCIA PROFISSIONAL ===== -->
+        <section>
+            <h2><%= t.experience %></h2>
+            <% if (curriculo?.experiencias && curriculo.experiencias.length > 0) { %>
+                <% curriculo.experiencias.forEach(exp => { %>
+                <article class="experience-item">
+                    <div class="experience-header">
+                        <span class="job-title"><%= exp.cargo %></span>
+                        <span class="period"><%= exp.periodo %></span>
+                    </div>
+                    <div class="company-info"><%= exp.empresa %></div>
+                    <% if (exp.bullets && exp.bullets.length > 0) { %>
+                    <ul class="responsibilities">
+                        <% exp.bullets.forEach(bullet => { %>
+                        <li><%= bullet %></li>
+                        <% }); %>
+                    </ul>
+                    <% } %>
+                    <% if (exp.tecnologias || exp.tags_tecnicas) { %>
+                    <div class="tech-used">
+                        <span>Stack:</span> <%= exp.tecnologias || exp.tags_tecnicas %>
+                    </div>
+                    <% } %>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{experience_list}} -->
+                <article class="experience-item">
+                    <div class="experience-header">
+                        <span class="job-title">{{job_title}}</span>
+                        <span class="period">{{period}}</span>
+                    </div>
+                    <div class="company-info">{{company}}</div>
+                    <ul class="responsibilities">
+                        <li>{{responsibility_1}}</li>
+                        <li>{{responsibility_2}}</li>
+                    </ul>
+                    <div class="tech-used">
+                        <span>Stack:</span> {{tech_stack}}
+                    </div>
+                </article>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderProjects() { %>
+        <!-- ===== PROJETOS ===== -->
+        <% if ((projetos && projetos.length > 0) || !projetos) { %>
+        <section>
+            <h2><%= t.projects %></h2>
+            <% if (projetos && projetos.length > 0) { %>
+                <% projetos.forEach(p => { %>
+                <article class="project-item">
+                    <div class="project-header">
+                        <span class="project-title"><%= p.instituicao_projeto %></span>
+                        <% if (p.link) { %><a class="project-link" href="<%= p.link %>"><%= p.link.replace('https://github.com/', 'github.com/') %></a><% } %>
+                    </div>
+                    <p class="project-description"><%= p.descricao_detalhada %></p>
+                    <% if (p.tecnologias) { %>
+                    <div class="project-tech"><%= p.tecnologias %></div>
+                    <% } %>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{projects_list}} -->
+                <article class="project-item">
+                    <div class="project-header">
+                        <span class="project-title">{{project_name}}</span>
+                        <a class="project-link" href="#">github.com/user/project</a>
+                    </div>
+                    <p class="project-description">{{project_description}}</p>
+                    <div class="project-tech">{{project_tech}}</div>
+                </article>
+            <% } %>
+        </section>
+        <% } %>
+        <% }
+        
+        function renderEducation() { %>
+        <!-- ===== FORMAÇÃO ===== -->
+        <section>
+            <h2><%= t.education %></h2>
+            <% if (formacao && formacao.length > 0) { %>
+                <% formacao.forEach(f => { %>
+                <article class="education-item">
+                    <div class="education-title"><%= f.titulo_curso %></div>
+                    <div class="education-institution"><%= f.instituicao_projeto %></div>
+                    <div class="education-status"><%= f.status %></div>
+                </article>
+                <% }); %>
+            <% } else { %>
+                <!-- {{education_list}} -->
+                <article class="education-item">
+                    <div class="education-title">{{degree}}</div>
+                    <div class="education-institution">{{institution}}</div>
+                    <div class="education-status">{{status}}</div>
+                </article>
+            <% } %>
+        </section>
+        <% }
+        
+        function renderCertifications() { %>
+        <!-- ===== CERTIFICAÇÕES ===== -->
+        <% if ((cursos && cursos.length > 0) || !cursos) { %>
+        <section>
+            <h2><%= t.certifications %></h2>
+            <div class="cert-grid">
+                <% if (cursos && cursos.length > 0) { %>
+                    <% cursos.forEach(c => { %>
+                    <div class="cert-item">
+                        <span class="cert-name"><%= c.titulo_do_curso %></span>
+                        <span class="cert-issuer"><%= c.emissor_instituicao %></span>
+                    </div>
+                    <% }); %>
+                <% } else { %>
+                    <!-- {{certifications_list}} -->
+                    <div class="cert-item">
+                        <span class="cert-name">{{cert_name}}</span>
+                        <span class="cert-issuer">{{issuer}}</span>
+                    </div>
+                <% } %>
+            </div>
+        </section>
+        <% } %>
+        <% }
+        
+        function renderLanguages() { %>
+        <!-- ===== IDIOMAS ===== -->
+        <% if ((idiomas && idiomas.length > 0) || !idiomas) { %>
+        <section>
+            <h2><%= t.languages %></h2>
+            <div class="languages-inline">
+                <% if (idiomas && idiomas.length > 0) { %>
+                    <% idiomas.forEach(i => { %>
+                    <span class="language-item">
+                        <span class="language-name"><%= i.idioma %></span>
+                        <span class="language-level">(<%= i.nivel_cefr %>)</span>
+                    </span>
+                    <% }); %>
+                <% } else { %>
+                    <!-- {{languages_list}} -->
+                    <span class="language-item">
+                        <span class="language-name">{{language}}</span>
+                        <span class="language-level">({{level}})</span>
+                    </span>
+                <% } %>
+            </div>
+        </section>
+        <% } %>
+        <% }
+        
+        // Renderiza seções na ordem configurada
+        sectionOrder.forEach(section => {
+            renderSection(section);
+        });
+        %>
+    </div>
+</body>
+</html>

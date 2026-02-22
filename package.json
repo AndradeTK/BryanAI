@@ -26,8 +26,11 @@
     "ejs": "^3.1.10",
     "express": "^4.21.0",
     "html-to-docx": "^1.8.0",
+    "mammoth": "^1.11.0",
     "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.0",
+    "pdf-parse": "^1.1.4",
     "puppeteer": "^23.4.0"
   },
   "devDependencies": {

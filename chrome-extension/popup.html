@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BryanAI - Job Fit</title>
+    <title>BryanAI - Resume Optimizer</title>
     <style>
         * {
             margin: 0;
@@ -13,316 +13,743 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            width: 380px;
-            background: #f8fafc;
+            width: 420px;
+            background: #ffffff;
+            color: #1f2937;
         }
         
+        /* ===== HEADER ===== */
         .header {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #638bf1 0%, #4673e5 100%);
             color: white;
-            padding: 16px;
-            text-align: center;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         
-        .header h1 {
+        .header-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .header-text h1 {
             font-size: 18px;
             font-weight: 700;
+            letter-spacing: -0.5px;
         }
         
-        .header p {
-            font-size: 11px;
-            opacity: 0.9;
-            margin-top: 4px;
-        }
-        
-        .content {
-            padding: 16px;
-        }
-        
-        .status-box {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 16px;
-        }
-        
-        .status-box.success {
-            border-color: #22c55e;
-            background: #f0fdf4;
-        }
-        
-        .status-box.error {
-            border-color: #ef4444;
-            background: #fef2f2;
-        }
-        
-        .status-box h3 {
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
-        }
-        
-        .status-box p {
+        .header-text p {
             font-size: 12px;
-            color: #6b7280;
+            opacity: 0.85;
+            margin-top: 2px;
         }
         
-        .form-group {
-            margin-bottom: 12px;
+        .status-indicator {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            font-size: 11px;
         }
         
-        .form-group label {
-            display: block;
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+        
+        .status-dot.offline {
+            background: #ef4444;
+        }
+        
+        /* ===== TABS ===== */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
             font-size: 12px;
             font-weight: 500;
-            color: #374151;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: #466ee5;
+            background: rgba(79, 70, 229, 0.05);
+        }
+        
+        .tab.active {
+            color: #466ee5;
+            border-bottom-color: #466be5;
+            background: white;
+        }
+        
+        .tab-icon {
+            display: block;
+            font-size: 18px;
             margin-bottom: 4px;
         }
         
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+        /* ===== TAB CONTENT ===== */
+        .tab-content {
+            display: none;
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* ===== QUICK ACTIONS ===== */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .quick-action {
+            padding: 14px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .quick-action:hover {
+            border-color: #6399f1;
+            background: #f5f3ff;
+            transform: translateY(-1px);
+        }
+        
+        .quick-action-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+        
+        .quick-action-text {
             font-size: 12px;
-            transition: border-color 0.2s;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .quick-action-desc {
+            font-size: 10px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 14px;
+        }
+        
+        .form-group label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        
+        .label-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-radius: 4px;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            background: #f9fafb;
+            transition: all 0.2s;
         }
         
         .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: #638bf1;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
         
         .form-group textarea {
-            min-height: 120px;
+            min-height: 100px;
             resize: vertical;
         }
         
+        /* ===== BUTTONS ===== */
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
         .btn {
-            width: 100%;
-            padding: 10px 16px;
+            flex: 1;
+            padding: 12px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
         
         .btn-primary {
-            background: #3b82f6;
+            background: linear-gradient(135deg, #6382f1 0%, #4659e5 100%);
             color: white;
         }
         
         .btn-primary:hover {
-            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
         
-        .btn-success {
-            background: #22c55e;
+        .btn-green {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             color: white;
         }
         
-        .btn-success:hover {
-            background: #16a34a;
+        .btn-green:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
         }
         
-        .btn-secondary {
+        .btn-outline {
             background: white;
-            color: #374151;
-            border: 1px solid #d1d5db;
+            color: #6378f1;
+            border: 1px solid #6390f1;
         }
         
-        .btn-secondary:hover {
-            background: #f9fafb;
+        .btn-outline:hover {
+            background: #f5f3ff;
         }
         
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
         }
         
-        .result-box {
-            background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 16px;
-            margin-top: 16px;
-            display: none;
-        }
-        
-        .result-box.visible {
-            display: block;
-        }
-        
-        .score-display {
-            text-align: center;
-            padding: 16px;
-        }
-        
-        .score-circle {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            font-size: 24px;
-            font-weight: 700;
-            color: white;
-        }
-        
-        .score-circle.high { background: #22c55e; }
-        .score-circle.medium { background: #f59e0b; }
-        .score-circle.low { background: #ef4444; }
-        
-        .result-summary {
-            font-size: 12px;
-            color: #6b7280;
-            text-align: center;
-            margin-top: 8px;
-        }
-        
-        .footer {
-            padding: 12px 16px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-        }
-        
-        .footer a {
-            font-size: 11px;
-            color: #3b82f6;
-            text-decoration: none;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-        
+        /* ===== LOADING ===== */
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 24px;
         }
         
-        .loading.visible {
+        .loading.active {
             display: block;
         }
         
         .spinner {
-            width: 24px;
-            height: 24px;
+            width: 40px;
+            height: 40px;
             border: 3px solid #e5e7eb;
-            border-top-color: #3b82f6;
+            border-top-color: #6397f1;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 8px;
+            margin: 0 auto 12px;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        .config-section {
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #e5e7eb;
+        .loading-text {
+            font-size: 13px;
+            color: #6b7280;
         }
         
-        .config-section summary {
+        /* ===== RESULT ===== */
+        .result {
+            display: none;
+        }
+        
+        .result.active {
+            display: block;
+        }
+        
+        .score-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #86efac;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        
+        .score-card.medium {
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border-color: #fdba74;
+        }
+        
+        .score-card.low {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border-color: #fca5a5;
+        }
+        
+        .score-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #16a34a;
+            line-height: 1;
+        }
+        
+        .score-card.medium .score-value { color: #ea580c; }
+        .score-card.low .score-value { color: #dc2626; }
+        
+        .score-label {
+            font-size: 14px;
+            color: #374151;
+            margin-top: 8px;
+        }
+        
+        .fit-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .fit-badge.high {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .fit-badge.medium {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .fit-badge.low {
+            background: #ef4444;
+            color: white;
+        }
+        
+        /* ===== LISTS ===== */
+        .result-section {
+            margin-bottom: 16px;
+        }
+        
+        .result-section h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .result-list {
+            list-style: none;
+        }
+        
+        .result-list li {
+            font-size: 12px;
+            color: #6b7280;
+            padding: 6px 0;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        
+        .result-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .list-icon {
+            flex-shrink: 0;
+        }
+        
+        .keywords-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .keyword-tag {
+            padding: 4px 10px;
+            background: #ede9fe;
+            color: #6d28d9;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        /* ===== CONFIG ===== */
+        .config-section {
+            background: #f9fafb;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        
+        .config-section h4 {
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+        
+        .config-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+        
+        .config-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .config-value {
             font-size: 12px;
             font-weight: 500;
-            color: #6b7280;
-            cursor: pointer;
+            color: #374151;
+        }
+        
+        /* ===== FOOTER ===== */
+        .footer {
+            padding: 12px 16px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f9fafb;
+        }
+        
+        .footer-link {
+            font-size: 11px;
+            color: #6366f1;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+        
+        .version {
+            font-size: 10px;
+            color: #9ca3af;
+        }
+        
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            padding: 12px 16px;
+            background: #1f2937;
+            color: white;
+            border-radius: 8px;
+            font-size: 12px;
+            display: none;
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        .toast.active {
+            display: block;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Header -->
     <div class="header">
-        <h1>🚀 BryanAI</h1>
-        <p>Análise de Job Fit & Gerador de Currículo</p>
-    </div>
-
-    <div class="content">
-        <!-- Status da conexão -->
-        <div id="connectionStatus" class="status-box">
-            <h3>Verificando conexão...</h3>
-            <p>Conectando ao servidor local</p>
+        <div class="header-icon">🚀</div>
+        <div class="header-text">
+            <h1>BryanAI</h1>
+            <p>Resume Optimizer</p>
         </div>
-
-        <!-- Formulário -->
-        <form id="jobForm">
-            <div class="form-group">
-                <label for="titulo">Título da Vaga</label>
-                <input type="text" id="titulo" placeholder="Ex: Desenvolvedor Full Stack Jr." required>
+        <div class="status-indicator">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Online</span>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" data-tab="analyze">
+            <span class="tab-icon">🎯</span>
+            Analisar
+        </div>
+        <div class="tab" data-tab="generate">
+            <span class="tab-icon">📄</span>
+            Gerar CV
+        </div>
+        <div class="tab" data-tab="letter">
+            <span class="tab-icon">✉️</span>
+            Cover Letter
+        </div>
+        <div class="tab" data-tab="config">
+            <span class="tab-icon">⚙️</span>
+            Config
+        </div>
+    </div>
+    
+    <!-- Tab: Analyze -->
+    <div class="tab-content active" id="tab-analyze">
+        <div class="quick-actions">
+            <div class="quick-action" onclick="captureFromPage()">
+                <div class="quick-action-icon">📋</div>
+                <div class="quick-action-text">Capturar da Página</div>
+                <div class="quick-action-desc">Detectar vaga automaticamente</div>
             </div>
-            
-            <div class="form-group">
-                <label for="descricao">Descrição da Vaga</label>
-                <textarea id="descricao" placeholder="Cole a descrição da vaga aqui ou clique em 'Capturar da Página'" required></textarea>
+            <div class="quick-action" onclick="openDashboard()">
+                <div class="quick-action-icon">📊</div>
+                <div class="quick-action-text">Dashboard</div>
+                <div class="quick-action-desc">Abrir painel completo</div>
             </div>
-
-            <div class="form-group">
-                <label for="idioma">Idioma do Currículo</label>
-                <select id="idioma" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; background: white;">
-                    <option value="pt-BR">🇧🇷 Português (Brasil)</option>
-                    <option value="en">🇺🇸 English</option>
-                    <option value="fr">🇫🇷 Français</option>
-                </select>
-            </div>
-
-            <button type="button" id="captureBtn" class="btn btn-secondary">
-                📋 Capturar da Página
+        </div>
+        
+        <div class="form-group">
+            <label>
+                Título da Vaga
+                <span class="label-badge">Obrigatório</span>
+            </label>
+            <input type="text" id="titulo" placeholder="Ex: Desenvolvedor Full Stack Senior">
+        </div>
+        
+        <div class="form-group">
+            <label>Descrição da Vaga</label>
+            <textarea id="descricao" placeholder="Cole a descrição completa da vaga..."></textarea>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="analyzeJob()">
+                🎯 Analisar Fit
             </button>
-            
-            <button type="button" id="analyzeBtn" class="btn btn-primary">
-                🔍 Analisar Compatibilidade
-            </button>
-            
-            <button type="button" id="generateBtn" class="btn btn-success">
-                📄 Gerar Currículo Otimizado
-            </button>
-        </form>
-
-        <!-- Loading -->
-        <div id="loading" class="loading">
+        </div>
+        
+        <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p style="font-size: 12px; color: #6b7280;">Processando com IA...</p>
+            <p class="loading-text">Analisando compatibilidade...</p>
         </div>
-
-        <!-- Resultado -->
-        <div id="resultBox" class="result-box">
-            <div class="score-display">
-                <div id="scoreCircle" class="score-circle">--</div>
-                <h3 id="fitLevel" style="font-size: 14px; font-weight: 600; color: #374151;">-</h3>
-                <p id="resultSummary" class="result-summary"></p>
+        
+        <div class="result" id="result">
+            <div class="score-card" id="scoreCard">
+                <div class="score-value" id="scoreValue">--</div>
+                <div class="score-label">Score de Compatibilidade</div>
+                <span class="fit-badge high" id="fitBadge">Match</span>
+            </div>
+            
+            <div class="result-section">
+                <h4>✅ Pontos Fortes</h4>
+                <ul class="result-list" id="strengthsList"></ul>
+            </div>
+            
+            <div class="result-section">
+                <h4>⚠️ Pontos a Melhorar</h4>
+                <ul class="result-list" id="gapsList"></ul>
+            </div>
+            
+            <div class="result-section">
+                <h4>🏷️ Keywords Match</h4>
+                <div class="keywords-list" id="keywordsList"></div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-green" onclick="generateResume('pdf')">
+                    📥 Baixar PDF
+                </button>
+                <button class="btn btn-outline" onclick="resetAnalysis()">
+                    🔄 Nova Análise
+                </button>
             </div>
         </div>
-
-        <!-- Configurações -->
-        <details class="config-section">
-            <summary>⚙️ Configurações</summary>
-            <div style="margin-top: 12px;">
-                <div class="form-group">
-                    <label for="serverUrl">URL do Servidor</label>
-                    <input type="text" id="serverUrl" value="http://localhost:3000">
-                </div>
-                <button type="button" id="saveConfig" class="btn btn-secondary">Salvar</button>
-            </div>
-        </details>
     </div>
-
+    
+    <!-- Tab: Generate -->
+    <div class="tab-content" id="tab-generate">
+        <div class="config-section">
+            <h4>📋 Informações da Vaga</h4>
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 12px;">
+                Preencha na aba "Analisar" primeiro, depois gere seu currículo otimizado.
+            </p>
+        </div>
+        
+        <div class="form-group">
+            <label>Template</label>
+            <select id="template">
+                <option value="minimalista">Minimalista Moderno</option>
+                <option value="executivo">Profissional Executivo</option>
+                <option value="tech">Focado em Tech</option>
+                <option value="harvard">Harvard / WSO Classic</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Idioma</label>
+            <select id="idioma">
+                <option value="pt-BR">Português</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+            </select>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-green" onclick="generateResume('pdf')">
+                📄 Gerar PDF
+            </button>
+            <button class="btn btn-outline" onclick="generateResume('docx')">
+                📝 Gerar DOCX
+            </button>
+        </div>
+    </div>
+    
+    <!-- Tab: Cover Letter -->
+    <div class="tab-content" id="tab-letter">
+        <div class="form-group">
+            <label>
+                Empresa (opcional)
+            </label>
+            <input type="text" id="empresa" placeholder="Ex: Google, Microsoft, etc">
+        </div>
+        
+        <div class="form-group">
+            <label>Tom da Carta</label>
+            <select id="tomCarta">
+                <option value="formal">Formal & Profissional</option>
+                <option value="entusiasmado">Entusiasmado & Energético</option>
+                <option value="confiante">Confiante & Direto</option>
+            </select>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="generateCoverLetter()">
+                ✉️ Gerar Cover Letter
+            </button>
+        </div>
+        
+        <div class="loading" id="letterLoading">
+            <div class="spinner"></div>
+            <p class="loading-text">Criando sua carta...</p>
+        </div>
+        
+        <div class="result" id="letterResult">
+            <div class="result-section">
+                <h4>📝 Sua Cover Letter</h4>
+                <div id="coverLetterText" style="font-size: 12px; line-height: 1.6; color: #374151; background: #f9fafb; padding: 12px; border-radius: 8px; white-space: pre-wrap; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-green" onclick="copyCoverLetter()">
+                    📋 Copiar
+                </button>
+                <button class="btn btn-outline" onclick="downloadCoverLetter()">
+                    📥 Baixar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tab: Config -->
+    <div class="tab-content" id="tab-config">
+        <div class="config-section">
+            <h4>🔗 Conexão com Backend</h4>
+            <div class="config-row">
+                <span class="config-label">URL do Servidor</span>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <input type="text" id="serverUrl" value="http://localhost:3000" style="font-size: 12px;">
+            </div>
+        </div>
+        
+        <div class="config-section">
+            <h4>📊 Estatísticas</h4>
+            <div class="config-row">
+                <span class="config-label">Análises realizadas</span>
+                <span class="config-value" id="analyzeCount">0</span>
+            </div>
+            <div class="config-row">
+                <span class="config-label">CVs gerados</span>
+                <span class="config-value" id="generateCount">0</span>
+            </div>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="saveConfig()">
+                💾 Salvar Configurações
+            </button>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-outline" onclick="testConnection()">
+                🔌 Testar Conexão
+            </button>
+        </div>
+    </div>
+    
+    <!-- Footer -->
     <div class="footer">
-        <a href="http://localhost:3000" target="_blank">Abrir Dashboard Completo →</a>
+        <a href="#" class="footer-link" onclick="openDashboard()">
+            📊 Abrir Dashboard Completo
+        </a>
+        <span class="version">v2.0.0</span>
     </div>
-
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
     <script src="popup.js"></script>
 </body>
 </html>
