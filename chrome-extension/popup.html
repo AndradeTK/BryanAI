@@ -295,6 +295,12 @@
             to { transform: rotate(360deg); }
         }
         
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            50% { box-shadow: 0 0 20px 10px rgba(34, 197, 94, 0.3); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        
         .loading-text {
             font-size: 13px;
             color: #6b7280;
@@ -303,10 +309,17 @@
         /* ===== RESULT ===== */
         .result {
             display: none;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            transition: all 0.3s ease;
         }
         
         .result.active {
             display: block;
+            border-color: #22c55e;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            padding: 16px;
+            margin-top: 16px;
         }
         
         .score-card {
@@ -549,12 +562,12 @@
     <!-- Tab: Analyze -->
     <div class="tab-content active" id="tab-analyze">
         <div class="quick-actions">
-            <div class="quick-action" onclick="captureFromPage()">
+            <div class="quick-action" id="btnCapture">
                 <div class="quick-action-icon">📋</div>
                 <div class="quick-action-text">Capturar da Página</div>
                 <div class="quick-action-desc">Detectar vaga automaticamente</div>
             </div>
-            <div class="quick-action" onclick="openDashboard()">
+            <div class="quick-action" id="btnDashboard">
                 <div class="quick-action-icon">📊</div>
                 <div class="quick-action-text">Dashboard</div>
                 <div class="quick-action-desc">Abrir painel completo</div>
@@ -575,7 +588,7 @@
         </div>
         
         <div class="btn-group">
-            <button class="btn btn-primary" onclick="analyzeJob()">
+            <button class="btn btn-primary" id="btnAnalyze">
                 🎯 Analisar Fit
             </button>
         </div>
@@ -608,10 +621,10 @@
             </div>
             
             <div class="btn-group">
-                <button class="btn btn-green" onclick="generateResume('pdf')">
+                <button class="btn btn-green" id="btnDownloadPdf">
                     📥 Baixar PDF
                 </button>
-                <button class="btn btn-outline" onclick="resetAnalysis()">
+                <button class="btn btn-outline" id="btnReset">
                     🔄 Nova Análise
                 </button>
             </div>
@@ -647,10 +660,10 @@
         </div>
         
         <div class="btn-group">
-            <button class="btn btn-green" onclick="generateResume('pdf')">
+            <button class="btn btn-green" id="btnGenPdf">
                 📄 Gerar PDF
             </button>
-            <button class="btn btn-outline" onclick="generateResume('docx')">
+            <button class="btn btn-outline" id="btnGenDocx">
                 📝 Gerar DOCX
             </button>
         </div>
@@ -675,7 +688,7 @@
         </div>
         
         <div class="btn-group">
-            <button class="btn btn-primary" onclick="generateCoverLetter()">
+            <button class="btn btn-primary" id="btnGenLetter">
                 ✉️ Gerar Cover Letter
             </button>
         </div>
@@ -692,10 +705,10 @@
             </div>
             
             <div class="btn-group">
-                <button class="btn btn-green" onclick="copyCoverLetter()">
+                <button class="btn btn-green" id="btnCopyLetter">
                     📋 Copiar
                 </button>
-                <button class="btn btn-outline" onclick="downloadCoverLetter()">
+                <button class="btn btn-outline" id="btnDownloadLetter">
                     📥 Baixar
                 </button>
             </div>
@@ -727,13 +740,13 @@
         </div>
         
         <div class="btn-group">
-            <button class="btn btn-primary" onclick="saveConfig()">
+            <button class="btn btn-primary" id="btnSaveConfig">
                 💾 Salvar Configurações
             </button>
         </div>
         
         <div class="btn-group">
-            <button class="btn btn-outline" onclick="testConnection()">
+            <button class="btn btn-outline" id="btnTestConn">
                 🔌 Testar Conexão
             </button>
         </div>
@@ -741,7 +754,7 @@
     
     <!-- Footer -->
     <div class="footer">
-        <a href="#" class="footer-link" onclick="openDashboard()">
+        <a href="#" class="footer-link" id="btnFooterDash">
             📊 Abrir Dashboard Completo
         </a>
         <span class="version">v2.0.0</span>

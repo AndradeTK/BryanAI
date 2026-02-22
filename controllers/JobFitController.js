@@ -111,7 +111,9 @@ const JobFitController = {
      * API: Gera currículo otimizado
      */
     async apiGenerate(req, res) {
-        const { titulo, descricao, formato = 'pdf', idioma = 'pt-BR', templateId } = req.body;
+        // Aceita tanto 'template' quanto 'templateId' para compatibilidade
+        const { titulo, descricao, formato = 'pdf', idioma = 'pt-BR', template, templateId } = req.body;
+        const selectedTemplate = template || templateId;
 
         if (!titulo || !descricao) {
             return res.status(400).json({
@@ -138,8 +140,9 @@ const JobFitController = {
 
             // Obtém template a usar (do request ou o padrão)
             const settings = await userSettingsService.getSettings();
-            const template = templateId || settings.templatePadrao;
-            const templatePath = await userSettingsService.getTemplatePath(template);
+            const templateToUse = selectedTemplate || settings.templatePadrao;
+            console.log('[JobFit] Template selecionado:', templateToUse);
+            const templatePath = await userSettingsService.getTemplatePath(templateToUse);
 
             // Renderiza template HTML
             const html = await ejs.renderFile(templatePath, {

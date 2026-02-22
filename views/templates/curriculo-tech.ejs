@@ -445,11 +445,7 @@
         <!-- ===== HEADER TECH ===== -->
         <header>
             <h1><%= perfil?.nome_completo || '{{name}}' %></h1>
-            <% if (perfil?.titulo_profissional || curriculo?.titulo_profissional) { %>
-            <div class="role-title"><%= curriculo?.titulo_profissional || perfil?.titulo_profissional || '{{role_title}}' %></div>
-            <% } else { %>
-            <div class="role-title">{{role_title}}</div>
-            <% } %>
+            <div class="role-title"><%= curriculo?.titulo_profissional || perfil?.titulo_profissional || vaga?.titulo || 'Desenvolvedor' %></div>
             <div class="contact-grid">
                 <span class="contact-item"><%= perfil?.email || '{{email}}' %></span>
                 <% if (perfil?.telefone) { %><span class="contact-item"><%= perfil.telefone %></span><% } %>

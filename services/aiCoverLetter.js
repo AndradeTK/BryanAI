@@ -16,7 +16,7 @@ const aiCoverLetter = {
      * @param {string} tom - Tom da carta (formal, entusiasmado, confiante)
      */
     async generate(curriculo, vaga, idioma = 'pt-BR', tom = 'formal') {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
         const idiomaMap = {
             'pt-BR': 'português brasileiro',
@@ -132,7 +132,7 @@ Responda APENAS com a Cover Letter, sem comentários adicionais.
      * Analisa e melhora uma cover letter existente
      */
     async improve(coverLetter, vaga) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
         const prompt = `
 Analise e melhore esta Cover Letter para a vaga descrita.

@@ -1,5 +1,5 @@
 /**
- * Service: AI Writer (Gemini 2.5 Flash)
+ * Service: AI Writer (Gemini 2.0 Flash)
  * Reescreve experiências do currículo otimizadas para ATS
  * Persona: Engenheiro de ATS + Copywriter de Carreira
  */
@@ -11,7 +11,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Configuração do modelo
 const modelConfig = {
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.0-flash',
     generationConfig: {
         temperature: 0.7,
         topK: 40,
@@ -96,7 +96,14 @@ Descrição: ${vaga.descricao}
 ${keywordsToFocus ? `KEYWORDS IMPORTANTES PARA INCLUIR: ${keywordsToFocus}` : ''}
 ${experienciasDestacar ? `EXPERIÊNCIAS PARA DESTACAR: ${experienciasDestacar}` : ''}
 
-TAREFA: Reescreva o currículo otimizado para esta vaga. Retorne EXCLUSIVAMENTE um JSON:
+TAREFA: Reescreva o currículo otimizado para esta vaga. 
+
+IMPORTANTE - ORDENAÇÃO CRONOLÓGICA:
+- As experiências devem estar em ordem CRONOLÓGICA REVERSA (mais recente primeiro)
+- Use a data_fim ou "Atual" para ordenar - experiências atuais sempre no topo
+- Depois ordene por data_inicio, do mais recente para o mais antigo
+
+Retorne EXCLUSIVAMENTE um JSON:
 {
     "resumo_profissional": "<resumo de 3-4 linhas otimizado para a vaga, em primeira pessoa>",
     "experiencias": [

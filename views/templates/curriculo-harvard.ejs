@@ -355,6 +355,10 @@
         <!-- ===== SEÇÕES DINÂMICAS ===== -->
         <%
         // Funções para renderizar cada seção
+        // Variáveis auxiliares
+        const resumo = curriculo?.resumo_profissional || perfil?.resumo_base || null;
+        const experiencias = curriculo?.experiencias || [];
+        
         function renderSummary() { %>
         <!-- ===== RESUMO ===== -->
         <section>
@@ -381,15 +385,16 @@
                     </div>
                     <div class="experience-row">
                         <span class="job-title"><%= exp.cargo %></span>
-                        <span class="period"><%= exp.data_inicio %> - <%= exp.data_fim || 'Atual' %></span>
+                        <span class="period"><%= exp.periodo || (exp.data_inicio + ' - ' + (exp.data_fim || 'Atual')) %></span>
                     </div>
-                    <% if (exp.descricao_atividades) { %>
+                    <% 
+                    // Suporta tanto bullets (do AI) quanto descricao_atividades (do banco)
+                    const atividades = exp.bullets || (exp.descricao_atividades ? exp.descricao_atividades.split(/[;\n]/).filter(a => a.trim()) : []);
+                    if (atividades && atividades.length > 0) { 
+                    %>
                     <ul class="responsibilities">
-                        <% 
-                        const atividades = exp.descricao_atividades.split(/[;\n]/).filter(a => a.trim());
-                        atividades.forEach(atividade => { 
-                        %>
-                        <li><%= atividade.trim().replace(/^[-•]\s*/, '') %></li>
+                        <% atividades.forEach(atividade => { %>
+                        <li><%= (typeof atividade === 'string' ? atividade : atividade.toString()).trim().replace(/^[-•]\s*/, '') %></li>
                         <% }); %>
                     </ul>
                     <% } %>

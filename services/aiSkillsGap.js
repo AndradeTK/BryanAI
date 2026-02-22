@@ -14,7 +14,7 @@ const aiSkillsGap = {
      * @param {Object} alvo - Vaga ou cargo alvo
      */
     async analyze(curriculo, alvo) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
         const prompt = `
 Você é um especialista em desenvolvimento de carreira e análise de competências.
@@ -146,7 +146,7 @@ Seja específico com links reais de cursos (Coursera, Udemy, LinkedIn Learning, 
      * Compara o perfil com múltiplas vagas do mercado
      */
     async compareMarket(curriculo, area) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
         const prompt = `
 Analise o perfil do candidato e compare com as demandas atuais do mercado na área de ${area}.
@@ -200,7 +200,7 @@ Responda em JSON:
      * Gera um plano de estudos personalizado
      */
     async generateStudyPlan(gaps, horasPorSemana = 10) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
         const prompt = `
 Crie um plano de estudos detalhado para preencher os seguintes gaps de habilidades.

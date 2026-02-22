@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BryanAI - Job Fit Analyzer",
-  "version": "1.0.0",
+  "version": "2.0.4",
   "description": "Capture job descriptions from LinkedIn, Gupy, and other job sites to analyze compatibility and generate optimized resumes.",
   "permissions": [
     "activeTab",

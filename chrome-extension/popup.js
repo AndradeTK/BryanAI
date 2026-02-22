@@ -15,8 +15,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadConfig();
     await checkConnection();
     setupTabs();
+    setupEventListeners();
     updateStats();
 });
+
+// =====================================
+// EVENT LISTENERS
+// =====================================
+
+function setupEventListeners() {
+    // Quick Actions
+    document.getElementById('btnCapture')?.addEventListener('click', captureFromPage);
+    document.getElementById('btnDashboard')?.addEventListener('click', openDashboard);
+    document.getElementById('btnFooterDash')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openDashboard();
+    });
+    
+    // Analyze Tab
+    document.getElementById('btnAnalyze')?.addEventListener('click', analyzeJob);
+    document.getElementById('btnDownloadPdf')?.addEventListener('click', () => generateResume('pdf'));
+    document.getElementById('btnReset')?.addEventListener('click', resetAnalysis);
+    
+    // Generate Tab
+    document.getElementById('btnGenPdf')?.addEventListener('click', () => generateResume('pdf'));
+    document.getElementById('btnGenDocx')?.addEventListener('click', () => generateResume('docx'));
+    
+    // Cover Letter Tab
+    document.getElementById('btnGenLetter')?.addEventListener('click', generateCoverLetter);
+    document.getElementById('btnCopyLetter')?.addEventListener('click', copyCoverLetter);
+    document.getElementById('btnDownloadLetter')?.addEventListener('click', downloadCoverLetter);
+    
+    // Config Tab
+    document.getElementById('btnSaveConfig')?.addEventListener('click', saveConfig);
+    document.getElementById('btnTestConn')?.addEventListener('click', testConnection);
+}
 
 // =====================================
 // CONFIGURAÇÃO E CONEXÃO
@@ -106,20 +139,46 @@ function setupTabs() {
 // =====================================
 
 async function captureFromPage() {
+    console.log('[BryanAI Popup] Iniciando captura...');
+    
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        console.log('[BryanAI Popup] Aba ativa:', tab?.url);
         
-        const response = await chrome.tabs.sendMessage(tab.id, { action: 'captureJobData' });
+        if (!tab) {
+            showToast('Nenhuma aba ativa encontrada', 'error');
+            return;
+        }
         
-        if (response && response.success) {
-            document.getElementById('titulo').value = response.titulo || '';
-            document.getElementById('descricao').value = response.descricao || '';
-            showToast('Dados capturados!', 'success');
-        } else {
-            showToast('Não foi possível capturar dados desta página', 'error');
+        // Verifica se é uma URL suportada
+        const supportedSites = ['linkedin.com', 'gupy.io', 'indeed.com', 'glassdoor.com', 'vagas.com.br', 'catho.com.br', 'infojobs.com.br'];
+        const isSupported = supportedSites.some(site => tab.url?.includes(site));
+        
+        if (!isSupported) {
+            showToast('Site não suportado. Use LinkedIn, Gupy, Indeed, etc.', 'error');
+            console.log('[BryanAI Popup] Site não suportado:', tab.url);
+            return;
+        }
+        
+        // Tenta enviar mensagem para o content script
+        try {
+            const response = await chrome.tabs.sendMessage(tab.id, { action: 'captureJobData' });
+            console.log('[BryanAI Popup] Resposta do content script:', response);
+            
+            if (response && response.success) {
+                document.getElementById('titulo').value = response.titulo || '';
+                document.getElementById('descricao').value = response.descricao || '';
+                showToast('Dados capturados!', 'success');
+            } else {
+                showToast('Não foi possível capturar. Tente recarregar a página (F5)', 'error');
+            }
+        } catch (sendError) {
+            console.error('[BryanAI Popup] Erro ao enviar mensagem:', sendError);
+            // Content script pode não estar carregado - tenta injetar manualmente
+            showToast('Recarregue a página da vaga (F5) e tente novamente', 'error');
         }
     } catch (error) {
-        console.error('Erro ao capturar:', error);
+        console.error('[BryanAI Popup] Erro ao capturar:', error);
         showToast('Erro ao capturar. Cole manualmente.', 'error');
     }
 }
@@ -179,6 +238,7 @@ function displayAnalysisResult(data) {
     const strengthsList = document.getElementById('strengthsList');
     const gapsList = document.getElementById('gapsList');
     const keywordsList = document.getElementById('keywordsList');
+    const resultElement = document.getElementById('result');
     
     // Score
     scoreValue.textContent = data.score || '--';
@@ -188,34 +248,64 @@ function displayAnalysisResult(data) {
     fitBadge.className = 'fit-badge';
     
     if (data.score >= 80) {
-        fitBadge.textContent = 'Excelente Match';
+        fitBadge.textContent = data.fit || 'Excelente Match';
         fitBadge.classList.add('high');
     } else if (data.score >= 60) {
         scoreCard.classList.add('medium');
-        fitBadge.textContent = 'Bom Match';
+        fitBadge.textContent = data.fit || 'Bom Match';
         fitBadge.classList.add('medium');
     } else {
         scoreCard.classList.add('low');
-        fitBadge.textContent = 'Match Baixo';
+        fitBadge.textContent = data.fit || 'Match Baixo';
         fitBadge.classList.add('low');
     }
     
-    // Pontos fortes
-    strengthsList.innerHTML = (data.pontos_fortes || []).map(item => 
-        `<li><span class="list-icon">✓</span> ${item}</li>`
-    ).join('');
+    // Pontos fortes ou resumo
+    if (data.pontos_fortes && data.pontos_fortes.length > 0) {
+        strengthsList.innerHTML = data.pontos_fortes.map(item => 
+            `<li><span class="list-icon">✓</span> ${item}</li>`
+        ).join('');
+    } else if (data.resumo) {
+        strengthsList.innerHTML = `<li><span class="list-icon">📝</span> ${data.resumo}</li>`;
+    } else {
+        strengthsList.innerHTML = '<li><span class="list-icon">ℹ️</span> Análise concluída</li>';
+    }
     
     // Gaps
-    gapsList.innerHTML = (data.gaps || []).map(item => 
-        `<li><span class="list-icon">!</span> ${item}</li>`
-    ).join('');
+    if (data.gaps && data.gaps.length > 0) {
+        gapsList.innerHTML = data.gaps.map(item => 
+            `<li><span class="list-icon">!</span> ${item}</li>`
+        ).join('');
+        gapsList.parentElement.style.display = 'block';
+    } else {
+        gapsList.parentElement.style.display = 'none';
+    }
     
     // Keywords
-    keywordsList.innerHTML = (data.keywords || []).map(kw => 
-        `<span class="keyword-tag">${kw}</span>`
-    ).join('');
+    if (data.keywords && data.keywords.length > 0) {
+        keywordsList.innerHTML = data.keywords.map(kw => 
+            `<span class="keyword-tag">${kw}</span>`
+        ).join('');
+        keywordsList.parentElement.style.display = 'block';
+    } else {
+        keywordsList.parentElement.style.display = 'none';
+    }
     
+    // Mostra resultado com animação e scroll
     showElement('result');
+    
+    // Scroll automático para o resultado
+    setTimeout(() => {
+        resultElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Destaque visual temporário
+        resultElement.style.animation = 'pulse 0.5s ease-in-out 2';
+        setTimeout(() => {
+            resultElement.style.animation = '';
+        }, 1000);
+    }, 100);
+    
+    // Mostra toast de sucesso
+    showToast(`Análise concluída! Score: ${data.score}`, 'success');
 }
 
 function resetAnalysis() {
@@ -228,9 +318,16 @@ function resetAnalysis() {
 // GERAÇÃO DE CURRÍCULO
 // =====================================
 
+let isGenerating = false;
+
 async function generateResume(formato = 'pdf') {
     if (!isConnected) {
         showToast('Servidor offline', 'error');
+        return;
+    }
+    
+    if (isGenerating) {
+        showToast('Já existe uma geração em andamento...', 'info');
         return;
     }
     
@@ -244,9 +341,14 @@ async function generateResume(formato = 'pdf') {
         return;
     }
     
-    showToast('Gerando currículo...', 'info');
+    // Lock buttons and show loading
+    isGenerating = true;
+    setGenerateButtonsState(true);
+    showToast('Gerando currículo... Aguarde.', 'info');
     
     try {
+        console.log('[BryanAI] Gerando com template:', template);
+        
         const response = await fetch(`${serverUrl}/api/jobfit/generate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -274,7 +376,35 @@ async function generateResume(formato = 'pdf') {
     } catch (error) {
         console.error('Erro:', error);
         showToast('Erro de conexão', 'error');
+    } finally {
+        // Unlock buttons
+        isGenerating = false;
+        setGenerateButtonsState(false);
     }
+}
+
+function setGenerateButtonsState(loading) {
+    const buttons = [
+        document.getElementById('btnDownloadPdf'),
+        document.getElementById('btnGenPdf'),
+        document.getElementById('btnGenDocx')
+    ];
+    
+    buttons.forEach(btn => {
+        if (btn) {
+            btn.disabled = loading;
+            if (loading) {
+                btn.dataset.originalText = btn.textContent;
+                btn.textContent = '⏳ Gerando...';
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'wait';
+            } else {
+                btn.textContent = btn.dataset.originalText || btn.textContent;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
+        }
+    });
 }
 
 // =====================================

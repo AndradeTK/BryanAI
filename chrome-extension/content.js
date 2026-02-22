@@ -7,8 +7,13 @@
 const SITE_SELECTORS = {
     'linkedin.com': {
         titulo: [
+            '.job-details-jobs-unified-top-card__job-title h1.t-24.t-bold.inline a',
             '.job-details-jobs-unified-top-card__job-title h1 a',
             '.job-details-jobs-unified-top-card__job-title h1',
+            'h1.t-24.t-bold.inline a',
+            'h1.t-24.t-bold.inline',
+            '.t-24.t-bold.inline a',
+            '.t-24.t-bold.inline',
             'h1.t-24.t-bold a',
             'h1.t-24.t-bold',
             '.jobs-unified-top-card__job-title',
@@ -16,10 +21,12 @@ const SITE_SELECTORS = {
         ],
         descricao: [
             '#job-details',
+            '.jobs-box__html-content[id="job-details"]',
+            '.jobs-description__content .jobs-box__html-content',
+            'article.jobs-description__container .jobs-description__content',
             '.jobs-description__content',
             '.jobs-box__html-content',
-            '.jobs-description-content__text',
-            '.description__text'
+            '.jobs-description-content__text'
         ]
     },
     'gupy.io': {
@@ -129,6 +136,7 @@ function extractText(element) {
  */
 function captureJobData() {
     const site = detectSite();
+    console.log('[BryanAI] Capturando dados do site:', site);
     
     let titulo = '';
     let descricao = '';
@@ -138,18 +146,57 @@ function captureJobData() {
         
         const tituloElement = findElement(selectors.titulo);
         titulo = extractText(tituloElement);
+        console.log('[BryanAI] Título encontrado:', titulo ? titulo.substring(0, 50) : 'NÃO');
 
         const descricaoElement = findElement(selectors.descricao);
         descricao = extractText(descricaoElement);
+        console.log('[BryanAI] Descrição encontrada:', descricao ? descricao.length + ' chars' : 'NÃO');
     }
 
-    // Fallback: busca por padrões comuns
+    // Fallback específico para LinkedIn
+    if (site === 'linkedin.com') {
+        if (!titulo) {
+            // Tenta pelo aria-label do container principal
+            const container = document.querySelector('[aria-label*="DEVELOPER"], [aria-label*="Developer"], [aria-label*="Engineer"], [aria-label*="Desenvolvedor"]');
+            if (container) {
+                titulo = container.getAttribute('aria-label').trim();
+                console.log('[BryanAI] Título via aria-label:', titulo);
+            }
+        }
+        if (!titulo) {
+            // Tenta pelo h1 dentro de job-title
+            const h1 = document.querySelector('.job-details-jobs-unified-top-card__job-title h1');
+            if (h1) {
+                titulo = h1.innerText.trim();
+                console.log('[BryanAI] Título via h1 direto:', titulo);
+            }
+        }
+        if (!descricao) {
+            // Tenta pelo article de descrição
+            const article = document.querySelector('article.jobs-description__container');
+            if (article) {
+                descricao = article.innerText.trim();
+                console.log('[BryanAI] Descrição via article:', descricao.length + ' chars');
+            }
+        }
+        if (!descricao) {
+            // Tenta pela div com "Sobre a vaga"
+            const sobreVaga = document.querySelector('.jobs-description');
+            if (sobreVaga) {
+                descricao = sobreVaga.innerText.trim();
+                console.log('[BryanAI] Descrição via jobs-description:', descricao.length + ' chars');
+            }
+        }
+    }
+
+    // Fallback genérico: busca por padrões comuns
     if (!titulo) {
         const possibleTitles = document.querySelectorAll('h1');
         for (const h1 of possibleTitles) {
             const text = h1.innerText.trim();
             if (text.length > 5 && text.length < 200) {
                 titulo = text;
+                console.log('[BryanAI] Título via fallback h1:', titulo.substring(0, 50));
                 break;
             }
         }
