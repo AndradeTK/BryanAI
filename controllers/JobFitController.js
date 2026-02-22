@@ -145,13 +145,14 @@ const JobFitController = {
             const templatePath = await userSettingsService.getTemplatePath(templateToUse);
 
             // Renderiza template HTML
+            // Usa dados traduzidos pela IA quando disponíveis, senão fallback para dados do banco
             const html = await ejs.renderFile(templatePath, {
                 perfil: curriculo.perfil,
                 curriculo: curriculoOtimizado,
-                formacao: curriculo.formacao,
-                projetos: curriculo.projetos,
-                cursos: curriculo.cursos_certificacoes,
-                idiomas: curriculo.idiomas,
+                formacao: curriculoOtimizado.formacao || curriculo.formacao,
+                projetos: curriculoOtimizado.projetos || curriculo.projetos,
+                cursos: curriculoOtimizado.cursos_certificacoes || curriculo.cursos_certificacoes,
+                idiomas: curriculoOtimizado.idiomas || curriculo.idiomas,
                 vaga: { titulo, descricao },
                 lang: idioma,
                 sectionsOrder: settings.sectionsOrder

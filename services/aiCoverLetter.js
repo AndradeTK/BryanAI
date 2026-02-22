@@ -21,7 +21,7 @@ const aiCoverLetter = {
         const idiomaMap = {
             'pt-BR': 'português brasileiro',
             'en': 'inglês',
-            'es': 'espanhol'
+            'fr': 'francês'
         };
 
         const tomDescricao = {

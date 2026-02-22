@@ -56,7 +56,7 @@ REGRAS DE OURO:
  * @param {Object} vaga - Dados da vaga
  * @param {Object} analise - Resultado da análise de Job Fit
  * @param {string} idioma - Idioma do currículo (pt-BR, en, fr)
- * @returns {Object} Currículo reescrito
+ * @returns {Object} Currículo reescrito com TODOS os dados traduzidos
  */
 async function rewriteResume(curriculo, vaga, analise = null, idioma = 'pt-BR') {
     const model = genAI.getGenerativeModel(modelConfig);
@@ -64,35 +64,49 @@ async function rewriteResume(curriculo, vaga, analise = null, idioma = 'pt-BR') 
     const keywordsToFocus = analise?.keywords_match?.ausentes?.join(', ') || '';
     const experienciasDestacar = analise?.experiencias_destacar?.join(', ') || '';
     
-    // Mapeia idioma para instruções
+    // Mapeia idioma para instruções - apenas PT-BR, EN, FR
     const idiomaInstrucoes = {
         'pt-BR': {
             instrucao: 'Escreva TODO o conteúdo em Português do Brasil.',
             verbos: 'Use verbos de ação no passado: Desenvolvi, Implementei, Liderei, Otimizei, Entreguei, Alcancei, etc.',
             periodo: 'Use "Atual" para empregos atuais.',
+            present: 'Atual',
             extra: ''
         },
         'en': {
-            instrucao: 'Write ALL content in English. This is MANDATORY for EVERY field.',
+            instrucao: 'Write ALL content in English. This is MANDATORY for EVERY single field in the JSON output.',
             verbos: 'Use past tense action verbs: Developed, Implemented, Led, Optimized, Delivered, Achieved, Spearheaded, Architected, etc.',
             periodo: 'Use "Present" for current jobs, not "Atual".',
-            extra: `CRITICAL TRANSLATION RULES:
+            present: 'Present',
+            extra: `CRITICAL TRANSLATION RULES - EVERY FIELD MUST BE IN ENGLISH:
 - Job titles must be in English (e.g., "Desenvolvedor" → "Developer", "Analista" → "Analyst", "Estagiário" → "Intern")
 - All bullet points and descriptions in English
 - Professional summary in English
 - Skill categories in English
+- Education: degree names, institution descriptions, status in English (e.g., "Análise e Desenvolvimento de Sistemas" → "Systems Analysis and Development", "Concluído" → "Completed", "Em andamento" → "In Progress")
+- Certifications/Courses: titles and issuers translated to English
+- Languages: language names in English (e.g., "Português" → "Portuguese", "Inglês" → "English", "Francês" → "French")
+- Language levels in English (e.g., "Nativo" → "Native", "Fluente" → "Fluent", "Avançado" → "Advanced", "Intermediário" → "Intermediate", "Básico" → "Basic")
+- Projects: names can stay, but descriptions must be in English
 - Date format: "Jan 2020 - Present" (not "Jan 2020 - Atual")
-- Even if the original is in Portuguese, OUTPUT MUST BE 100% IN ENGLISH`
+- ZERO Portuguese words allowed in the output. OUTPUT MUST BE 100% IN ENGLISH`
         },
         'fr': {
-            instrucao: 'Rédigez TOUT le contenu en français. C\'est OBLIGATOIRE pour CHAQUE champ.',
+            instrucao: 'Rédigez TOUT le contenu en français. C\'est OBLIGATOIRE pour CHAQUE champ du JSON.',
             verbos: 'Utilisez des verbes d\'action au passé: Développé, Implémenté, Dirigé, Optimisé, Livré, Atteint, Piloté, Architecturé, etc.',
             periodo: 'Utilisez "Présent" pour les emplois actuels.',
-            extra: `RÈGLES DE TRADUCTION CRITIQUES:
+            present: 'Présent',
+            extra: `RÈGLES DE TRADUCTION CRITIQUES - CHAQUE CHAMP DOIT ÊTRE EN FRANÇAIS:
 - Les titres de poste doivent être en français (ex: "Developer" → "Développeur", "Analyst" → "Analyste")
-- Toutes les descriptions en français
+- Toutes les descriptions et bullet points en français
 - Résumé professionnel en français
-- Format de date: "Jan 2020 - Présent"`
+- Formation: titres de diplômes, statuts en français (ex: "Concluído" → "Terminé", "Em andamento" → "En cours")
+- Certifications/Cours: titres et émetteurs traduits en français
+- Langues: noms en français (ex: "Português" → "Portugais", "Inglês" → "Anglais", "Francês" → "Français")
+- Niveaux de langues en français (ex: "Nativo" → "Natif", "Fluente" → "Courant", "Avançado" → "Avancé", "Intermediário" → "Intermédiaire", "Básico" → "Débutant")
+- Projets: descriptions en français
+- Format de date: "Jan 2020 - Présent"
+- ZÉRO mots en portugais autorisés. TOUT DOIT ÊTRE EN FRANÇAIS`
         }
     };
     const langConfig = idiomaInstrucoes[idioma] || idiomaInstrucoes['pt-BR'];
@@ -104,7 +118,7 @@ ${langConfig.verbos}
 ${langConfig.periodo || ''}
 ${langConfig.extra || ''}
 
-DADOS ORIGINAIS DO CANDIDATO:
+DADOS COMPLETOS DO CANDIDATO (todos os dados abaixo devem ser traduzidos para o idioma solicitado):
 ${JSON.stringify(curriculo, null, 2)}
 
 VAGA ALVO:
@@ -114,27 +128,31 @@ Descrição: ${vaga.descricao}
 ${keywordsToFocus ? `KEYWORDS IMPORTANTES PARA INCLUIR: ${keywordsToFocus}` : ''}
 ${experienciasDestacar ? `EXPERIÊNCIAS PARA DESTACAR: ${experienciasDestacar}` : ''}
 
-TAREFA: Reescreva o currículo otimizado para esta vaga. 
+TAREFA: Reescreva o currículo COMPLETO otimizado para esta vaga. TODOS os dados devem ser traduzidos para o idioma solicitado.
 
 IMPORTANTE - ORDENAÇÃO CRONOLÓGICA:
 - As experiências devem estar em ordem CRONOLÓGICA REVERSA (mais recente primeiro)
-- Use a data_fim ou "${langConfig.periodo?.includes('Present') ? 'Present' : langConfig.periodo?.includes('Présent') ? 'Présent' : 'Atual'}" para ordenar - experiências atuais sempre no topo
+- Use a data_fim ou "${langConfig.present}" para ordenar - experiências atuais sempre no topo
 - Depois ordene por data_inicio, do mais recente para o mais antigo
 
-IMPORTANTE - TRADUÇÕES:
-- O campo "periodo" deve estar no idioma solicitado (ex: "Jan 2020 - Present" para inglês, "Jan 2020 - Atual" para português)
-- O campo "cargo" deve estar no idioma solicitado (ex: "Software Developer" para inglês)
-- O "titulo_profissional" deve refletir o cargo alvo da vaga no idioma solicitado
+IMPORTANTE - TRADUÇÃO COMPLETA:
+- TODOS os campos devem estar no idioma solicitado
+- Isso inclui: experiências, formação, cursos, idiomas, projetos, resumo, título, habilidades
+- Nomes de empresas e instituições podem permanecer no original
+- Nomes próprios (pessoas, empresas) NÃO devem ser traduzidos
+- Títulos de cursos, diplomas, certificações DEVEM ser traduzidos
+- Status (Concluído, Em andamento, etc.) DEVEM ser traduzidos
+- Nomes de idiomas e níveis DEVEM ser traduzidos
 
-Retorne EXCLUSIVAMENTE um JSON:
+Retorne EXCLUSIVAMENTE um JSON com a seguinte estrutura COMPLETA:
 {
     "titulo_profissional": "<título profissional otimizado para a vaga, no idioma solicitado>",
     "resumo_profissional": "<resumo de 3-4 linhas otimizado para a vaga, em primeira pessoa, no idioma solicitado>",
     "experiencias": [
         {
-            "empresa": "<nome da empresa>",
+            "empresa": "<nome da empresa (manter original)>",
             "cargo": "<cargo NO IDIOMA SOLICITADO>",
-            "periodo": "<data_inicio - data_fim NO IDIOMA SOLICITADO, ex: Jan 2020 - Present>",
+            "periodo": "<data_inicio - data_fim NO IDIOMA SOLICITADO, ex: Jan 2020 - ${langConfig.present}>",
             "bullets": [
                 "<bullet point 1 seguindo a fórmula mágica, NO IDIOMA SOLICITADO>",
                 "<bullet point 2>",
@@ -146,6 +164,35 @@ Retorne EXCLUSIVAMENTE um JSON:
         "principais": ["<tecnologias mais relevantes para a vaga>"],
         "secundarias": ["<outras tecnologias>"]
     },
+    "formacao": [
+        {
+            "titulo_curso": "<nome do curso/diploma NO IDIOMA SOLICITADO>",
+            "instituicao_projeto": "<nome da instituição (manter original)>",
+            "status": "<status NO IDIOMA SOLICITADO (ex: ${langConfig.present === 'Present' ? 'Completed, In Progress' : langConfig.present === 'Présent' ? 'Terminé, En cours' : 'Concluído, Em andamento'})>"
+        }
+    ],
+    "cursos_certificacoes": [
+        {
+            "titulo_do_curso": "<nome do curso/certificação NO IDIOMA SOLICITADO>",
+            "emissor_instituicao": "<nome do emissor (manter original se for nome próprio)>",
+            "descricao": "<descrição traduzida, se existir>"
+        }
+    ],
+    "idiomas": [
+        {
+            "idioma": "<nome do idioma NO IDIOMA SOLICITADO>",
+            "nivel_cefr": "<nível NO IDIOMA SOLICITADO>",
+            "certificacao_exame": "<certificação/exame, se existir>"
+        }
+    ],
+    "projetos": [
+        {
+            "instituicao_projeto": "<nome do projeto (manter original)>",
+            "descricao_detalhada": "<descrição NO IDIOMA SOLICITADO>",
+            "tecnologias": "<tecnologias usadas>",
+            "link": "<link, se existir>"
+        }
+    ],
     "diferenciais": [
         "<ponto diferencial 1, NO IDIOMA SOLICITADO>",
         "<ponto diferencial 2>"
