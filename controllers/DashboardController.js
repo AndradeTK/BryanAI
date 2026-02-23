@@ -5,6 +5,7 @@
 
 const { HistoricoGeracao } = require('../models');
 const { curriculoService } = require('../services');
+const path = require('path');
 
 const DashboardController = {
     /**
@@ -22,7 +23,7 @@ const DashboardController = {
             // Filtra apenas os que têm arquivo
             const curriculos = arquivos.filter(a => a.pdf_path).map(a => ({
                 ...a,
-                filename: a.pdf_path ? require('path').basename(a.pdf_path) : null
+                filename: a.pdf_path ? path.basename(a.pdf_path) : null
             }));
 
             res.render('dashboard/index', {

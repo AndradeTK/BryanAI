@@ -4,14 +4,11 @@
  * Persona: Engenheiro de ATS + Copywriter de Carreira
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-require('dotenv').config();
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { genAI, AI_MODEL, parseAIJson } = require('../config/ai');
 
 // Configuração do modelo
 const modelConfig = {
-    model: 'gemini-2.5-flash',
+    model: AI_MODEL,
     generationConfig: {
         temperature: 0.7,
         topK: 40,
@@ -203,12 +200,10 @@ Retorne EXCLUSIVAMENTE um JSON com a seguinte estrutura COMPLETA:
     try {
         const result = await model.generateContent(prompt);
         const text = result.response.text();
-        const cleanJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        
-        return JSON.parse(cleanJson);
+        return parseAIJson(text, 'RewriteResume');
     } catch (error) {
         console.error('Erro ao reescrever currículo:', error);
-        throw new Error(`Falha na reescrita de IA: ${error.message}`);
+        throw new Error('Falha na reescrita do currículo. Tente novamente.');
     }
 }
 

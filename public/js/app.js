@@ -114,3 +114,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for use in other scripts
 window.BryanAI = BryanAI;
+
+// Dark Mode Toggle
+async function toggleDarkMode() {
+    const html = document.documentElement;
+    const isDark = html.classList.toggle('dark');
+
+    try {
+        await fetch('/api/settings/dark-mode', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled: isDark })
+        });
+    } catch (err) {
+        // Revert on failure
+        html.classList.toggle('dark');
+        BryanAI.toast('Erro ao salvar preferência de tema', 'error');
+    }
+}
+
+window.toggleDarkMode = toggleDarkMode;

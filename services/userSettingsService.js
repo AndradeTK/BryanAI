@@ -115,6 +115,7 @@ function getDefaultSettings() {
     return {
         templatePadrao: 'minimalista',
         idiomaDefault: 'pt-BR',
+        darkMode: false,
         sectionsOrder: ['summary', 'experience', 'skills', 'education', 'certifications', 'languages', 'projects'],
         preferencias: {
             incluirProjetos: true,
@@ -150,6 +151,15 @@ function getDefaultSettings() {
 }
 
 /**
+ * Alterna o modo escuro
+ * @param {boolean} enabled - true para ativar dark mode
+ * @returns {Object} Configurações atualizadas
+ */
+async function setDarkMode(enabled) {
+    return saveSettings({ darkMode: !!enabled });
+}
+
+/**
  * Obtém o caminho do arquivo de template pelo ID
  * @param {string} templateId - ID do template
  * @returns {string} Caminho do arquivo
@@ -176,5 +186,6 @@ module.exports = {
     setSectionsOrder,
     updatePreferences,
     getDefaultSettings,
-    getTemplatePath
+    getTemplatePath,
+    setDarkMode
 };

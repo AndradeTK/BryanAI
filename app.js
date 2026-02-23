@@ -13,6 +13,7 @@ const path = require('path');
 const { testConnection } = require('./config/database');
 const { webRoutes, apiRoutes } = require('./routes');
 const { ConversaoController } = require('./controllers');
+const { userSettingsService } = require('./services');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,19 @@ app.use('/generated', express.static(path.join(__dirname, 'generated')));
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// =====================================
+// Middleware: Injeta darkMode em todas as views
+// =====================================
+app.use(async (req, res, next) => {
+    try {
+        const settings = await userSettingsService.getSettings();
+        res.locals.darkMode = settings.darkMode || false;
+    } catch {
+        res.locals.darkMode = false;
+    }
+    next();
+});
 
 // =====================================
 // Rotas

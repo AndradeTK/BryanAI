@@ -244,6 +244,19 @@ router.put('/settings/preferences', async (req, res) => {
     }
 });
 
+router.put('/settings/dark-mode', async (req, res) => {
+    try {
+        const { enabled } = req.body;
+        if (typeof enabled !== 'boolean') {
+            return res.status(400).json({ success: false, error: 'enabled deve ser true ou false' });
+        }
+        const settings = await userSettingsService.setDarkMode(enabled);
+        res.json({ success: true, data: { darkMode: settings.darkMode } });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Erro ao salvar preferência' });
+    }
+});
+
 // =====================================
 // Upload e Análise de Currículo Externo
 // =====================================

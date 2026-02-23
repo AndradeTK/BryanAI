@@ -4,14 +4,11 @@
  * Persona: Recrutador Técnico Sênior
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-require('dotenv').config();
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { genAI, AI_MODEL, parseAIJson } = require('../config/ai');
 
 // Configuração do modelo
 const modelConfig = {
-    model: 'gemini-2.5-flash',
+    model: AI_MODEL,
     generationConfig: {
         temperature: 0.3,
         topK: 40,
@@ -94,13 +91,10 @@ TAREFA: Analise a compatibilidade e retorne EXCLUSIVAMENTE um JSON no seguinte f
         const response = result.response;
         const text = response.text();
         
-        // Limpa o texto de possíveis marcações markdown
-        const cleanJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        
-        return JSON.parse(cleanJson);
+        return parseAIJson(text, 'JobFit');
     } catch (error) {
         console.error('Erro na análise de Job Fit:', error);
-        throw new Error(`Falha na análise de IA: ${error.message}`);
+        throw new Error('Falha na análise de compatibilidade. Tente novamente.');
     }
 }
 
@@ -269,12 +263,10 @@ Retorne EXCLUSIVAMENTE um JSON no seguinte formato:
         const text = response.text();
         
         // Limpa o texto de possíveis marcações markdown
-        const cleanJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        
-        return JSON.parse(cleanJson);
+        return parseAIJson(text, 'ExternalResume');
     } catch (error) {
         console.error('Erro na análise de currículo externo:', error);
-        throw new Error(`Falha na análise de IA: ${error.message}`);
+        throw new Error('Falha na análise do currículo externo. Tente novamente.');
     }
 }
 

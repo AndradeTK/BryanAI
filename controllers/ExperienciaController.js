@@ -134,54 +134,85 @@ const ExperienciaController = {
             const experiencias = await Experiencia.getAll();
             res.json({ success: true, data: experiencias });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao listar experiências:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiGet(req, res) {
         try {
-            const experiencia = await Experiencia.getById(req.params.id);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const experiencia = await Experiencia.getById(id);
             if (!experiencia) {
                 return res.status(404).json({ success: false, error: 'Não encontrada' });
             }
             res.json({ success: true, data: experiencia });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao buscar experiência:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiCreate(req, res) {
         try {
-            const id = await Experiencia.create(req.body);
+            const data = {
+                empresa: req.body.empresa,
+                cargo: req.body.cargo,
+                data_inicio: req.body.data_inicio,
+                data_fim: req.body.data_fim || null,
+                descricao_atividades: req.body.descricao_atividades,
+                principais_conquistas: req.body.principais_conquistas,
+                categoria: req.body.categoria,
+                tags_tecnicas: req.body.tags_tecnicas
+            };
+            const id = await Experiencia.create(data);
             const experiencia = await Experiencia.getById(id);
             res.status(201).json({ success: true, data: experiencia });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao criar experiência:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiUpdate(req, res) {
         try {
-            const success = await Experiencia.update(req.params.id, req.body);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const data = {
+                empresa: req.body.empresa,
+                cargo: req.body.cargo,
+                data_inicio: req.body.data_inicio,
+                data_fim: req.body.data_fim || null,
+                descricao_atividades: req.body.descricao_atividades,
+                principais_conquistas: req.body.principais_conquistas,
+                categoria: req.body.categoria,
+                tags_tecnicas: req.body.tags_tecnicas
+            };
+            const success = await Experiencia.update(id, data);
             if (!success) {
                 return res.status(404).json({ success: false, error: 'Não encontrada' });
             }
-            const experiencia = await Experiencia.getById(req.params.id);
+            const experiencia = await Experiencia.getById(id);
             res.json({ success: true, data: experiencia });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao atualizar experiência:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiDelete(req, res) {
         try {
-            const success = await Experiencia.delete(req.params.id);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const success = await Experiencia.delete(id);
             if (!success) {
                 return res.status(404).json({ success: false, error: 'Não encontrada' });
             }
             res.json({ success: true, message: 'Removida com sucesso' });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao deletar experiência:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     }
 };

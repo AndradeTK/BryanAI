@@ -3,9 +3,7 @@
  * Analisa gaps de habilidades e gera roadmap de desenvolvimento
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { genAI, AI_MODEL, parseAIJson } = require('../config/ai');
 
 const aiSkillsGap = {
     /**
@@ -14,7 +12,7 @@ const aiSkillsGap = {
      * @param {Object} alvo - Vaga ou cargo alvo
      */
     async analyze(curriculo, alvo) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: AI_MODEL });
 
         const prompt = `
 Você é um especialista em desenvolvimento de carreira e análise de competências.
@@ -123,7 +121,7 @@ Seja específico com links reais de cursos (Coursera, Udemy, LinkedIn Learning, 
             // Limpa markdown se presente
             responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             
-            const analysis = JSON.parse(responseText);
+            const analysis = parseAIJson(responseText, 'SkillsGap');
 
             return {
                 success: true,
@@ -137,7 +135,7 @@ Seja específico com links reais de cursos (Coursera, Udemy, LinkedIn Learning, 
             console.error('Erro ao analisar Skills Gap:', error);
             return {
                 success: false,
-                error: error.message
+                error: 'Falha na análise de Skills Gap. Tente novamente.'
             };
         }
     },
@@ -146,7 +144,7 @@ Seja específico com links reais de cursos (Coursera, Udemy, LinkedIn Learning, 
      * Compara o perfil com múltiplas vagas do mercado
      */
     async compareMarket(curriculo, area) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: AI_MODEL });
 
         const prompt = `
 Analise o perfil do candidato e compare com as demandas atuais do mercado na área de ${area}.
@@ -185,13 +183,13 @@ Responda em JSON:
             
             return {
                 success: true,
-                marketAnalysis: JSON.parse(responseText)
+                marketAnalysis: parseAIJson(responseText, 'MarketAnalysis')
             };
         } catch (error) {
             console.error('Erro na análise de mercado:', error);
             return {
                 success: false,
-                error: error.message
+                error: 'Falha na análise de mercado. Tente novamente.'
             };
         }
     },
@@ -200,7 +198,7 @@ Responda em JSON:
      * Gera um plano de estudos personalizado
      */
     async generateStudyPlan(gaps, horasPorSemana = 10) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: AI_MODEL });
 
         const prompt = `
 Crie um plano de estudos detalhado para preencher os seguintes gaps de habilidades.
@@ -239,13 +237,13 @@ Crie um plano de 12 semanas.
             
             return {
                 success: true,
-                studyPlan: JSON.parse(responseText)
+                studyPlan: parseAIJson(responseText, 'StudyPlan')
             };
         } catch (error) {
             console.error('Erro ao gerar plano de estudos:', error);
             return {
                 success: false,
-                error: error.message
+                error: 'Falha ao gerar plano de estudos. Tente novamente.'
             };
         }
     }

@@ -12,12 +12,12 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - DB_HOST=host.docker.internal
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=sua_senha_aqui
-      - DB_NAME=infos_curriculo
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-sua_chave_aqui}
-      - CORS_ORIGIN=*
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-infos_curriculo}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

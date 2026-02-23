@@ -1,12 +1,13 @@
 {
     "templatePadrao": "minimalista",
     "idiomaDefault": "pt-BR",
+    "darkMode": false,
     "sectionsOrder": [
         "summary",
         "experience",
+        "skills",
         "education",
         "certifications",
-        "skills",
         "languages",
         "projects"
     ],
@@ -21,30 +22,23 @@
         {
             "id": "minimalista",
             "nome": "Minimalista Moderno",
-            "descricao": "Design clean com tipografia limpa, espaçamento generoso e linhas finas. Estilo Clean Tech.",
+            "descricao": "Design clean com tipografia limpa, espaçamento generoso e linhas finas.",
             "arquivo": "curriculo-minimalista.ejs",
             "previewColor": "#2d3748"
         },
         {
             "id": "executivo",
             "nome": "Profissional Executivo",
-            "descricao": "Layout denso com cores sutis (azul escuro). Ideal para perfis sênior com muita experiência.",
+            "descricao": "Layout denso com cores sutis. Ideal para perfis sênior.",
             "arquivo": "curriculo-executivo.ejs",
             "previewColor": "#1e3a5f"
         },
         {
             "id": "tech",
             "nome": "Focado em Tech",
-            "descricao": "Skills no topo organizados por categoria (Backend, Frontend, DevOps). Ideal para desenvolvedores.",
+            "descricao": "Skills no topo por categoria. Ideal para desenvolvedores.",
             "arquivo": "curriculo-tech.ejs",
             "previewColor": "#0f172a"
-        },
-        {
-            "id": "harvard",
-            "nome": "Harvard / WSO Classic",
-            "descricao": "Estilo clássico de headhunter. Times New Roman, divisores horizontais, layout formal. Perfeito para consultorias e finanças.",
-            "arquivo": "curriculo-harvard.ejs",
-            "previewColor": "#1a1a1a"
         }
     ]
 }

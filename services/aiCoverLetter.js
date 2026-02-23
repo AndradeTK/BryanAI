@@ -3,9 +3,7 @@
  * Gera cartas de apresentação personalizadas usando IA
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const { genAI, AI_MODEL, parseAIJson } = require('../config/ai');
 
 const aiCoverLetter = {
     /**
@@ -16,7 +14,7 @@ const aiCoverLetter = {
      * @param {string} tom - Tom da carta (formal, entusiasmado, confiante)
      */
     async generate(curriculo, vaga, idioma = 'pt-BR', tom = 'formal') {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: AI_MODEL });
 
         const idiomaMap = {
             'pt-BR': 'português brasileiro',
@@ -100,7 +98,7 @@ Responda APENAS com a Cover Letter, sem comentários adicionais.
             console.error('Erro ao gerar Cover Letter:', error);
             return {
                 success: false,
-                error: error.message
+                error: 'Falha ao gerar Cover Letter. Tente novamente.'
             };
         }
     },
@@ -132,7 +130,7 @@ Responda APENAS com a Cover Letter, sem comentários adicionais.
      * Analisa e melhora uma cover letter existente
      */
     async improve(coverLetter, vaga) {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: AI_MODEL });
 
         const prompt = `
 Analise e melhore esta Cover Letter para a vaga descrita.
@@ -168,13 +166,13 @@ Responda em JSON:
             
             return {
                 success: true,
-                analysis: JSON.parse(responseText)
+                analysis: parseAIJson(responseText, 'ImproveCV')
             };
         } catch (error) {
             console.error('Erro ao melhorar Cover Letter:', error);
             return {
                 success: false,
-                error: error.message
+                error: 'Falha ao melhorar Cover Letter. Tente novamente.'
             };
         }
     }

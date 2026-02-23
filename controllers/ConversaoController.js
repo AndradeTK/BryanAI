@@ -4,6 +4,20 @@
  */
 
 const { documentConverter } = require('../services');
+const path = require('path');
+const fs = require('fs');
+
+/**
+ * Valida que o caminho resolvido está dentro do diretório permitido.
+ * Previne ataques de Path Traversal (ex: ../../etc/passwd)
+ */
+function validateFilePath(outputDir, filename) {
+    const resolved = path.resolve(outputDir, filename);
+    if (!resolved.startsWith(path.resolve(outputDir))) {
+        throw new Error('Nome de arquivo inválido');
+    }
+    return resolved;
+}
 
 const ConversaoController = {
     /**
@@ -136,9 +150,9 @@ const ConversaoController = {
         try {
             const { filename } = req.params;
             const outputDir = documentConverter.getOutputDir();
-            const filePath = require('path').join(outputDir, filename);
+            const filePath = validateFilePath(outputDir, filename);
             
-            res.download(filePath, filename, (err) => {
+            res.download(filePath, path.basename(filename), (err) => {
                 if (err) {
                     res.status(404).json({
                         success: false,
@@ -162,8 +176,7 @@ const ConversaoController = {
         try {
             const { filename } = req.params;
             const outputDir = documentConverter.getOutputDir();
-            const filePath = require('path').join(outputDir, filename);
-            const fs = require('fs');
+            const filePath = validateFilePath(outputDir, filename);
             
             if (!fs.existsSync(filePath)) {
                 return res.status(404).json({
@@ -173,7 +186,7 @@ const ConversaoController = {
             }
             
             // Determina o content-type baseado na extensão
-            const ext = require('path').extname(filename).toLowerCase();
+            const ext = path.extname(filename).toLowerCase();
             const contentTypes = {
                 '.pdf': 'application/pdf',
                 '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -182,7 +195,7 @@ const ConversaoController = {
             const contentType = contentTypes[ext] || 'application/octet-stream';
             
             res.setHeader('Content-Type', contentType);
-            res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+            res.setHeader('Content-Disposition', `inline; filename="${path.basename(filename)}"`);
             
             const fileStream = fs.createReadStream(filePath);
             fileStream.pipe(res);
@@ -201,6 +214,9 @@ const ConversaoController = {
     async deleteFile(req, res) {
         try {
             const { filename } = req.params;
+            // Valida o path antes de deletar
+            const outputDir = documentConverter.getOutputDir();
+            validateFilePath(outputDir, filename);
             await documentConverter.deleteGeneratedFile(filename);
             res.json({
                 success: true,

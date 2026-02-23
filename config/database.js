@@ -6,6 +6,12 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
+// Validação de variáveis de ambiente obrigatórias
+if (!process.env.DB_PASSWORD && process.env.NODE_ENV === 'production') {
+    console.error('❌ DB_PASSWORD é obrigatório em produção. Configure no .env');
+    process.exit(1);
+}
+
 // Criação do Pool de conexões para eficiência
 const pool = mysql.createPool({
     host: process.env.DB_HOST || '127.0.0.1',

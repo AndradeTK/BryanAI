@@ -199,7 +199,10 @@ async function listGeneratedFiles() {
  * @param {string} filename - Nome do arquivo
  */
 async function deleteGeneratedFile(filename) {
-    const filePath = path.join(OUTPUT_DIR, filename);
+    const filePath = path.resolve(OUTPUT_DIR, filename);
+    if (!filePath.startsWith(path.resolve(OUTPUT_DIR))) {
+        throw new Error('Nome de arquivo inválido');
+    }
     await fs.unlink(filePath);
 }
 

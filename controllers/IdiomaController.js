@@ -126,54 +126,77 @@ const IdiomaController = {
             const idiomas = await Idioma.getAll();
             res.json({ success: true, data: idiomas });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao listar idiomas:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiGet(req, res) {
         try {
-            const idioma = await Idioma.getById(req.params.id);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const idioma = await Idioma.getById(id);
             if (!idioma) {
                 return res.status(404).json({ success: false, error: 'Não encontrado' });
             }
             res.json({ success: true, data: idioma });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao buscar idioma:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiCreate(req, res) {
         try {
-            const id = await Idioma.create(req.body);
+            const data = {
+                idioma: req.body.idioma,
+                nivel_cefr: req.body.nivel_cefr,
+                certificacao_exame: req.body.certificacao_exame,
+                historico_de_escolas: req.body.historico_de_escolas
+            };
+            const id = await Idioma.create(data);
             const idioma = await Idioma.getById(id);
             res.status(201).json({ success: true, data: idioma });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao criar idioma:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiUpdate(req, res) {
         try {
-            const success = await Idioma.update(req.params.id, req.body);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const data = {
+                idioma: req.body.idioma,
+                nivel_cefr: req.body.nivel_cefr,
+                certificacao_exame: req.body.certificacao_exame,
+                historico_de_escolas: req.body.historico_de_escolas
+            };
+            const success = await Idioma.update(id, data);
             if (!success) {
                 return res.status(404).json({ success: false, error: 'Não encontrado' });
             }
-            const idioma = await Idioma.getById(req.params.id);
+            const idioma = await Idioma.getById(id);
             res.json({ success: true, data: idioma });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao atualizar idioma:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiDelete(req, res) {
         try {
-            const success = await Idioma.delete(req.params.id);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const success = await Idioma.delete(id);
             if (!success) {
                 return res.status(404).json({ success: false, error: 'Não encontrado' });
             }
             res.json({ success: true, message: 'Removido com sucesso' });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao deletar idioma:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     }
 };

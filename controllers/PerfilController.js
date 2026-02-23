@@ -84,7 +84,8 @@ const PerfilController = {
             const perfil = await Perfil.get();
             res.json({ success: true, data: perfil });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao buscar perfil:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
@@ -98,11 +99,22 @@ const PerfilController = {
                 return res.status(404).json({ success: false, error: 'Perfil não encontrado' });
             }
 
-            await Perfil.update(perfil.id, req.body);
+            const data = {
+                nome_completo: req.body.nome_completo,
+                email: req.body.email,
+                telefone: req.body.telefone,
+                localizacao: req.body.localizacao,
+                linkedin: req.body.linkedin,
+                github: req.body.github,
+                resumo_base: req.body.resumo_base,
+                data_nascimento: req.body.data_nascimento || null
+            };
+            await Perfil.update(perfil.id, data);
             const atualizado = await Perfil.get();
             res.json({ success: true, data: atualizado });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao atualizar perfil:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     }
 };

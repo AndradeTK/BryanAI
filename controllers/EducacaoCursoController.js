@@ -126,54 +126,77 @@ const EducacaoCursoController = {
             const cursos = await EducacaoCurso.getAll();
             res.json({ success: true, data: cursos });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao listar cursos:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiGet(req, res) {
         try {
-            const curso = await EducacaoCurso.getById(req.params.id);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const curso = await EducacaoCurso.getById(id);
             if (!curso) {
                 return res.status(404).json({ success: false, error: 'Não encontrado' });
             }
             res.json({ success: true, data: curso });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao buscar curso:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiCreate(req, res) {
         try {
-            const id = await EducacaoCurso.create(req.body);
+            const data = {
+                emissor_instituicao: req.body.emissor_instituicao,
+                titulo_do_curso: req.body.titulo_do_curso,
+                descricao: req.body.descricao,
+                destaque: req.body.destaque || 'Não'
+            };
+            const id = await EducacaoCurso.create(data);
             const curso = await EducacaoCurso.getById(id);
             res.status(201).json({ success: true, data: curso });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao criar curso:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiUpdate(req, res) {
         try {
-            const success = await EducacaoCurso.update(req.params.id, req.body);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const data = {
+                emissor_instituicao: req.body.emissor_instituicao,
+                titulo_do_curso: req.body.titulo_do_curso,
+                descricao: req.body.descricao,
+                destaque: req.body.destaque || 'Não'
+            };
+            const success = await EducacaoCurso.update(id, data);
             if (!success) {
                 return res.status(404).json({ success: false, error: 'Não encontrado' });
             }
-            const curso = await EducacaoCurso.getById(req.params.id);
+            const curso = await EducacaoCurso.getById(id);
             res.json({ success: true, data: curso });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao atualizar curso:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     },
 
     async apiDelete(req, res) {
         try {
-            const success = await EducacaoCurso.delete(req.params.id);
+            const id = parseInt(req.params.id, 10);
+            if (isNaN(id)) return res.status(400).json({ success: false, error: 'ID inválido' });
+            const success = await EducacaoCurso.delete(id);
             if (!success) {
                 return res.status(404).json({ success: false, error: 'Não encontrado' });
             }
             res.json({ success: true, message: 'Removido com sucesso' });
         } catch (error) {
-            res.status(500).json({ success: false, error: error.message });
+            console.error('Erro ao deletar curso:', error);
+            res.status(500).json({ success: false, error: 'Erro interno do servidor' });
         }
     }
 };
