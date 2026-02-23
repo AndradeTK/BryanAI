@@ -1,5 +1,5 @@
 /**
- * Service: AI Analyzer (Gemini 2.0 Flash)
+ * Service: AI Analyzer (Gemini 2.5 Flash)
  * Analisa compatibilidade entre currículo e vaga (Job Fit)
  * Persona: Recrutador Técnico Sênior
  */
@@ -11,7 +11,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Configuração do modelo
 const modelConfig = {
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-flash',
     generationConfig: {
         temperature: 0.3,
         topK: 40,

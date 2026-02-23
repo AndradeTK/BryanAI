@@ -1,5 +1,5 @@
 /**
- * Service: AI Writer (Gemini 2.0 Flash)
+ * Service: AI Writer (Gemini 2.5 Flash)
  * Reescreve experiências do currículo otimizadas para ATS
  * Persona: Engenheiro de ATS + Copywriter de Carreira
  */
@@ -11,7 +11,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Configuração do modelo
 const modelConfig = {
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-flash',
     generationConfig: {
         temperature: 0.7,
         topK: 40,
