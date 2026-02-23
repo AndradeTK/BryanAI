@@ -47,19 +47,7 @@ Sistema completo para **análise de compatibilidade com vagas** e **geração de
 
 ## 📸 Screenshots
 
-<details>
-<summary>Ver Screenshots</summary>
-
-### Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
-
-### Análise Job Fit
-![Job Fit](docs/screenshots/jobfit.png)
-
-### Chrome Extension
-![Extension](docs/screenshots/extension.png)
-
-</details>
+As imagens de exemplo não estão incluídas neste repositório. Se quiser adicionar screenshots, crie a pasta `docs/screenshots/` e adicione os arquivos `dashboard.png`, `jobfit.png` e `extension.png`.
 
 ## 🛠️ Tecnologias
 
@@ -68,7 +56,7 @@ Sistema completo para **análise de compatibilidade com vagas** e **geração de
 | **Backend** | Node.js 20+ / Express.js 4.x |
 | **Banco de Dados** | MySQL 8.0+ com connection pooling |
 | **Frontend** | EJS + Tailwind CSS 3.x |
-| **IA** | Google Gemini 2.0 Flash |
+| **IA** | Google Gemini (default: `gemini-2.5-flash`) |
 | **PDF** | Puppeteer |
 | **DOCX** | html-to-docx |
 | **Extensão** | Chrome Extension Manifest V3 |
@@ -137,9 +125,15 @@ GEMINI_API_KEY=sua_chave_api_aqui
 
 > 💡 **Obter API Key do Gemini**: Acesse [Google AI Studio](https://aistudio.google.com/app/apikey)
 
+
 #### 4. Inicie o servidor
 
+Certifique-se de ter instalado as dependências antes de iniciar o servidor:
+
 ```bash
+# Instale dependências (necessário antes de iniciar)
+npm install
+
 # Produção
 npm start
 
@@ -406,12 +400,12 @@ Este erro geralmente é causado por **outra extensão** com problemas, não pelo
 
 ## 📝 Licença
 
-Este projeto é de uso pessoal.
+Este projeto está licenciado sob **CC BY-NC 4.0** (uso não comercial). Veja [LICENSE](LICENSE) para detalhes sobre direitos e restrições.
 
 ---
 
 <p align="center">
-  Desenvolvido com ❤️ por <a href="https://github.com/AndradeTK">AndradeTK</a>
+  Desenvolvido por <a href="https://github.com/AndradeTK">AndradeTK</a>
   <br>
   Powered by <strong>Node.js</strong> e <strong>Google Gemini AI</strong>
 </p>
