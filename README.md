@@ -56,7 +56,7 @@ As imagens de exemplo não estão incluídas neste repositório. Se quiser adici
 | **Backend** | Node.js 20+ / Express.js 4.x |
 | **Banco de Dados** | MySQL 8.0+ com connection pooling |
 | **Frontend** | EJS + Tailwind CSS 3.x |
-| **IA** | Google Gemini (default: `gemini-2.5-flash`) |
+| **IA** | Google Gemini (default: `gemini-2.0-flash`) |
 | **PDF** | Puppeteer |
 | **DOCX** | html-to-docx |
 | **Extensão** | Chrome Extension Manifest V3 |

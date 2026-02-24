@@ -13,7 +13,7 @@ if (!process.env.GEMINI_API_KEY) {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 // Nome do modelo centralizado — altere aqui para trocar em todos os serviços
-const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const AI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
 
 /**
  * Limpa resposta da IA removendo marcações markdown de code block

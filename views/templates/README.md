@@ -186,6 +186,6 @@ O arquivo `config/user-settings.json` armazena:
 
 - `pt-BR` - Português (Brasil)
 - `en` - Inglês
-- `es` - Espanhol
+- `fr` - Francês
 
 Os títulos das seções são automaticamente traduzidos baseado no idioma selecionado.

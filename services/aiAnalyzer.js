@@ -1,5 +1,5 @@
 /**
- * Service: AI Analyzer (Gemini 2.5 Flash)
+ * Service: AI Analyzer (Gemini 2.0 Flash)
  * Analisa compatibilidade entre currículo e vaga (Job Fit)
  * Persona: Recrutador Técnico Sênior
  */

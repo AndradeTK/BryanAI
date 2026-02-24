@@ -1,5 +1,5 @@
 /**
- * Service: AI Writer (Gemini 2.5 Flash)
+ * Service: AI Writer (Gemini 2.0 Flash)
  * Reescreve experiências do currículo otimizadas para ATS
  * Persona: Engenheiro de ATS + Copywriter de Carreira
  */
