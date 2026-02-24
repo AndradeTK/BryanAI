@@ -3,7 +3,7 @@
  * Gera cartas de apresentação personalizadas usando IA
  */
 
-const { genAI, AI_MODEL, parseAIJson } = require('../config/ai');
+const { genAI, AI_MODEL, parseAIJson, withRetry } = require('../config/ai');
 
 const aiCoverLetter = {
     /**
@@ -80,7 +80,7 @@ Responda APENAS com a Cover Letter, sem comentários adicionais.
 `;
 
         try {
-            const result = await model.generateContent(prompt);
+            const result = await withRetry(() => model.generateContent(prompt));
             const coverLetter = result.response.text();
 
             return {
@@ -158,7 +158,7 @@ Responda em JSON:
 `;
 
         try {
-            const result = await model.generateContent(prompt);
+            const result = await withRetry(() => model.generateContent(prompt));
             let responseText = result.response.text();
             
             // Limpa markdown se presente

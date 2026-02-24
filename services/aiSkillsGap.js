@@ -3,7 +3,7 @@
  * Analisa gaps de habilidades e gera roadmap de desenvolvimento
  */
 
-const { genAI, AI_MODEL, parseAIJson } = require('../config/ai');
+const { genAI, AI_MODEL, parseAIJson, withRetry } = require('../config/ai');
 
 const aiSkillsGap = {
     /**
@@ -115,7 +115,7 @@ Seja específico com links reais de cursos (Coursera, Udemy, LinkedIn Learning, 
 `;
 
         try {
-            const result = await model.generateContent(prompt);
+            const result = await withRetry(() => model.generateContent(prompt));
             let responseText = result.response.text();
             
             // Limpa markdown se presente
@@ -177,7 +177,7 @@ Responda em JSON:
 `;
 
         try {
-            const result = await model.generateContent(prompt);
+            const result = await withRetry(() => model.generateContent(prompt));
             let responseText = result.response.text();
             responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             
@@ -231,7 +231,7 @@ Crie um plano de 12 semanas.
 `;
 
         try {
-            const result = await model.generateContent(prompt);
+            const result = await withRetry(() => model.generateContent(prompt));
             let responseText = result.response.text();
             responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             

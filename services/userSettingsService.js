@@ -46,7 +46,7 @@ async function saveSettings(settings) {
  * @returns {Object} Configurações atualizadas
  */
 async function setDefaultTemplate(templateId) {
-    const validTemplates = ['minimalista', 'executivo', 'tech', 'harvard'];
+    const validTemplates = ['minimalista', 'executivo', 'tech', 'harvard', 'classico'];
     if (!validTemplates.includes(templateId)) {
         throw new Error(`Template inválido. Opções: ${validTemplates.join(', ')}`);
     }
@@ -145,6 +145,13 @@ function getDefaultSettings() {
                 descricao: 'Skills no topo por categoria. Ideal para desenvolvedores.',
                 arquivo: 'curriculo-tech.ejs',
                 previewColor: '#0f172a'
+            },
+            {
+                id: 'harvard',
+                nome: 'Harvard Clássico',
+                descricao: 'Formato tradicional inspirado no modelo Harvard. Elegante e atemporal.',
+                arquivo: 'curriculo-harvard.ejs',
+                previewColor: '#8B0000'
             }
         ]
     };

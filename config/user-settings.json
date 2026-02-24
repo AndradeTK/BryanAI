@@ -39,6 +39,13 @@
             "descricao": "Skills no topo por categoria. Ideal para desenvolvedores.",
             "arquivo": "curriculo-tech.ejs",
             "previewColor": "#0f172a"
+        },
+        {
+            "id": "harvard",
+            "nome": "Harvard Clássico",
+            "descricao": "Formato tradicional inspirado no modelo Harvard. Elegante e atemporal.",
+            "arquivo": "curriculo-harvard.ejs",
+            "previewColor": "#8B0000"
         }
     ]
 }

@@ -4,7 +4,7 @@
  * Persona: Recrutador Técnico Sênior
  */
 
-const { genAI, AI_MODEL, parseAIJson } = require('../config/ai');
+const { genAI, AI_MODEL, parseAIJson, withRetry } = require('../config/ai');
 
 // Configuração do modelo
 const modelConfig = {
@@ -87,7 +87,7 @@ TAREFA: Analise a compatibilidade e retorne EXCLUSIVAMENTE um JSON no seguinte f
 }`;
 
     try {
-        const result = await model.generateContent(prompt);
+        const result = await withRetry(() => model.generateContent(prompt));
         const response = result.response;
         const text = response.text();
         
@@ -164,7 +164,7 @@ Retorne APENAS um JSON:
 {"score": <0-100>, "resumo": "<análise em 1-2 frases destacando pontos positivos e gaps>", "fit": "<Baixo|Médio|Alto|Excelente>"}`;
 
     try {
-        const result = await model.generateContent(prompt);
+        const result = await withRetry(() => model.generateContent(prompt));
         const text = result.response.text();
         let cleanJson = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         
@@ -258,7 +258,7 @@ Retorne EXCLUSIVAMENTE um JSON no seguinte formato:
 }`;
 
     try {
-        const result = await model.generateContent(prompt);
+        const result = await withRetry(() => model.generateContent(prompt));
         const response = result.response;
         const text = response.text();
         

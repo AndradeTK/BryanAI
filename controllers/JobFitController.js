@@ -5,6 +5,7 @@
 
 const { HistoricoGeracao } = require('../models');
 const { aiAnalyzer, aiWriter, documentConverter, curriculoService, userSettingsService } = require('../services');
+const { delay } = require('../config/ai');
 const path = require('path');
 const ejs = require('ejs');
 const fs = require('fs').promises;
@@ -134,6 +135,9 @@ const JobFitController = {
 
             // Análise de Job Fit
             const analise = await aiAnalyzer.analyzeJobFit(curriculo, { titulo, descricao });
+
+            // Aguarda antes da próxima chamada para evitar rate limit (429)
+            await delay(2000);
 
             // Reescreve currículo otimizado
             const curriculoOtimizado = await aiWriter.rewriteResume(curriculo, { titulo, descricao }, analise, idioma);

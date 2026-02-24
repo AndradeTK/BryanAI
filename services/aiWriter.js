@@ -4,7 +4,7 @@
  * Persona: Engenheiro de ATS + Copywriter de Carreira
  */
 
-const { genAI, AI_MODEL, parseAIJson } = require('../config/ai');
+const { genAI, AI_MODEL, parseAIJson, withRetry } = require('../config/ai');
 
 // Configuração do modelo
 const modelConfig = {
@@ -198,7 +198,7 @@ Retorne EXCLUSIVAMENTE um JSON com a seguinte estrutura COMPLETA:
 }`;
 
     try {
-        const result = await model.generateContent(prompt);
+        const result = await withRetry(() => model.generateContent(prompt));
         const text = result.response.text();
         return parseAIJson(text, 'RewriteResume');
     } catch (error) {
@@ -229,7 +229,7 @@ Use primeira pessoa implícita. Seja direto e impactante.
 Retorne APENAS o texto do resumo, sem JSON ou formatação.`;
 
     try {
-        const result = await model.generateContent(prompt);
+        const result = await withRetry(() => model.generateContent(prompt));
         return result.response.text().trim();
     } catch (error) {
         console.error('Erro ao gerar resumo:', error);
@@ -258,7 +258,7 @@ ${context ? `CONTEXTO ADICIONAL: ${context}` : ''}
 Retorne APENAS o bullet point reescrito, sem explicações.`;
 
     try {
-        const result = await model.generateContent(prompt);
+        const result = await withRetry(() => model.generateContent(prompt));
         return result.response.text().trim();
     } catch (error) {
         console.error('Erro ao reescrever bullet:', error);
