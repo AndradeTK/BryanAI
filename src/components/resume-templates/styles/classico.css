@@ -1,0 +1,213 @@
+        /* Fontes nativas ATS (sem @import remoto — Puppeteer roda offline). */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Calibri', 'Segoe UI', Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #1f2937;
+            background: white;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 15mm;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3b82f6;
+        }
+        
+        .header h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+        
+        .header .contact {
+            font-size: 9pt;
+            color: #4b5563;
+        }
+        
+        .header .contact a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        
+        /* Sections */
+        .section {
+            margin-bottom: 18px;
+        }
+        
+        .section-title {
+            font-size: 12pt;
+            font-weight: 600;
+            color: #1e40af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+        }
+        
+        /* Summary */
+        .summary {
+            font-size: 10pt;
+            color: #374151;
+            text-align: justify;
+        }
+        
+        /* Experience */
+        .experience-item {
+            margin-bottom: 14px;
+        }
+        
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+        
+        .job-title {
+            font-weight: 600;
+            font-size: 11pt;
+            color: #111827;
+        }
+        
+        .period {
+            font-size: 9pt;
+            color: #6b7280;
+        }
+        
+        .company {
+            font-weight: 500;
+            color: #3b82f6;
+            font-size: 10pt;
+        }
+        
+        .bullets {
+            margin-top: 6px;
+            padding-left: 16px;
+        }
+        
+        .bullets li {
+            margin-bottom: 3px;
+            color: #374151;
+        }
+        
+        /* Skills */
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .skill-tag {
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 9pt;
+            font-weight: 500;
+        }
+        
+        .skill-tag.secondary {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        /* Education */
+        .education-item {
+            margin-bottom: 10px;
+        }
+        
+        .education-item .title {
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .education-item .institution {
+            color: #3b82f6;
+            font-size: 9pt;
+        }
+        
+        .education-item .status {
+            color: #6b7280;
+            font-size: 9pt;
+        }
+        
+        /* Certifications */
+        .cert-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .cert-item .name {
+            font-weight: 500;
+        }
+        
+        .cert-item .issuer {
+            color: #6b7280;
+            font-size: 9pt;
+        }
+        
+        /* Languages */
+        .language-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 20px;
+            margin-bottom: 6px;
+        }
+        
+        .language-item .name {
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .language-item .level {
+            color: #6b7280;
+            font-size: 9pt;
+        }
+        
+        /* Two columns for smaller sections */
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        /* Print optimization */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .container {
+                padding: 0;
+            }
+
+            /* Seções fluem entre páginas; protegemos só títulos e itens. */
+            .section-title {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            .experience-item {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }

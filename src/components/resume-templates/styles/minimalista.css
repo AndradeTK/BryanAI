@@ -1,0 +1,269 @@
+        /* ===========================================
+           TEMPLATE 1: MINIMALISTA MODERNO (Clean Tech)
+           - Tipografia limpa sans-serif
+           - Espaçamento generoso
+           - Linhas finas para separar seções
+           - 100% compatível com ATS
+           =========================================== */
+        
+        /* Fontes nativas ATS (sem @import remoto — Puppeteer roda offline). */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Calibri', 'Segoe UI', Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #2d3748;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm 18mm;
+        }
+        
+        /* ===== HEADER ===== */
+        header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        h1 {
+            font-size: 26pt;
+            font-weight: 600;
+            color: #1a202c;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .contact-info {
+            font-size: 9.5pt;
+            color: #4a5568;
+            line-height: 1.8;
+        }
+        
+        .contact-info a {
+            color: #4a5568;
+            text-decoration: none;
+        }
+        
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        
+        .contact-separator {
+            margin: 0 8px;
+            color: #cbd5e0;
+        }
+        
+        /* ===== SECTIONS ===== */
+        section {
+            margin-bottom: 22px;
+        }
+        
+        h2 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1a202c;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 14px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* ===== RESUMO ===== */
+        .summary-text {
+            font-size: 10pt;
+            color: #4a5568;
+            text-align: justify;
+            line-height: 1.7;
+        }
+        
+        /* ===== EXPERIÊNCIA ===== */
+        .experience-item {
+            margin-bottom: 18px;
+            page-break-inside: avoid;
+        }
+        
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        
+        .job-title {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        
+        .period {
+            font-size: 9pt;
+            color: #718096;
+            font-weight: 400;
+        }
+        
+        .company-name {
+            font-size: 10pt;
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 6px;
+        }
+        
+        .responsibilities {
+            margin-top: 8px;
+            padding-left: 18px;
+        }
+        
+        .responsibilities li {
+            margin-bottom: 4px;
+            color: #4a5568;
+            font-size: 9.5pt;
+            line-height: 1.5;
+        }
+        
+        /* ===== HABILIDADES ===== */
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+        }
+        
+        .skill-item {
+            font-size: 9.5pt;
+            color: #4a5568;
+            padding: 4px 10px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 3px;
+        }
+        
+        .skill-category {
+            font-weight: 500;
+            margin-bottom: 8px;
+            margin-top: 10px;
+            font-size: 9pt;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .skill-category:first-child {
+            margin-top: 0;
+        }
+        
+        /* ===== FORMAÇÃO ===== */
+        .education-item {
+            margin-bottom: 12px;
+        }
+        
+        .education-title {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        
+        .education-institution {
+            font-size: 9.5pt;
+            color: #4a5568;
+        }
+        
+        .education-status {
+            font-size: 9pt;
+            color: #718096;
+        }
+        
+        /* ===== CERTIFICAÇÕES ===== */
+        .cert-item {
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        
+        .cert-name {
+            font-size: 10pt;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .cert-issuer {
+            font-size: 9pt;
+            color: #718096;
+        }
+        
+        /* ===== IDIOMAS ===== */
+        .languages-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .language-item {
+            font-size: 10pt;
+        }
+        
+        .language-name {
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .language-level {
+            color: #718096;
+            font-size: 9pt;
+        }
+        
+        /* ===== PROJETOS ===== */
+        .project-item {
+            margin-bottom: 12px;
+        }
+        
+        .project-title {
+            font-size: 10.5pt;
+            font-weight: 600;
+            color: #1a202c;
+        }
+        
+        .project-description {
+            font-size: 9.5pt;
+            color: #4a5568;
+        }
+        
+        .project-link {
+            font-size: 9pt;
+            color: #4a5568;
+            text-decoration: none;
+        }
+        
+        /* ===== PRINT OPTIMIZATION ===== */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .container {
+                padding: 12mm 15mm;
+            }
+            
+            /* Seções fluem entre páginas; protegemos só títulos e itens. */
+            h2 {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            .experience-item {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }

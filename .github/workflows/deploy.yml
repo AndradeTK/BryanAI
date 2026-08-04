@@ -1,0 +1,196 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # permite redeploy manual sem commit novo
+
+# Um deploy por vez. Sem isso, dois pushes seguidos podem trocar o symlink
+# `current` fora de ordem e deixar no ar um release mais antigo que o último.
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false
+
+env:
+  APP_DIR: /var/www/bryanai
+  APP_NAME: bryanai
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: producao
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testes
+        run: npm test
+
+      # O build roda aqui, e não na VPS: ela tem 3.8GB de RAM dividida com outra
+      # aplicação, e um `next build` ao lado dela derruba as duas.
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://build:build@127.0.0.1:5432/build
+          GEMINI_API_KEY: build-placeholder
+          AUTH_SECRET: build-placeholder-com-no-minimo-32-caracteres
+          APP_URL: https://app.bryanandrade.dev
+
+      # O standalone não inclui os assets estáticos nem /public — o Next espera
+      # encontrá-los ao lado do server.js.
+      - name: Montar o bundle do release
+        run: |
+          set -euo pipefail
+          cp -r .next/static .next/standalone/.next/static
+          if [ -d public ]; then cp -r public .next/standalone/public; fi
+          tar -czf release.tar.gz -C .next/standalone .
+          ls -lh release.tar.gz
+
+      - name: Configurar a chave SSH
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Fixa a identidade do servidor. Sem isso, um MITM no runner receberia
+          # o bundle e poderia devolver qualquer coisa.
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Enviar o bundle
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          scp -i ~/.ssh/id_deploy -P "$SSH_PORT" release.tar.gz \
+            "$SSH_USER@$SSH_HOST:/tmp/bryanai-${{ github.sha }}.tar.gz"
+
+      - name: Publicar o release
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "APP_DIR='${{ env.APP_DIR }}' APP_NAME='${{ env.APP_NAME }}' SHA='$SHA' bash -s" <<'REMOTO'
+          set -euo pipefail
+
+          RELEASE="$APP_DIR/releases/$SHA"
+          echo "==> Preparando $RELEASE"
+          rm -rf "$RELEASE"
+          mkdir -p "$RELEASE"
+          tar -xzf "/tmp/bryanai-$SHA.tar.gz" -C "$RELEASE"
+          rm -f "/tmp/bryanai-$SHA.tar.gz"
+
+          # O .env é do servidor, não do repositório. Symlink em vez de cópia
+          # para que rotacionar um segredo não exija um deploy novo.
+          ln -sfn "$APP_DIR/shared/.env" "$RELEASE/.env"
+
+          echo "==> Migrations"
+          set -a; . "$APP_DIR/shared/.env"; set +a
+          ( cd "$RELEASE" && node scripts/migrate.mjs )
+
+          echo "==> Trocando o release ativo"
+          # -T evita que, se `current` já for um link para um diretório, o novo
+          # link seja criado DENTRO dele.
+          ln -sfnT "$RELEASE" "$APP_DIR/current"
+
+          echo "==> Recarregando a aplicação"
+          if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
+            pm2 reload "$APP_NAME" --update-env
+          else
+            pm2 start "$APP_DIR/current/server.js" --name "$APP_NAME" \
+              --cwd "$APP_DIR/current" --update-env
+          fi
+          pm2 save --force
+
+          echo "==> Limpando releases antigos (mantém os 3 últimos)"
+          cd "$APP_DIR/releases"
+          ls -1dt */ 2>/dev/null | tail -n +4 | xargs -r rm -rf
+
+          echo "==> Release ativo: $(readlink -f "$APP_DIR/current")"
+          REMOTO
+
+      - name: Verificar a saúde em produção
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "APP_NAME='${{ env.APP_NAME }}' bash -s" <<'REMOTO'
+          set -euo pipefail
+          PORT=$(grep -oP '^PORT=\K.*' /var/www/bryanai/shared/.env || echo 3100)
+
+          # A app precisa de alguns segundos para atender depois do reload.
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/login" || true)
+            if [ "$code" = "200" ]; then
+              echo "OK: /login respondeu 200 na tentativa $i"
+
+              # Uma rota protegida tem que barrar quem não tem sessão. Se isto
+              # devolver 200, o deploy subiu com o painel aberto — e falhar aqui
+              # é melhor do que descobrir depois.
+              protegida=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/perfil" || true)
+              if [ "$protegida" != "307" ] && [ "$protegida" != "302" ]; then
+                echo "FALHA: /perfil devolveu $protegida sem sessão (esperado redirect para /login)"
+                exit 1
+              fi
+              echo "OK: /perfil redireciona sem sessão ($protegida)"
+
+              api=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/api/dados/export" || true)
+              if [ "$api" != "401" ]; then
+                echo "FALHA: /api/dados/export devolveu $api sem credencial (esperado 401)"
+                exit 1
+              fi
+              echo "OK: API protegida devolve 401"
+              exit 0
+            fi
+            sleep 3
+          done
+
+          echo "FALHA: a aplicação não respondeu. Últimas linhas do log:"
+          pm2 logs "$APP_NAME" --lines 40 --nostream || true
+          exit 1
+          REMOTO
+
+      - name: Rollback automático se a verificação falhar
+        if: failure()
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_PORT: ${{ secrets.DEPLOY_PORT }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_deploy -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "APP_DIR='${{ env.APP_DIR }}' APP_NAME='${{ env.APP_NAME }}' bash -s" <<'REMOTO'
+          set -euo pipefail
+          cd "$APP_DIR/releases"
+          # O penúltimo release por data de modificação: o que estava no ar.
+          ANTERIOR=$(ls -1dt */ 2>/dev/null | sed -n '2p' | tr -d '/')
+          if [ -z "$ANTERIOR" ]; then
+            echo "Sem release anterior para voltar — deixando como está para inspeção."
+            exit 0
+          fi
+          echo "==> Voltando para $ANTERIOR"
+          ln -sfnT "$APP_DIR/releases/$ANTERIOR" "$APP_DIR/current"
+          pm2 reload "$APP_NAME" --update-env || true
+          echo "Rollback concluído. As migrations NÃO foram revertidas — confira o banco."
+          REMOTO

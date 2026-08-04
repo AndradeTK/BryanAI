@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ADD COLUMN "stage" varchar(20) DEFAULT 'tracked' NOT NULL;

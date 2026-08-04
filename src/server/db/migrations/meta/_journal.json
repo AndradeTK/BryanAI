@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1783712857621,
+      "tag": "0000_peaceful_the_renegades",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783731901012,
+      "tag": "0001_cuddly_wrecking_crew",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783977262350,
+      "tag": "0002_needy_roulette",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783993919984,
+      "tag": "0003_clever_firebrand",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783997383942,
+      "tag": "0004_real_adam_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784000584809,
+      "tag": "0005_steady_blue_marvel",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784028190876,
+      "tag": "0006_abandoned_sleeper",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784032665473,
+      "tag": "0007_red_hawkeye",
+      "breakpoints": true
+    }
+  ]
+}

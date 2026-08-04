@@ -1,411 +1,130 @@
-# 🚀 BryanAI - Sistema de Otimização de Currículo com IA
+# BryanAI
 
-<p align="center">
-  <img src="chrome-extension/icons/icon128.png" alt="BryanAI Logo" width="128"/>
-</p>
+Ferramenta pessoal de candidatura a vagas com foco no mercado canadense: mantém o
+perfil profissional, analisa a compatibilidade com uma vaga, gera currículos ATS
+e cartas de apresentação, e acompanha as candidaturas num kanban.
 
-<p align="center">
-  <a href="https://github.com/AndradeTK/BryanAI"><img src="https://img.shields.io/badge/GitHub-AndradeTK%2FBryanAI-blue?logo=github" alt="GitHub Repo"></a>
-  <img src="https://img.shields.io/badge/Node.js-20+-green?logo=node.js" alt="Node.js">
-  <img src="https://img.shields.io/badge/MySQL-8.0+-blue?logo=mysql" alt="MySQL">
-  <img src="https://img.shields.io/badge/Chrome%20Extension-MV3-orange?logo=googlechrome" alt="Chrome Extension">
-  <img src="https://img.shields.io/badge/AI-Google%20Gemini-purple?logo=google" alt="Gemini AI">
-</p>
-
-Sistema completo para **análise de compatibilidade com vagas** e **geração de currículos otimizados para ATS**, utilizando inteligência artificial do Google Gemini.
-
-## 📋 Índice
-
-- [Funcionalidades](#-funcionalidades)
-- [Screenshots](#-screenshots)
-- [Tecnologias](#️-tecnologias)
-- [Instalação](#-instalação)
-  - [Via Docker (Recomendado)](#via-docker-recomendado)
-  - [Instalação Manual](#instalação-manual)
-- [Extensão Chrome](#-extensão-chrome)
-- [API Reference](#-api-reference)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Como Usar](#-como-usar)
-- [IA - Personas](#-ia---personas)
-- [Troubleshooting](#-troubleshooting)
-- [Contribuindo](#-contribuindo)
-- [Licença](#-licença)
-
-## ✨ Funcionalidades
-
-| Feature | Descrição |
-|---------|-----------|
-| 📊 **Dashboard** | Visão geral do currículo com estatísticas de completude |
-| 📝 **CRUD Completo** | Gerenciamento de Perfil, Experiências, Formação, Cursos e Idiomas |
-| 🎯 **Análise Job Fit** | Score de 0-100 de compatibilidade usando IA |
-| ✍️ **Currículo Otimizado** | Geração automática com palavras-chave relevantes para ATS |
-| 📄 **Export PDF/DOCX** | Conversão com layout profissional |
-| 🧩 **Chrome Extension** | Captura vagas do LinkedIn, Gupy, Indeed e outros |
-| 📧 **Cover Letter** | Geração de cartas de apresentação personalizadas |
-| 🌐 **Multi-idioma** | Suporte a PT-BR, Inglês e Francês |
-| 📜 **Histórico** | Rastreamento de todas as gerações com visualização de PDFs |
-
-## 📸 Screenshots
-
-As imagens de exemplo não estão incluídas neste repositório. Se quiser adicionar screenshots, crie a pasta `docs/screenshots/` e adicione os arquivos `dashboard.png`, `jobfit.png` e `extension.png`.
-
-## 🛠️ Tecnologias
-
-| Categoria | Tecnologia |
-|-----------|------------|
-| **Backend** | Node.js 20+ / Express.js 4.x |
-| **Banco de Dados** | MySQL 8.0+ com connection pooling |
-| **Frontend** | EJS + Tailwind CSS 3.x |
-| **IA** | Google Gemini (default: `gemini-2.0-flash`) |
-| **PDF** | Puppeteer |
-| **DOCX** | html-to-docx |
-| **Extensão** | Chrome Extension Manifest V3 |
-| **Container** | Docker + Docker Compose |
-
-## 🚀 Instalação
-
-### Via Docker (Recomendado)
-
-```bash
-# Clone o repositório
-git clone https://github.com/AndradeTK/BryanAI.git
-cd BryanAI
-
-# Configure as variáveis de ambiente
-cp .env.example .env
-# Edite o .env com suas configurações
-
-# Inicie com Docker Compose
-docker-compose up -d --build
-```
-
-Acesse: http://localhost:3000
-
-### Instalação Manual
-
-#### 1. Clone e instale as dependências
-
-```bash
-git clone https://github.com/AndradeTK/BryanAI.git
-cd BryanAI
-npm install
-```
-
-#### 2. Configure o banco de dados
-
-Crie um banco MySQL e execute o script SQL:
-
-```bash
-mysql -u root -p < infos_curriculo.sql
-```
-
-#### 3. Configure as variáveis de ambiente
-
-```bash
-cp .env.example .env
-```
-
-Edite o `.env`:
-
-```env
-# Servidor
-PORT=3000
-NODE_ENV=development
-
-# MySQL
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=seu_usuario
-DB_PASSWORD=sua_senha
-DB_NAME=infos_curriculo
-
-# Google Gemini AI
-GEMINI_API_KEY=sua_chave_api_aqui
-```
-
-> 💡 **Obter API Key do Gemini**: Acesse [Google AI Studio](https://aistudio.google.com/app/apikey)
-
-
-#### 4. Inicie o servidor
-
-Certifique-se de ter instalado as dependências antes de iniciar o servidor:
-
-```bash
-# Instale dependências (necessário antes de iniciar)
-npm install
-
-# Produção
-npm start
-
-# Desenvolvimento (com auto-reload)
-npm run dev
-```
-
-Acesse: http://localhost:3000
-
-## 🧩 Extensão Chrome
-
-### Instalação da Extensão
-
-1. Abra `chrome://extensions/` no Chrome
-2. Ative o **Modo do desenvolvedor** (canto superior direito)
-3. Clique em **Carregar sem compactação**
-4. Selecione a pasta `chrome-extension/`
-
-### Uso da Extensão
-
-1. Navegue até uma vaga no LinkedIn, Gupy, Indeed, etc.
-2. Clique no ícone da extensão BryanAI
-3. Clique em **📋 Capturar Vaga** para extrair título e descrição
-4. Clique em **🎯 Analisar** para ver o Job Fit Score
-5. Clique em **📄 Baixar PDF** para gerar currículo otimizado
-
-### Sites Suportados
-
-- ✅ LinkedIn Jobs
-- ✅ Gupy
-- ✅ Indeed
-- ✅ Glassdoor
-- ✅ Vagas.com.br
-- ✅ Catho
-- ✅ InfoJobs
-
-## 📡 API Reference
-
-### Currículo
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/api/curriculo/completo` | Dados completos do currículo |
-| GET | `/api/curriculo/validar` | Validação e completude |
-
-### Job Fit
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| POST | `/api/jobfit/quick` | Análise rápida (score + resumo) |
-| POST | `/api/jobfit/analyze` | Análise completa |
-| POST | `/api/jobfit/generate` | Gera currículo otimizado |
-
-**Exemplo de Request:**
-
-```json
-POST /api/jobfit/quick
-{
-  "titulo": "Desenvolvedor Full Stack",
-  "descricao": "Requisitos: Node.js, React, MySQL..."
-}
-```
-
-**Exemplo de Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "score": 85,
-    "fit": "Excelente Match",
-    "resumo": "Perfil altamente compatível com a vaga..."
-  }
-}
-```
-
-### Conversão
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| POST | `/converterhtmltopdf` | Converte HTML para PDF |
-| POST | `/converterhtmltodocx` | Converte HTML para DOCX |
-| GET | `/api/arquivos/:filename` | Download de arquivo gerado |
-| GET | `/api/arquivos/:filename/view` | Visualização inline do PDF |
-
-### CRUD (Entidades)
-
-Disponível para: `perfil`, `experiencias`, `formacao`, `cursos`, `idiomas`
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| GET | `/api/{entidade}` | Listar todos |
-| GET | `/api/{entidade}/:id` | Buscar por ID |
-| POST | `/api/{entidade}` | Criar novo |
-| PUT | `/api/{entidade}/:id` | Atualizar |
-| DELETE | `/api/{entidade}/:id` | Deletar |
-
-## 📁 Estrutura do Projeto
-
-```
-BryanAI/
-├── app.js                    # Servidor Express
-├── package.json              # Dependências
-├── docker-compose.yml        # Configuração Docker
-├── Dockerfile                # Build da aplicação
-├── .env.example              # Template de variáveis
-├── infos_curriculo.sql       # Schema do banco
-│
-├── config/
-│   └── database.js           # Pool MySQL
-│
-├── controllers/
-│   ├── DashboardController.js
-│   ├── PerfilController.js
-│   ├── ExperienciaController.js
-│   ├── FormacaoProjetoController.js
-│   ├── EducacaoCursoController.js
-│   ├── IdiomaController.js
-│   ├── JobFitController.js
-│   └── ConversaoController.js
-│
-├── models/
-│   ├── Perfil.js
-│   ├── Experiencia.js
-│   ├── FormacaoProjeto.js
-│   ├── EducacaoCurso.js
-│   ├── Idioma.js
-│   └── HistoricoGeracao.js
-│
-├── services/
-│   ├── aiAnalyzer.js         # Análise Job Fit com Gemini
-│   ├── aiWriter.js           # Reescrita de currículo
-│   ├── curriculoService.js   # Agregação de dados
-│   └── documentConverter.js   # Conversão PDF/DOCX
-│
-├── routes/
-│   ├── web.js                # Rotas de páginas
-│   └── api.js                # API REST
-│
-├── views/
-│   ├── layout.ejs
-│   ├── partials/
-│   ├── dashboard/
-│   ├── perfil/
-│   ├── experiencias/
-│   ├── formacao/
-│   ├── cursos/
-│   ├── idiomas/
-│   ├── jobfit/
-│   └── templates/
-│       └── curriculo.ejs     # Template do currículo
-│
-├── public/
-│   ├── css/
-│   └── js/
-│
-├── generated/                # PDFs/DOCXs gerados
-│
-└── chrome-extension/
-    ├── manifest.json         # Manifest V3
-    ├── popup.html            # Interface da extensão
-    ├── popup.js              # Lógica do popup
-    ├── content.js            # Captura de vagas
-    ├── content.css           # Estilos injetados
-    └── icons/
-```
-
-## 📖 Como Usar
-
-### 1. Configure seu perfil básico
-Acesse a seção **Perfil** e preencha seus dados pessoais e objetivo profissional.
-
-### 2. Adicione suas experiências
-Cadastre experiências com descrições detalhadas de realizações e resultados.
-
-### 3. Complete sua formação
-Adicione formação acadêmica e projetos relevantes.
-
-### 4. Registre cursos e certificações
-Inclua cursos técnicos e certificações da área.
-
-### 5. Informe idiomas
-Adicione idiomas e seus níveis de proficiência.
-
-### 6. Analise vagas com Job Fit
-Use a extensão Chrome ou a interface web para:
-- Colar a descrição da vaga
-- Obter o score de compatibilidade
-- Identificar gaps e pontos fortes
-
-### 7. Gere currículos otimizados
-Com base na análise, gere currículos personalizados:
-- Palavras-chave estrategicamente posicionadas
-- Formato otimizado para sistemas ATS
-- Export em PDF ou DOCX
-
-## 🤖 IA - Personas
-
-O sistema utiliza duas personas especializadas do Gemini:
-
-### 📊 Recrutador Técnico Sênior (Análise)
-
-> *"15+ anos de experiência em Tech Recruiting, especialista em triagem técnica"*
-
-- Analisa compatibilidade real vs. requisitos
-- Identifica gaps de habilidades
-- Pontua de 0-100 com justificativas
-
-### ✍️ Engenheiro de ATS (Escrita)
-
-> *"Especialista em otimização de currículos para ATS"*
-
-Usa a **Fórmula Mágica**:
-```
-[Verbo de Ação] + [Tarefa] + [Resultado Quantificável]
-```
-
-- Posiciona palavras-chave estrategicamente
-- Mantém formato ATS-friendly
-- Traduz para o idioma selecionado
-
-## 🔧 Troubleshooting
-
-### Erro: "chrome-extension://invalid/"
-
-Este erro geralmente é causado por **outra extensão** com problemas, não pelo BryanAI. Para verificar:
-
-1. Abra `chrome://extensions/`
-2. Desative outras extensões uma por uma
-3. Verifique qual está causando o erro
-
-### Botão "Capturar Vaga" não funciona
-
-1. **Recarregue a página** de vagas após instalar a extensão
-2. Verifique se o site é suportado (LinkedIn, Gupy, etc.)
-3. Abra o **DevTools (F12)** e veja o Console por mensagens `[BryanAI]`
-4. Atualize a extensão em `chrome://extensions/` clicando em 🔄
-
-### Erro de conexão com servidor
-
-1. Verifique se o servidor está rodando: `npm start`
-2. Confirme a URL em **Config** na extensão: `http://localhost:3000`
-3. Teste a conexão clicando em **Testar**
-
-### Gemini API Error
-
-1. Verifique se `GEMINI_API_KEY` está configurada no `.env`
-2. Confirme que a API Key é válida em [AI Studio](https://aistudio.google.com/)
-3. Verifique limites de uso da API
-
-### Erro de banco de dados
-
-1. Confirme que o MySQL está rodando
-2. Verifique as credenciais no `.env`
-3. Execute o script: `mysql -u root -p < infos_curriculo.sql`
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch: `git checkout -b feature/nova-funcionalidade`
-3. Commit suas mudanças: `git commit -m 'Add nova funcionalidade'`
-4. Push para a branch: `git push origin feature/nova-funcionalidade`
-5. Abra um Pull Request
-
-## 📝 Licença
-
-Este projeto está licenciado sob **CC BY-NC 4.0** (uso não comercial). Veja [LICENSE](LICENSE) para detalhes sobre direitos e restrições.
+Produção: **https://app.bryanandrade.dev** — instância de um usuário só, com login.
 
 ---
 
-<p align="center">
-  Desenvolvido por <a href="https://github.com/AndradeTK">AndradeTK</a>
-  <br>
-  Powered by <strong>Node.js</strong> e <strong>Google Gemini AI</strong>
-</p>
+## Stack
+
+| Camada | Escolha |
+| --- | --- |
+| Aplicação | Next.js 16 (App Router) · React 19 · TypeScript strict |
+| Validação | Zod 4 — inclusive nos contratos de saída da IA |
+| Banco | PostgreSQL 17 + pgvector (embeddings de 3072 dimensões) |
+| ORM | Drizzle |
+| IA | Google Gemini (`gemini-2.5-flash` / `-pro`) com structured output |
+| Documentos | Puppeteer (PDF) · html-to-docx (DOCX) |
+| Estilo | Tailwind v4 |
+| Testes | Vitest |
+
+A versão anterior (Express + EJS + MySQL) está na história do repositório, na tag
+`v2-legacy`.
+
+---
+
+## O que faz
+
+- **Perfil** — experiências, formação, certificações, idiomas e o perfil canadense
+  (autorização de trabalho, CLB/NCLC, ECA, profissão regulamentada).
+- **Job Fit** — analisa uma vaga contra o perfil e devolve score, palavras-chave
+  faltantes e os veredictos canadenses (autorização, idioma, NOC sugerido).
+- **Geração de currículo** — 5 templates React. O mesmo componente alimenta a
+  pré-visualização na tela e o PDF, então os dois não divergem.
+- **Cover letter** e **Skills Gap** com plano de estudo.
+- **Kanban de vagas** com matching semântico perfil × vaga via pgvector.
+- **Extensão Chrome** — captura a vaga aberta em 10 job boards (LinkedIn,
+  Indeed.ca, Job Bank, Greenhouse, Lever, Workday, Ashby, Glassdoor) via JSON-LD.
+
+### Formato canadense
+Um currículo canadense não leva foto, idade, estado civil ou nacionalidade —
+exigência dos Human Rights Codes provinciais. Isso não é instrução de prompt: os
+campos **não existem no schema Zod de saída**, então o modelo não consegue
+emiti-los. A garantia é estrutural.
+
+---
+
+## Rodando local
+
+Requisitos: Node ≥ 20.9, PostgreSQL 17 com a extensão `vector`.
+
+```bash
+npm install
+cp .env.example .env      # preencha DATABASE_URL, GEMINI_API_KEY, AUTH_SECRET
+
+npm run db:migrate        # aplica as migrations
+npm run user:create -- --email voce@exemplo.com   # cria a conta de acesso
+npm run dev
+```
+
+`AUTH_SECRET` e `EXTENSION_API_TOKEN` se geram com:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+### Comandos
+
+| Comando | O quê |
+| --- | --- |
+| `npm run dev` | servidor de desenvolvimento |
+| `npm run build` | build de produção (saída `standalone`) |
+| `npm test` | Vitest |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run db:migrate` | aplica migrations pendentes |
+| `npm run db:seed-noc` | popula o catálogo NOC 2021 (516 grupos) |
+| `npm run user:create` | cria conta ou troca a senha |
+
+---
+
+## Autenticação
+
+Instância de um usuário só: **não há rota de cadastro**. A conta nasce do
+`user:create` e o login é a única porta.
+
+- Senha com **scrypt** (N=2¹⁶) do `node:crypto` — sem módulo nativo, o que evita
+  o descasamento de glibc entre o runner do CI e a VPS.
+- Sessões **opacas no banco**, não JWT: dá revogação imediata. O cookie leva o
+  token; o banco guarda só o SHA-256 dele.
+- Cookie `httpOnly`, `secure` em produção, `sameSite=lax`, 30 dias deslizantes.
+- Login com **rate limit** de 5 tentativas / 15 min, por e-mail *e* por IP, com
+  contagem persistida (reiniciar o processo não devolve tentativas).
+- Resposta e tempo idênticos para e-mail inexistente e senha errada — não dá para
+  enumerar contas.
+
+O `middleware.ts` só checa se o cookie **existe**; ele roda no Edge, sem acesso ao
+Postgres. A autorização de verdade é `requireUser()` no layout e em cada Server
+Action, e `guardApi()`/`guardPanel()` nas rotas de API.
+
+A extensão não tem cookie (roda no contexto do site da vaga) e autentica por
+`Authorization: Bearer <EXTENSION_API_TOKEN>`. O CORS é uma allowlist dos 10 job
+boards do manifest — nunca `*`.
+
+---
+
+## Deploy
+
+`git push` na `main` dispara o GitHub Actions: typecheck → testes → build →
+rsync do bundle `standalone` para a VPS → migrations → `pm2 reload`.
+
+O build acontece no runner, nunca na VPS — ela tem 3.8 GB de RAM e divide o
+espaço com outra aplicação.
+
+```
+/var/www/bryanai/
+  releases/<sha>/     bundle do release
+  current -> releases/<sha>
+  shared/.env         segredos (fora do git)
+/var/lib/bryanai/generated/   PDFs e anexos (sobrevivem ao deploy)
+```
+
+Rollback: apontar `current` para o release anterior e `pm2 reload bryanai`.
+
+---
+
+## Licença
+
+CC BY-NC 4.0 — ver [LICENSE](LICENSE).

@@ -1,336 +1,599 @@
 /**
- * BryanAI Chrome Extension - Content Script
- * Injeta funcionalidades nas páginas de vagas
+ * BryanAI Chrome Extension — Content Script (Fase 5)
+ *
+ * Estratégia de captura em cascata:
+ *   1. JSON-LD schema.org/JobPosting (robusto; quase todo ATS canadense emite)
+ *   2. Seletores CSS por site (fallback para os que não têm JSON-LD)
+ *   3. window.getSelection() (o usuário seleciona o texto na mão)
+ *
+ * O envio ao backend manda o HTML inteiro — o parser JSON-LD roda no servidor
+ * (src/server/jobs/ingest-parse.ts), então a lógica de parsing fica num lugar só.
  */
 
-// Seletores para diferentes sites de emprego
+const DEFAULT_SERVER = "http://localhost:3000";
+
+/**
+ * Cabeçalhos das chamadas ao backend.
+ *
+ * O servidor exige autenticação em todas as rotas desde que passou a responder
+ * num domínio público. A extensão não tem cookie de sessão (roda no contexto do
+ * site da vaga), então usa o token de EXTENSION_API_TOKEN, colado na aba
+ * Configurações do popup.
+ */
+async function authHeaders() {
+  const { apiToken } = await chrome.storage.local.get(["apiToken"]);
+  const headers = { "Content-Type": "application/json" };
+  if (apiToken) headers["Authorization"] = `Bearer ${apiToken}`;
+  return headers;
+}
+
+// Seletores CSS por site — só para o fallback quando não há JSON-LD.
+// Alvos canadenses (BR removidos na Fase 5).
 const SITE_SELECTORS = {
-    'linkedin.com': {
-        titulo: [
-            '.job-details-jobs-unified-top-card__job-title h1.t-24.t-bold.inline a',
-            '.job-details-jobs-unified-top-card__job-title h1 a',
-            '.job-details-jobs-unified-top-card__job-title h1',
-            'h1.t-24.t-bold.inline a',
-            'h1.t-24.t-bold.inline',
-            '.t-24.t-bold.inline a',
-            '.t-24.t-bold.inline',
-            'h1.t-24.t-bold a',
-            'h1.t-24.t-bold',
-            '.jobs-unified-top-card__job-title',
-            'h1.topcard__title'
-        ],
-        descricao: [
-            '#job-details',
-            '.jobs-box__html-content[id="job-details"]',
-            '.jobs-description__content .jobs-box__html-content',
-            'article.jobs-description__container .jobs-description__content',
-            '.jobs-description__content',
-            '.jobs-box__html-content',
-            '.jobs-description-content__text'
-        ]
-    },
-    'gupy.io': {
-        titulo: [
-            'h1[data-testid="job-title"]',
-            '.job-title h1',
-            'h1.sc-*'
-        ],
-        descricao: [
-            '[data-testid="job-description"]',
-            '.job-description',
-            '.sc-* .description'
-        ]
-    },
-    'indeed.com': {
-        titulo: [
-            '.jobsearch-JobInfoHeader-title',
-            'h1.icl-u-xs-mb--xs'
-        ],
-        descricao: [
-            '#jobDescriptionText',
-            '.jobsearch-jobDescriptionText'
-        ]
-    },
-    'glassdoor.com': {
-        titulo: [
-            '.e1tk4kwz4',
-            '[data-test="jobTitle"]'
-        ],
-        descricao: [
-            '.jobDescriptionContent',
-            '[data-test="description"]'
-        ]
-    },
-    'vagas.com.br': {
-        titulo: [
-            'h1.titulo-vaga',
-            '.informacoes-vaga h1'
-        ],
-        descricao: [
-            '.descricao-vaga',
-            '.job-description'
-        ]
-    },
-    'catho.com.br': {
-        titulo: [
-            '.job-title h1',
-            '[data-testid="job-title"]'
-        ],
-        descricao: [
-            '.job-description',
-            '[data-testid="job-description"]'
-        ]
-    },
-    'infojobs.com.br': {
-        titulo: [
-            '.job-title h1',
-            'h1.text-primary'
-        ],
-        descricao: [
-            '.job-description',
-            '.description-body'
-        ]
-    }
+  "linkedin.com": {
+    titulo: [".job-details-jobs-unified-top-card__job-title h1", "h1.t-24"],
+    descricao: ["#job-details", ".jobs-description__content"],
+  },
+  "indeed.ca": {
+    titulo: [".jobsearch-JobInfoHeader-title", 'h1[data-testid="jobsearch-JobInfoHeader-title"]'],
+    descricao: ["#jobDescriptionText"],
+  },
+  "indeed.com": {
+    titulo: [".jobsearch-JobInfoHeader-title"],
+    descricao: ["#jobDescriptionText"],
+  },
+  "jobbank.gc.ca": {
+    titulo: ["h1.title", "span[property='title']"],
+    descricao: [".job-posting-detail-requirements", "#job-notice", "main"],
+  },
+  "greenhouse.io": {
+    titulo: ["h1.app-title", "h1"],
+    descricao: ["#content", ".job__description"],
+  },
+  "lever.co": {
+    titulo: [".posting-headline h2", "h2"],
+    descricao: [".posting-page .section-wrapper", ".content"],
+  },
+  "ashbyhq.com": {
+    titulo: ["h1"],
+    descricao: ['[class*="_description"]', "main"],
+  },
+  "myworkdayjobs.com": {
+    titulo: ['h1[data-automation-id="jobPostingHeader"]', "h1"],
+    descricao: ['[data-automation-id="jobPostingDescription"]'],
+  },
+  "glassdoor.ca": {
+    titulo: ['[data-test="jobTitle"]'],
+    descricao: ['[data-test="description"]', ".jobDescriptionContent"],
+  },
 };
 
-/**
- * Detecta o site atual
- */
 function detectSite() {
-    const hostname = window.location.hostname;
-    for (const site of Object.keys(SITE_SELECTORS)) {
-        if (hostname.includes(site)) {
-            return site;
-        }
+  const h = window.location.hostname;
+  return Object.keys(SITE_SELECTORS).find((s) => h.includes(s)) ?? null;
+}
+
+function findText(selectors) {
+  for (const sel of selectors ?? []) {
+    try {
+      const el = document.querySelector(sel);
+      if (el && el.innerText.trim()) return el.innerText.trim();
+    } catch (_) {
+      /* seletor inválido — ignora */
     }
-    return null;
+  }
+  return "";
 }
 
-/**
- * Tenta encontrar elemento usando múltiplos seletores
- */
-function findElement(selectors) {
-    for (const selector of selectors) {
-        try {
-            const element = document.querySelector(selector);
-            if (element) return element;
-        } catch (e) {
-            continue;
-        }
+/** Extrai título/descrição via JSON-LD JobPosting (se houver). */
+function fromJsonLd() {
+  const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+  for (const s of scripts) {
+    try {
+      const data = JSON.parse(s.textContent);
+      const nodes = Array.isArray(data)
+        ? data
+        : data["@graph"]
+          ? data["@graph"]
+          : [data];
+      const job = nodes.find((n) => {
+        const t = n && n["@type"];
+        return t === "JobPosting" || (Array.isArray(t) && t.includes("JobPosting"));
+      });
+      if (job) {
+        const org = job.hiringOrganization;
+        return {
+          titulo: job.title || "",
+          empresa: typeof org === "string" ? org : org?.name || "",
+          descricao: (job.description || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+        };
+      }
+    } catch (_) {
+      /* bloco malformado — ignora */
     }
-    return null;
+  }
+  return null;
 }
 
-/**
- * Extrai texto limpo de um elemento
- */
-function extractText(element) {
-    if (!element) return '';
-    return element.innerText
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-/**
- * Captura dados da vaga da página atual
- */
+/** Captura da página: JSON-LD → CSS → seleção. */
 function captureJobData() {
-    const site = detectSite();
-    console.log('[BryanAI] Capturando dados do site:', site);
-    
-    let titulo = '';
-    let descricao = '';
+  const jsonld = fromJsonLd();
+  if (jsonld && jsonld.titulo && jsonld.descricao) {
+    return { success: true, source: "jsonld", ...jsonld };
+  }
 
-    if (site && SITE_SELECTORS[site]) {
-        const selectors = SITE_SELECTORS[site];
-        
-        const tituloElement = findElement(selectors.titulo);
-        titulo = extractText(tituloElement);
-        console.log('[BryanAI] Título encontrado:', titulo ? titulo.substring(0, 50) : 'NÃO');
+  const site = detectSite();
+  const sel = site ? SITE_SELECTORS[site] : null;
+  const titulo = findText(sel?.titulo) || document.title;
+  let descricao = findText(sel?.descricao);
+  if (!descricao) {
+    const selection = window.getSelection().toString().trim();
+    if (selection.length > 100) descricao = selection;
+  }
 
-        const descricaoElement = findElement(selectors.descricao);
-        descricao = extractText(descricaoElement);
-        console.log('[BryanAI] Descrição encontrada:', descricao ? descricao.length + ' chars' : 'NÃO');
-    }
-
-    // Fallback específico para LinkedIn
-    if (site === 'linkedin.com') {
-        if (!titulo) {
-            // Tenta pelo aria-label do container principal
-            const container = document.querySelector('[aria-label*="DEVELOPER"], [aria-label*="Developer"], [aria-label*="Engineer"], [aria-label*="Desenvolvedor"]');
-            if (container) {
-                titulo = container.getAttribute('aria-label').trim();
-                console.log('[BryanAI] Título via aria-label:', titulo);
-            }
-        }
-        if (!titulo) {
-            // Tenta pelo h1 dentro de job-title
-            const h1 = document.querySelector('.job-details-jobs-unified-top-card__job-title h1');
-            if (h1) {
-                titulo = h1.innerText.trim();
-                console.log('[BryanAI] Título via h1 direto:', titulo);
-            }
-        }
-        if (!descricao) {
-            // Tenta pelo article de descrição
-            const article = document.querySelector('article.jobs-description__container');
-            if (article) {
-                descricao = article.innerText.trim();
-                console.log('[BryanAI] Descrição via article:', descricao.length + ' chars');
-            }
-        }
-        if (!descricao) {
-            // Tenta pela div com "Sobre a vaga"
-            const sobreVaga = document.querySelector('.jobs-description');
-            if (sobreVaga) {
-                descricao = sobreVaga.innerText.trim();
-                console.log('[BryanAI] Descrição via jobs-description:', descricao.length + ' chars');
-            }
-        }
-    }
-
-    // Fallback genérico: busca por padrões comuns
-    if (!titulo) {
-        const possibleTitles = document.querySelectorAll('h1');
-        for (const h1 of possibleTitles) {
-            const text = h1.innerText.trim();
-            if (text.length > 5 && text.length < 200) {
-                titulo = text;
-                console.log('[BryanAI] Título via fallback h1:', titulo.substring(0, 50));
-                break;
-            }
-        }
-    }
-
-    if (!descricao) {
-        // Tenta encontrar pelo conteúdo
-        const keywords = ['descrição', 'description', 'responsabilidades', 'requisitos', 'requirements'];
-        const allElements = document.querySelectorAll('div, section, article');
-        
-        for (const el of allElements) {
-            const text = el.innerText.toLowerCase();
-            const hasKeyword = keywords.some(kw => text.includes(kw));
-            
-            if (hasKeyword && el.innerText.length > 200 && el.innerText.length < 10000) {
-                descricao = el.innerText.trim();
-                break;
-            }
-        }
-    }
-
-    // Se ainda não encontrou, usa seleção do usuário
-    if (!descricao) {
-        const selection = window.getSelection();
-        if (selection && selection.toString().length > 50) {
-            descricao = selection.toString().trim();
-        }
-    }
-
-    return {
-        success: !!(titulo || descricao),
-        titulo,
-        descricao,
-        site: site || 'desconhecido',
-        url: window.location.href
-    };
+  return {
+    success: !!(titulo && descricao),
+    source: site ? "css" : "selection",
+    titulo,
+    empresa: (jsonld && jsonld.empresa) || "",
+    descricao,
+  };
 }
 
-/**
- * Adiciona botão flutuante na página
- */
-function addFloatingButton() {
-    // Verifica se já existe
-    if (document.getElementById('bryanai-float-btn')) return;
+/** Salva a vaga direto no tracker do backend (envia o HTML para parsear no server). */
+async function saveJobToTracker() {
+  const { serverUrl } = await chrome.storage.local.get(["serverUrl"]);
+  const base = serverUrl || DEFAULT_SERVER;
+  const captured = captureJobData();
 
-    const btn = document.createElement('div');
-    btn.id = 'bryanai-float-btn';
-    btn.innerHTML = `
-        <div style="
-            position: fixed;
-            bottom: 60px;
-            right: 20px;
-            z-index: 10000;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-            🚀 Analisar com BryanAI
-        </div>
-    `;
+  const res = await fetch(`${base}/api/jobs/capture`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: JSON.stringify({
+      url: window.location.href,
+      html: document.documentElement.outerHTML,
+      // fallback caso o server não ache JSON-LD:
+      titulo: captured.titulo,
+      descricao: captured.descricao,
+      empresa: captured.empresa,
+    }),
+  });
+  return res.json();
+}
 
-    btn.addEventListener('click', () => {
-        // Abre o popup da extensão com os dados preenchidos
-        const data = captureJobData();
-        
-        // Salva os dados para o popup usar
-        chrome.storage.local.set({ 
-            capturedJob: data,
-            capturedAt: Date.now()
-        });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-        // Mostra notificação
-        showNotification('Dados capturados! Abra a extensão para continuar.');
+/** Lê o texto de um seletor (o primeiro que casar). */
+function readSelector(selectors) {
+  for (const sel of selectors ?? []) {
+    try {
+      const el = document.querySelector(sel);
+      if (el && el.innerText.trim().length > 40) return el.innerText.trim();
+    } catch (_) {}
+  }
+  return "";
+}
+
+/** Injeta um badge de score de compatibilidade na página da vaga (#24). */
+async function injectScoreBadge() {
+  const { serverUrl } = await chrome.storage.local.get(["serverUrl"]);
+  const base = serverUrl || DEFAULT_SERVER;
+  const captured = captureJobData();
+  if (!captured.titulo || !captured.descricao) {
+    return { success: false, error: "Não consegui ler a vaga nesta página." };
+  }
+
+  // remove badge anterior
+  document.getElementById("bryanai-score-badge")?.remove();
+  const badge = document.createElement("div");
+  badge.id = "bryanai-score-badge";
+  badge.style.cssText =
+    "position:fixed;top:16px;right:16px;z-index:999999;background:#111827;color:#fff;" +
+    "padding:10px 14px;border-radius:10px;font:600 13px system-ui;box-shadow:0 4px 12px rgba(0,0,0,.3)";
+  badge.textContent = "BryanAI: analisando…";
+  document.body.appendChild(badge);
+
+  try {
+    const res = await fetch(`${base}/api/jobfit/analyze`, {
+      method: "POST",
+      headers: await authHeaders(),
+      body: JSON.stringify({ titulo: captured.titulo, descricao: captured.descricao }),
     });
-
-    document.body.appendChild(btn);
-}
-
-/**
- * Mostra notificação na página
- */
-function showNotification(message) {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10001;
-        background: #1e40af;
-        color: white;
-        padding: 16px 24px;
-        border-radius: 8px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        font-size: 14px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        animation: slideIn 0.3s ease;
-    `;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// Listener para mensagens do popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'captureJobData') {
-        const data = captureJobData();
-        sendResponse(data);
+    const data = await res.json();
+    if (data.success) {
+      const a = data.data.analise;
+      const cor = a.score >= 80 ? "#16a34a" : a.score >= 60 ? "#ca8a04" : "#dc2626";
+      const blocker =
+        a.canadian?.work_auth_verdict === "needs_sponsorship_blocker"
+          ? " ⚠️ exige autorização"
+          : "";
+      badge.style.background = cor;
+      badge.textContent = `BryanAI: ${a.score}/100 · ${a.nivel_compatibilidade}${blocker}`;
+      setTimeout(() => badge.remove(), 12000);
+      return { success: true, score: a.score };
     }
+    badge.textContent = "BryanAI: erro na análise";
+    return { success: false, error: data.error };
+  } catch (e) {
+    badge.textContent = "BryanAI: servidor offline";
+    return { success: false, error: String(e) };
+  }
+}
+
+// ============================================================
+// Fase 10 — Overlay na página da vaga + Copiloto de aplicação
+// ============================================================
+// TUDO é iniciado pelo usuário e o Copiloto NUNCA clica em Enviar (linha
+// TOS-safe). Estilos inline para não brigar com o CSS do site.
+
+async function serverBase() {
+  const { serverUrl } = await chrome.storage.local.get(["serverUrl"]);
+  return serverUrl || DEFAULT_SERVER;
+}
+
+/** Detecta se a página atual é a de UMA vaga aberta (não a lista de busca). */
+function isJobDetailPage() {
+  const site = detectSite();
+  if (!site) return false;
+  const sel = SITE_SELECTORS[site];
+  // Tem título E descrição visíveis = página de detalhe.
+  return !!(findText(sel?.titulo) && readSelector(sel?.descricao));
+}
+
+// ---------- Detector de vaga fantasma (heurística, sem chamada extra) ----------
+/** Analisa o texto/DOM em busca de sinais de vaga fantasma. Retorna motivo ou null. */
+function ghostReason(scope) {
+  const root = scope || document.body;
+  const txt = (root.innerText || "").toLowerCase();
+  // Repostagem explícita.
+  if (/\breposted\b|republicad|reposted \d+/.test(txt)) return "republicada";
+  // "há X meses" / "X months ago" muito antigo (>30 dias).
+  const m = txt.match(/(\d+)\s*(month|mês|meses|months)\s*ago|há\s*(\d+)\s*(mes|mês|meses)/);
+  if (m) {
+    const meses = Number(m[1] || m[3] || 0);
+    if (meses >= 1) return `publicada há ${meses}+ mês(es)`;
+  }
+  const d = txt.match(/(\d+)\s*(day|dia)s?\s*ago|há\s*(\d+)\s*dias?/);
+  if (d) {
+    const dias = Number(d[1] || d[3] || 0);
+    if (dias > 30) return `publicada há ${dias} dias`;
+  }
+  return null;
+}
+
+// ---------- Painel de ações flutuante ----------
+let panelInjected = false;
+
+function btnStyle(bg) {
+  return (
+    `display:block;width:100%;margin:4px 0;padding:8px 10px;border:0;border-radius:8px;` +
+    `background:${bg};color:#fff;font:600 12px system-ui;cursor:pointer;text-align:left`
+  );
+}
+
+async function injectActionPanel() {
+  if (panelInjected) {
+    document.getElementById("bryanai-panel")?.remove();
+  }
+  panelInjected = true;
+
+  const captured = captureJobData();
+  const panel = document.createElement("div");
+  panel.id = "bryanai-panel";
+  panel.style.cssText =
+    "position:fixed;top:80px;right:16px;z-index:2147483647;width:240px;" +
+    "background:#0f172a;color:#e2e8f0;padding:14px;border-radius:12px;" +
+    "font:13px system-ui;box-shadow:0 8px 24px rgba(0,0,0,.4);max-height:80vh;overflow:auto";
+
+  const ghost = ghostReason(document.body);
+  panel.innerHTML =
+    `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">` +
+    `<strong style="color:#38bdf8">BryanAI</strong>` +
+    `<span id="bryanai-close" style="cursor:pointer;opacity:.6">✕</span></div>` +
+    `<div id="bryanai-score" style="font-size:12px;color:#94a3b8;margin-bottom:8px">Score: —</div>` +
+    (ghost
+      ? `<div style="background:#7c2d12;color:#fed7aa;padding:6px 8px;border-radius:6px;font-size:11px;margin-bottom:8px">⚠️ Possível vaga fantasma (${ghost})</div>`
+      : "");
+
+  const actions = [
+    { id: "act-score", label: "Analisar compatibilidade", bg: "#2563eb" },
+    { id: "act-save", label: "Salvar no kanban", bg: "#16a34a" },
+    { id: "act-cv", label: "Gerar CV", bg: "#7c3aed" },
+    { id: "act-cover", label: "Cover letter", bg: "#7c3aed" },
+    { id: "act-prepare", label: "Preparar aplicação", bg: "#ca8a04" },
+  ];
+  for (const a of actions) {
+    const b = document.createElement("button");
+    b.id = a.id;
+    b.textContent = a.label;
+    b.style.cssText = btnStyle(a.bg);
+    panel.appendChild(b);
+  }
+  const status = document.createElement("div");
+  status.id = "bryanai-panel-status";
+  status.style.cssText = "font-size:11px;color:#94a3b8;margin-top:8px;white-space:pre-wrap";
+  panel.appendChild(status);
+
+  document.body.appendChild(panel);
+  document.getElementById("bryanai-close").onclick = () => panel.remove();
+
+  const setStatus = (t) => (status.textContent = t);
+  const base = await serverBase();
+
+  document.getElementById("act-score").onclick = async () => {
+    setStatus("Analisando…");
+    try {
+      const res = await fetch(`${base}/api/jobfit/analyze`, {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({ titulo: captured.titulo, descricao: captured.descricao }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const a = data.data.analise;
+        const cor = a.score >= 80 ? "#4ade80" : a.score >= 60 ? "#facc15" : "#f87171";
+        document.getElementById("bryanai-score").innerHTML =
+          `Score: <b style="color:${cor}">${a.score}/100</b> · ${a.nivel_compatibilidade}` +
+          (a.canadian?.work_auth_verdict === "needs_sponsorship_blocker"
+            ? `<br><span style="color:#fca5a5">⚠️ exige autorização de trabalho</span>`
+            : "");
+        setStatus("");
+      } else setStatus("Erro: " + data.error);
+    } catch (e) {
+      setStatus("Servidor offline.");
+    }
+  };
+
+  document.getElementById("act-save").onclick = async () => {
+    setStatus("Salvando…");
+    try {
+      const r = await saveJobToTracker();
+      setStatus(r.success ? "Salva no kanban ✓" : "Erro: " + r.error);
+    } catch (e) {
+      setStatus("Erro ao salvar.");
+    }
+  };
+
+  document.getElementById("act-cv").onclick = async () => {
+    setStatus("Gerando CV… (pode levar ~1min)");
+    try {
+      const res = await fetch(`${base}/api/jobfit/generate`, {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({ titulo: captured.titulo, descricao: captured.descricao }),
+      });
+      const data = await res.json();
+      if (data.success && data.data.arquivo?.nome) {
+        window.open(`${base}/api/arquivos/${data.data.arquivo.nome}?download=true`, "_blank");
+        setStatus("CV gerado ✓ (score " + data.data.score + ")");
+      } else setStatus("Erro: " + (data.error || "falha ao gerar"));
+    } catch (e) {
+      setStatus("Erro ao gerar CV.");
+    }
+  };
+
+  document.getElementById("act-cover").onclick = async () => {
+    setStatus("Gerando cover letter…");
+    try {
+      const res = await fetch(`${base}/api/cover-letter`, {
+        method: "POST",
+        headers: await authHeaders(),
+        body: JSON.stringify({
+          titulo: captured.titulo,
+          descricao: captured.descricao,
+          empresa: captured.empresa,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const texto = data.data.coverLetter || data.data.texto || JSON.stringify(data.data);
+        await navigator.clipboard.writeText(texto).catch(() => {});
+        setStatus("Cover letter copiada para a área de transferência ✓");
+      } else setStatus("Erro: " + data.error);
+    } catch (e) {
+      setStatus("Erro.");
+    }
+  };
+
+  document.getElementById("act-prepare").onclick = () =>
+    prepareApplication(base, captured, setStatus);
+}
+
+// ---------- Copiloto: preenche o formulário Easy Apply (NUNCA envia) ----------
+/** Encontra os inputs/labels do modal de aplicação aberto. */
+function readApplyFields() {
+  // Modal do LinkedIn Easy Apply; fallback: qualquer form visível na página.
+  const modal =
+    document.querySelector(".jobs-easy-apply-modal, [data-test-modal], form") ||
+    document.body;
+  const fields = [];
+  modal.querySelectorAll("input, textarea, select").forEach((el) => {
+    if (el.type === "hidden" || el.type === "submit" || el.type === "button") return;
+    if (el.offsetParent === null) return; // invisível
+    // label: <label for>, aria-label, ou texto do container
+    let label = "";
+    if (el.id) {
+      const l = modal.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+      if (l) label = l.innerText.trim();
+    }
+    label =
+      label ||
+      el.getAttribute("aria-label") ||
+      el.closest("label")?.innerText.trim() ||
+      el.getAttribute("placeholder") ||
+      el.name ||
+      "";
+    label = label.replace(/\s+/g, " ").trim();
+    if (label) fields.push({ el, label });
+  });
+  return fields;
+}
+
+async function prepareApplication(base, captured, setStatus) {
+  setStatus("Preparando aplicação…");
+
+  // Abre o modal Easy Apply se houver botão (o clique é ação sua, iniciada por você).
+  const easyBtn = [...document.querySelectorAll("button")].find((b) =>
+    /easy apply|candidatura simplificada|candidatar-se/i.test(b.innerText),
+  );
+  if (easyBtn) {
+    easyBtn.click();
+    await sleep(1200);
+  }
+
+  const fields = readApplyFields();
+  const labels = fields.map((f) => f.label);
+
+  let data;
+  try {
+    const res = await fetch(`${base}/api/apply/prepare`, {
+      method: "POST",
+      headers: await authHeaders(),
+      body: JSON.stringify({
+        titulo: captured.titulo,
+        descricao: captured.descricao,
+        empresa: captured.empresa,
+        url: window.location.href,
+        campos: labels,
+      }),
+    });
+    data = (await res.json()).data;
+  } catch (e) {
+    setStatus("Erro ao preparar (servidor offline).");
+    return;
+  }
+  if (!data) {
+    setStatus("Erro ao preparar aplicação.");
+    return;
+  }
+
+  const respostas = data.respostas || [];
+  let preenchidos = 0;
+  let pendentes = 0;
+
+  // Casa cada resposta com o input pelo label e preenche.
+  for (const r of respostas) {
+    const field = fields.find((f) => f.label === r.label);
+    if (!field) continue;
+    if (r.source === "needs_input") {
+      field.el.style.outline = "2px solid #facc15"; // amarelo = falta você preencher
+      field.el.dataset.bryanaiKey = r.key;
+      field.el.dataset.bryanaiLabel = r.label;
+      pendentes++;
+    } else if (r.value) {
+      try {
+        field.el.value = r.value;
+        field.el.dispatchEvent(new Event("input", { bubbles: true }));
+        field.el.dispatchEvent(new Event("change", { bubbles: true }));
+        field.el.style.outline = "2px solid #4ade80"; // verde = preenchido
+        preenchidos++;
+      } catch (e) {}
+    }
+  }
+
+  // Botão "salvar respostas" para os campos amarelos → aprendizado.
+  document.getElementById("bryanai-learn")?.remove();
+  if (pendentes > 0) {
+    const learn = document.createElement("button");
+    learn.id = "bryanai-learn";
+    learn.textContent = `Salvar minhas respostas (${pendentes})`;
+    learn.style.cssText = btnStyle("#0891b2");
+    learn.onclick = async () => {
+      let salvos = 0;
+      for (const field of fields) {
+        const key = field.el.dataset.bryanaiKey;
+        if (!key || !field.el.value.trim()) continue;
+        try {
+          await fetch(`${base}/api/answers`, {
+            method: "POST",
+            headers: await authHeaders(),
+            body: JSON.stringify({
+              key,
+              label: field.el.dataset.bryanaiLabel,
+              answer: field.el.value.trim(),
+            }),
+          });
+          field.el.style.outline = "2px solid #4ade80";
+          salvos++;
+        } catch (e) {}
+      }
+      setStatus(`${salvos} resposta(s) aprendida(s) ✓`);
+    };
+    document.getElementById("bryanai-panel").appendChild(learn);
+  }
+
+  const score = data.score != null ? ` · score ${data.score}` : "";
+  setStatus(
+    `Preparado${score}.\n${preenchidos} campo(s) preenchido(s), ` +
+      `${pendentes} para você completar (amarelos).\n` +
+      `⚠️ Revise e clique ENVIAR você mesmo — o BryanAI nunca envia.`,
+  );
+
+  // Reference letter pedida: mostra links das cartas salvas (o navegador não
+  // deixa o Copiloto subir o arquivo; o anexo final é seu).
+  document.getElementById("bryanai-refs")?.remove();
+  if (data.pedeReferenceLetter) {
+    const box = document.createElement("div");
+    box.id = "bryanai-refs";
+    box.style.cssText =
+      "margin-top:8px;padding:8px;border-radius:8px;background:#1e293b;font-size:11px;color:#e2e8f0";
+    const docs = data.documentosSugeridos || [];
+    if (docs.length) {
+      const base2 = base;
+      box.innerHTML =
+        `<b style="color:#facc15">📎 Esta vaga pede reference letter.</b><br>` +
+        `Suas cartas salvas (baixe e anexe você):<br>` +
+        docs
+          .map(
+            (d) =>
+              `<a href="${base2}${d.url}" target="_blank" style="color:#38bdf8;text-decoration:underline">${d.titulo}</a>`,
+          )
+          .join("<br>");
+    } else {
+      box.innerHTML =
+        `<b style="color:#facc15">📎 Esta vaga pede reference letter</b>, ` +
+        `mas você não tem nenhuma salva. Adicione em Documentos → Meus anexos.`;
+    }
+    document.getElementById("bryanai-panel").appendChild(box);
+  }
+}
+
+/** Inicializa o overlay: painel de ações na página de UMA vaga aberta. */
+function initOverlay() {
+  chrome.storage.local.get(["overlayOn"], ({ overlayOn }) => {
+    if (overlayOn === false) return; // desligável pelo popup
+    // Página de vaga aberta: injeta o painel (após o SPA montar).
+    setTimeout(() => {
+      if (isJobDetailPage()) injectActionPanel();
+    }, 1500);
+  });
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.action === "toggleOverlay") {
+    document.getElementById("bryanai-panel")
+      ? document.getElementById("bryanai-panel").remove()
+      : injectActionPanel();
+    sendResponse({ success: true });
+    return;
+  }
+  if (msg.action === "captureJobData") {
+    sendResponse(captureJobData());
+  } else if (msg.action === "saveJobToTracker") {
+    saveJobToTracker()
+      .then((r) => sendResponse(r))
+      .catch((e) => sendResponse({ success: false, error: String(e) }));
+    return true; // resposta assíncrona
+  } else if (msg.action === "injectScoreBadge") {
+    injectScoreBadge()
+      .then((r) => sendResponse(r))
+      .catch((e) => sendResponse({ success: false, error: String(e) }));
     return true;
+  }
 });
 
-// Inicialização
-const site = detectSite();
-if (site) {
-    console.log('[BryanAI] Site de vagas detectado:', site);
-    
-    // Espera a página carregar completamente
-    if (document.readyState === 'complete') {
-        addFloatingButton();
-    } else {
-        window.addEventListener('load', addFloatingButton);
-    }
-}
+console.log("[BryanAI] content script carregado:", detectSite() || "site genérico");
+
+// Overlay (Fase 10): painel na vaga + selos na lista + detector de fantasma.
+// Só ativa em sites conhecidos e pode ser desligado pelo popup (overlayOn).
+if (detectSite()) initOverlay();

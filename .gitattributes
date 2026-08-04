@@ -1,0 +1,9 @@
+# Normaliza para LF no repositório. Sem isso, um checkout no Windows grava CRLF
+# e os scripts .sh e .mjs quebram ao rodar no runner Linux do CI e na VPS.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.pdf binary
+*.zip binary

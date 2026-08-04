@@ -1,0 +1,279 @@
+        /* ===========================================
+           TEMPLATE HARVARD / WSO (Headhunter Classic)
+           - Inspirado no modelo Harvard de currículos
+           - Fontes clássicas: Times New Roman / Arial
+           - Divisores horizontais entre seções
+           - Layout: Empresa à esquerda, Localização à direita
+           - Layout: Cargo à esquerda, Data à direita
+           - 100% compatível com ATS
+           =========================================== */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, Georgia, serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000000;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20mm 22mm;
+        }
+        
+        /* ===== HEADER ===== */
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #000000;
+        }
+        
+        h1 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 22pt;
+            font-weight: bold;
+            color: #000000;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .contact-info {
+            font-size: 10pt;
+            color: #333333;
+            line-height: 1.6;
+        }
+        
+        .contact-info a {
+            color: #000000;
+            text-decoration: none;
+        }
+        
+        .contact-separator {
+            margin: 0 6px;
+            color: #666666;
+        }
+        
+        /* ===== SECTIONS ===== */
+        section {
+            margin-bottom: 16px;
+        }
+        
+        h2 {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12pt;
+            font-weight: bold;
+            color: #000000;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #000000;
+        }
+        
+        /* ===== RESUMO ===== */
+        .summary-text {
+            font-size: 10.5pt;
+            color: #000000;
+            text-align: justify;
+            line-height: 1.5;
+        }
+        
+        /* ===== EXPERIÊNCIA ===== */
+        .experience-item {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+        }
+        
+        .experience-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        
+        .company-name {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #000000;
+        }
+        
+        .location {
+            font-size: 10pt;
+            font-style: italic;
+            color: #333333;
+        }
+        
+        .job-title {
+            font-style: italic;
+            font-size: 10.5pt;
+            color: #000000;
+        }
+        
+        .period {
+            font-size: 10pt;
+            color: #333333;
+        }
+        
+        .responsibilities {
+            margin-top: 6px;
+            padding-left: 20px;
+        }
+        
+        .responsibilities li {
+            margin-bottom: 3px;
+            color: #000000;
+            font-size: 10.5pt;
+            line-height: 1.4;
+        }
+        
+        /* ===== HABILIDADES ===== */
+        .skills-row {
+            margin-bottom: 6px;
+        }
+        
+        .skills-category-name {
+            font-weight: bold;
+            font-size: 10.5pt;
+        }
+        
+        .skills-list-inline {
+            font-size: 10.5pt;
+        }
+        
+        /* ===== FORMAÇÃO ===== */
+        .education-item {
+            margin-bottom: 10px;
+        }
+        
+        .education-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        
+        .institution-name {
+            font-weight: bold;
+            font-size: 11pt;
+            color: #000000;
+        }
+        
+        .degree-title {
+            font-style: italic;
+            font-size: 10.5pt;
+            color: #000000;
+        }
+        
+        .education-status {
+            font-size: 10pt;
+            color: #333333;
+        }
+        
+        /* ===== CERTIFICAÇÕES ===== */
+        .cert-item {
+            margin-bottom: 4px;
+            font-size: 10.5pt;
+        }
+        
+        .cert-name {
+            font-weight: normal;
+            color: #000000;
+        }
+        
+        .cert-issuer {
+            font-style: italic;
+            color: #333333;
+        }
+        
+        /* ===== IDIOMAS ===== */
+        .languages-list {
+            font-size: 10.5pt;
+        }
+        
+        .language-item {
+            margin-bottom: 3px;
+        }
+        
+        .language-name {
+            font-weight: bold;
+            color: #000000;
+        }
+        
+        .language-level {
+            color: #333333;
+        }
+        
+        /* ===== PROJETOS ===== */
+        .project-item {
+            margin-bottom: 10px;
+        }
+        
+        .project-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        
+        .project-name {
+            font-weight: bold;
+            font-size: 10.5pt;
+            color: #000000;
+        }
+        
+        .project-link {
+            font-size: 9.5pt;
+            color: #333333;
+            text-decoration: none;
+        }
+        
+        .project-description {
+            font-size: 10pt;
+            color: #000000;
+            margin-top: 2px;
+        }
+        
+        .project-tech {
+            font-size: 9.5pt;
+            font-style: italic;
+            color: #333333;
+            margin-top: 2px;
+        }
+        
+        /* ===== PRINT OPTIMIZATION ===== */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .container {
+                padding: 15mm 20mm;
+            }
+            
+            /* Seções fluem entre páginas; protegemos só títulos e itens. */
+            h2 {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+
+            .experience-item,
+            .education-item {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }

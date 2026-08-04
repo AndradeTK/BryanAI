@@ -6,9 +6,23 @@
 // Configuração
 const DEFAULT_SERVER_URL = 'http://localhost:3000';
 let serverUrl = DEFAULT_SERVER_URL;
+let apiToken = '';
 let isConnected = false;
 let currentCoverLetter = '';
 let stats = { analyzeCount: 0, generateCount: 0 };
+
+/**
+ * Cabeçalhos das chamadas ao backend. O servidor exige autenticação em todas as
+ * rotas; o token vem da aba Configurações e é o mesmo EXTENSION_API_TOKEN do
+ * .env do servidor.
+ */
+async function authHeaders() {
+    const { apiToken: stored } = await chrome.storage.local.get(['apiToken']);
+    const headers = { 'Content-Type': 'application/json' };
+    const token = stored || apiToken;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+}
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
@@ -26,6 +40,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupEventListeners() {
     // Quick Actions
     document.getElementById('btnCapture')?.addEventListener('click', captureFromPage);
+    document.getElementById('btnSaveTracker')?.addEventListener('click', saveToTracker);
+    document.getElementById('btnScoreBadge')?.addEventListener('click', showScoreBadge);
+    document.getElementById('btnPanel')?.addEventListener('click', togglePanel);
     document.getElementById('btnDashboard')?.addEventListener('click', openDashboard);
     document.getElementById('btnFooterDash')?.addEventListener('click', (e) => {
         e.preventDefault();
@@ -57,10 +74,12 @@ function setupEventListeners() {
 
 async function loadConfig() {
     try {
-        const config = await chrome.storage.local.get(['serverUrl', 'stats']);
+        const config = await chrome.storage.local.get(['serverUrl', 'apiToken', 'stats']);
         serverUrl = config.serverUrl || DEFAULT_SERVER_URL;
+        apiToken = config.apiToken || '';
         stats = config.stats || { analyzeCount: 0, generateCount: 0 };
         document.getElementById('serverUrl').value = serverUrl;
+        document.getElementById('apiToken').value = apiToken;
     } catch (e) {
         console.log('Usando configurações padrão');
     }
@@ -68,9 +87,10 @@ async function loadConfig() {
 
 async function saveConfig() {
     serverUrl = document.getElementById('serverUrl').value.trim() || DEFAULT_SERVER_URL;
-    
+    apiToken = document.getElementById('apiToken').value.trim();
+
     try {
-        await chrome.storage.local.set({ serverUrl, stats });
+        await chrome.storage.local.set({ serverUrl, apiToken, stats });
         showToast('Configurações salvas!');
         await checkConnection();
     } catch (e) {
@@ -86,7 +106,7 @@ async function checkConnection() {
     try {
         const response = await fetch(`${serverUrl}/api/curriculo/validar`, {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
+            headers: await authHeaders()
         });
         
         if (response.ok) {
@@ -150,12 +170,12 @@ async function captureFromPage() {
             return;
         }
         
-        // Verifica se é uma URL suportada
-        const supportedSites = ['linkedin.com', 'gupy.io', 'indeed.com', 'glassdoor.com', 'vagas.com.br', 'catho.com.br', 'infojobs.com.br'];
+        // Verifica se é uma URL suportada (alvos canadenses)
+        const supportedSites = ['linkedin.com', 'indeed.ca', 'indeed.com', 'jobbank.gc.ca', 'greenhouse.io', 'lever.co', 'ashbyhq.com', 'myworkdayjobs.com', 'glassdoor.ca'];
         const isSupported = supportedSites.some(site => tab.url?.includes(site));
-        
+
         if (!isSupported) {
-            showToast('Site não suportado. Use LinkedIn, Gupy, Indeed, etc.', 'error');
+            showToast('Site não suportado. Use Job Bank, Indeed.ca, LinkedIn, Greenhouse, Lever...', 'error');
             console.log('[BryanAI Popup] Site não suportado:', tab.url);
             return;
         }
@@ -183,6 +203,57 @@ async function captureFromPage() {
     }
 }
 
+async function saveToTracker() {
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab) return showToast('Nenhuma aba ativa.', 'error');
+
+        const supportedSites = ['linkedin.com', 'indeed.ca', 'indeed.com', 'jobbank.gc.ca', 'greenhouse.io', 'lever.co', 'ashbyhq.com', 'myworkdayjobs.com', 'glassdoor.ca'];
+        if (!supportedSites.some(site => tab.url?.includes(site))) {
+            return showToast('Site não suportado para captura automática.', 'error');
+        }
+
+        showToast('Salvando vaga...', 'info');
+        const response = await chrome.tabs.sendMessage(tab.id, { action: 'saveJobToTracker' });
+        if (response && response.success) {
+            showToast(response.data?.deduped ? 'Vaga já estava salva (atualizada).' : 'Vaga salva no Kanban!', 'success');
+        } else {
+            showToast('Erro: ' + (response?.error || 'não foi possível salvar'), 'error');
+        }
+    } catch (e) {
+        showToast('Recarregue a página da vaga (F5) e tente novamente.', 'error');
+    }
+}
+
+async function showScoreBadge() {
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab) return showToast('Nenhuma aba ativa.', 'error');
+        showToast('Analisando a vaga...', 'info');
+        const r = await chrome.tabs.sendMessage(tab.id, { action: 'injectScoreBadge' });
+        if (r && r.success) {
+            showToast(`Score ${r.score}/100 — veja o badge na página.`, 'success');
+            window.close();
+        } else {
+            showToast('Erro: ' + (r?.error || 'não foi possível analisar'), 'error');
+        }
+    } catch (e) {
+        showToast('Recarregue a página da vaga (F5) e tente novamente.', 'error');
+    }
+}
+
+async function togglePanel() {
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab) return showToast('Nenhuma aba ativa.', 'error');
+        await chrome.tabs.sendMessage(tab.id, { action: 'toggleOverlay' });
+        showToast('Painel alternado na página.', 'success');
+        window.close();
+    } catch (e) {
+        showToast('Abra uma página de vaga e tente novamente (F5).', 'error');
+    }
+}
+
 function openDashboard() {
     chrome.tabs.create({ url: serverUrl });
 }
@@ -207,18 +278,20 @@ async function analyzeJob() {
     
     showLoading('loading', true);
     hideElement('result');
-    
+
     try {
-        const response = await fetch(`${serverUrl}/api/jobfit/quick`, {
+        // Usa /analyze (análise completa com pontos fortes/gaps/keywords + veredictos
+        // canadenses), não /quick (que só devolve score/resumo/fit).
+        const response = await fetch(`${serverUrl}/api/jobfit/analyze`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await authHeaders(),
             body: JSON.stringify({ titulo, descricao })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
-            displayAnalysisResult(data.data);
+            displayAnalysisResult(data.data.analise);
             incrementStat('analyzeCount');
         } else {
             showToast('Erro: ' + data.error, 'error');
@@ -246,44 +319,51 @@ function displayAnalysisResult(data) {
     // Classe baseada no score
     scoreCard.className = 'score-card';
     fitBadge.className = 'fit-badge';
-    
+
+    const nivel = data.nivel_compatibilidade;
     if (data.score >= 80) {
-        fitBadge.textContent = data.fit || 'Excelente Match';
+        fitBadge.textContent = nivel || 'Excelente Match';
         fitBadge.classList.add('high');
     } else if (data.score >= 60) {
         scoreCard.classList.add('medium');
-        fitBadge.textContent = data.fit || 'Bom Match';
+        fitBadge.textContent = nivel || 'Bom Match';
         fitBadge.classList.add('medium');
     } else {
         scoreCard.classList.add('low');
-        fitBadge.textContent = data.fit || 'Match Baixo';
+        fitBadge.textContent = nivel || 'Match Baixo';
         fitBadge.classList.add('low');
     }
-    
-    // Pontos fortes ou resumo
-    if (data.pontos_fortes && data.pontos_fortes.length > 0) {
-        strengthsList.innerHTML = data.pontos_fortes.map(item => 
-            `<li><span class="list-icon">✓</span> ${item}</li>`
+
+    // Alerta canadense (bloqueio de autorização de trabalho)
+    if (data.canadian && data.canadian.work_auth_verdict === 'needs_sponsorship_blocker') {
+        strengthsList.innerHTML =
+            '<li><span class="list-icon">⚠️</span> Esta vaga exige autorização de trabalho no Canadá que você não possui.</li>';
+    } else if (data.pontos_fortes && data.pontos_fortes.length > 0) {
+        // pontos_fortes são objetos { ponto, relevancia }
+        strengthsList.innerHTML = data.pontos_fortes.map(item =>
+            `<li><span class="list-icon">✓</span> ${item.ponto || item}</li>`
         ).join('');
-    } else if (data.resumo) {
-        strengthsList.innerHTML = `<li><span class="list-icon">📝</span> ${data.resumo}</li>`;
+    } else if (data.resumo_executivo) {
+        strengthsList.innerHTML = `<li><span class="list-icon">📝</span> ${data.resumo_executivo}</li>`;
     } else {
         strengthsList.innerHTML = '<li><span class="list-icon">ℹ️</span> Análise concluída</li>';
     }
-    
-    // Gaps
-    if (data.gaps && data.gaps.length > 0) {
-        gapsList.innerHTML = data.gaps.map(item => 
-            `<li><span class="list-icon">!</span> ${item}</li>`
+
+    // Gaps identificados são objetos { gap, criticidade, ... }
+    const gaps = data.gaps_identificados;
+    if (gaps && gaps.length > 0) {
+        gapsList.innerHTML = gaps.map(item =>
+            `<li><span class="list-icon">!</span> ${item.gap || item}</li>`
         ).join('');
         gapsList.parentElement.style.display = 'block';
     } else {
         gapsList.parentElement.style.display = 'none';
     }
-    
-    // Keywords
-    if (data.keywords && data.keywords.length > 0) {
-        keywordsList.innerHTML = data.keywords.map(kw => 
+
+    // Keywords ausentes (as que faltam no currículo)
+    const keywords = data.keywords_match && data.keywords_match.ausentes;
+    if (keywords && keywords.length > 0) {
+        keywordsList.innerHTML = keywords.map(kw =>
             `<span class="keyword-tag">${kw}</span>`
         ).join('');
         keywordsList.parentElement.style.display = 'block';
@@ -351,7 +431,7 @@ async function generateResume(formato = 'pdf') {
         
         const response = await fetch(`${serverUrl}/api/jobfit/generate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await authHeaders(),
             body: JSON.stringify({ titulo, descricao, formato, idioma, template })
         });
         
@@ -431,17 +511,17 @@ async function generateCoverLetter() {
     hideElement('letterResult');
     
     try {
-        const response = await fetch(`${serverUrl}/api/cover-letter/generate`, {
+        const response = await fetch(`${serverUrl}/api/cover-letter`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: await authHeaders(),
             body: JSON.stringify({ titulo, empresa, descricao, tom, idioma: 'pt-BR' })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
-            currentCoverLetter = data.coverLetter;
-            document.getElementById('coverLetterText').textContent = data.coverLetter;
+            currentCoverLetter = data.data.coverLetter;
+            document.getElementById('coverLetterText').textContent = data.data.coverLetter;
             showElement('letterResult');
             showToast('Cover Letter gerada!', 'success');
         } else {

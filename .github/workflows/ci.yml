@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main] # na main quem valida é o deploy.yml, sem build duplicado
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testes
+        run: npm test
+
+      - name: Lint
+        run: npm run lint
+        # O lint informa, não bloqueia: uma regra nova do eslint-config-next não
+        # deveria impedir um deploy de correção.
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+        env:
+          # O build importa src/lib/env.ts, que valida no boot. Valores de
+          # fachada: nada aqui é usado em runtime nem sai do runner.
+          DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+          GEMINI_API_KEY: ci-placeholder
+          AUTH_SECRET: ci-placeholder-com-no-minimo-32-caracteres
+          APP_URL: https://app.bryanandrade.dev

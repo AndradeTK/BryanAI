@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
   "name": "BryanAI - Job Fit Analyzer",
-  "version": "2.0.4",
-  "description": "Capture job descriptions from LinkedIn, Gupy, and other job sites to analyze compatibility and generate optimized resumes.",
+  "version": "3.0.0",
+  "description": "Captura a vaga aberta (Job Bank, Indeed.ca, LinkedIn, Greenhouse, Lever, Workday) via JSON-LD para análise de compatibilidade e geração de currículos ATS.",
   "permissions": [
     "activeTab",
     "storage",
     "downloads"
   ],
   "host_permissions": [
+    "https://app.bryanandrade.dev/*",
     "http://localhost:3000/*"
   ],
   "action": {
@@ -23,12 +24,16 @@
     {
       "matches": [
         "*://*.linkedin.com/*",
-        "*://*.gupy.io/*",
+        "*://*.indeed.ca/*",
         "*://*.indeed.com/*",
-        "*://*.glassdoor.com/*",
-        "*://*.vagas.com.br/*",
-        "*://*.catho.com.br/*",
-        "*://*.infojobs.com.br/*"
+        "*://*.jobbank.gc.ca/*",
+        "*://*.greenhouse.io/*",
+        "*://boards.greenhouse.io/*",
+        "*://*.lever.co/*",
+        "*://jobs.lever.co/*",
+        "*://*.ashbyhq.com/*",
+        "*://*.myworkdayjobs.com/*",
+        "*://*.glassdoor.ca/*"
       ],
       "js": ["content.js"],
       "css": ["content.css"]
