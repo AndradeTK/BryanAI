@@ -102,6 +102,11 @@ jobs:
           # para que rotacionar um segredo não exija um deploy novo.
           ln -sfn "$APP_DIR/shared/.env" "$RELEASE/.env"
 
+          # Carrega o .env no shell: além das migrations, é o que faz o
+          # `pm2 --update-env` adiante enxergar PORT e HOSTNAME. O server.js do
+          # standalone lê HOSTNAME antes de carregar o .env, então ele precisa
+          # estar no ambiente do processo — senão a aplicação sobe em 0.0.0.0 e
+          # fica alcançável direto pela porta, sem passar pelo nginx.
           echo "==> Migrations"
           set -a; . "$APP_DIR/shared/.env"; set +a
           ( cd "$RELEASE" && node scripts/migrate.mjs )
@@ -115,8 +120,11 @@ jobs:
           if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
             pm2 reload "$APP_NAME" --update-env
           else
+            # max-memory-restart protege o vizinho: se esta aplicação vazar
+            # memória, ela reinicia sozinha antes de o OOM killer escolher uma
+            # vítima qualquer na VPS.
             pm2 start "$APP_DIR/current/server.js" --name "$APP_NAME" \
-              --cwd "$APP_DIR/current" --update-env
+              --cwd "$APP_DIR/current" --max-memory-restart 600M --update-env
           fi
           pm2 save --force
 
