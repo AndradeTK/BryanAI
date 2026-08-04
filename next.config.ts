@@ -6,6 +6,20 @@ const nextConfig: NextConfig = {
   // de um node_modules de ~1GB — importante num servidor de 3.8GB de RAM.
   output: "standalone",
 
+  /**
+   * Identidade do build, usada para detectar descompasso de versão.
+   *
+   * O id de cada Server Action é derivado do build. Quando um deploy troca o
+   * release com uma aba aberta, o formulário daquela aba envia um id que o
+   * servidor novo não conhece, e o Next responde com um erro opaco — foi o que
+   * aconteceu ao tentar entrar durante um deploy: "this page couldn't load".
+   *
+   * Com deploymentId, o cliente passa a mandar qual build ele carregou; ao
+   * detectar a divergência, o router recarrega a página sozinho em vez de
+   * falhar. O CI passa o SHA do commit.
+   */
+  deploymentId: process.env.NEXT_DEPLOYMENT_ID,
+
   // Pacotes que precisam ser exigidos em runtime pelo Node, não empacotados
   // pelo bundler: têm binários, leem arquivos próprios ou usam APIs nativas.
   serverExternalPackages: [

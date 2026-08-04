@@ -47,6 +47,10 @@ jobs:
           GEMINI_API_KEY: build-placeholder
           AUTH_SECRET: build-placeholder-com-no-minimo-32-caracteres
           APP_URL: https://app.bryanandrade.dev
+          # Identifica o build. Uma aba aberta durante o deploy carrega o id
+          # antigo; ao divergir, o router recarrega sozinho em vez de falhar
+          # com "Failed to find Server Action".
+          NEXT_DEPLOYMENT_ID: ${{ github.sha }}
 
       # O standalone não inclui os assets estáticos nem /public — o Next espera
       # encontrá-los ao lado do server.js.
