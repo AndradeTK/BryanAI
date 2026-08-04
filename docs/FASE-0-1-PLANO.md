@@ -36,7 +36,8 @@ Três das cinco tarefas são suas. A ordem importa: **rotacionar antes de purgar
 
 ### 0.1 — Você: rotacionar a `GEMINI_API_KEY`
 
-A chave `AQ.Ab8RN6Ia3...` está num repositório público. Considere-a comprometida.
+A chave do Gemini que estava versionada foi para um repositório público.
+Considere-a comprometida. (Valor redigido deste documento.)
 
 1. [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
 2. Delete a chave antiga. Crie uma nova.
@@ -46,7 +47,9 @@ A chave `AQ.Ab8RN6Ia3...` está num repositório público. Considere-a compromet
 
 ### 0.2 — Você: rotacionar a senha do MySQL
 
-`DB_PASSWORD=andrade6040` também está no histórico público.
+A senha do MySQL que estava versionada também foi para o histórico público.
+(Valor redigido deste documento — um plano que cita a credencial em claro vira
+ele próprio o vazamento que descreve.)
 
 ```sql
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'nova-senha-forte';
