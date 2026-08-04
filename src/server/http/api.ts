@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { env } from "@/lib/env";
+import { env, isProd } from "@/lib/env";
 import { authenticateApi, getCurrentUser } from "@/server/auth";
 
 /**
@@ -107,7 +107,27 @@ export async function guardPanel(): Promise<Response | null> {
   return fail("Não autorizado.", 401);
 }
 
-/** Envolve um handler traduzindo exceções para `{ success:false }`. */
+/**
+ * Erro cuja mensagem PODE ser mostrada ao usuário: validação, regra de negócio,
+ * limite de cota. Qualquer outra exceção é tratada como interna.
+ */
+export class ErroDeUso extends Error {
+  constructor(
+    message: string,
+    readonly status = 400,
+  ) {
+    super(message);
+    this.name = "ErroDeUso";
+  }
+}
+
+/**
+ * Envolve um handler traduzindo exceções para `{ success:false }`.
+ *
+ * Em produção a mensagem de um erro inesperado NÃO vai para o cliente: um erro
+ * do driver do Postgres traz a query inteira, com nomes de tabela e coluna. O
+ * detalhe vai para o log do servidor; o cliente recebe uma mensagem genérica.
+ */
 export async function handle(fn: () => Promise<Response>): Promise<Response> {
   try {
     return await fn();
@@ -122,8 +142,38 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     ) {
       throw e;
     }
-    const msg = e instanceof Error ? e.message : "Erro interno. Tente novamente.";
-    console.error("[API]", msg);
-    return fail(msg, 500);
+
+    if (e instanceof ErroDeUso) {
+      return fail(e.message, e.status);
+    }
+
+    console.error("[API]", e);
+    return fail(
+      isProd
+        ? "Erro interno. Tente novamente."
+        : e instanceof Error
+          ? e.message
+          : "Erro interno.",
+      500,
+    );
   }
+}
+
+/**
+ * Converte um parâmetro de rota em id numérico. Sem isso, `Number("abc")` vira
+ * NaN e chega até o banco, onde o erro do driver devolve a query na resposta.
+ *
+ * Exige dígitos decimais e nada mais. `Number()` sozinho seria frouxo demais
+ * para algo vindo da URL: aceita `0x10` como 16, `1e3` como 1000 e `" 1 "` como
+ * 1 — todos formatos que nenhum link legítimo do sistema produz.
+ */
+export function parseId(raw: string): number {
+  if (!/^\d+$/.test(raw)) {
+    throw new ErroDeUso("Identificador inválido.", 400);
+  }
+  const id = Number(raw);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new ErroDeUso("Identificador inválido.", 400);
+  }
+  return id;
 }

@@ -15,7 +15,8 @@ import { createInterface } from "node:readline";
 import { Writable } from "node:stream";
 import { randomBytes, scrypt } from "node:crypto";
 import { promisify } from "node:util";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { realpathSync } from "node:fs";
 import postgres from "postgres";
 
 const scryptAsync = promisify(scrypt);
@@ -42,8 +43,44 @@ function arg(name) {
   return i !== -1 ? process.argv[i + 1] : undefined;
 }
 
-/** Lê do terminal sem ecoar, para a senha não ficar no scrollback. */
-function promptHidden(question) {
+/**
+ * Fábrica de perguntas, com uma única leitura de stdin para todas elas.
+ *
+ * Duas perguntas, um stdin: abrir um `readline` por pergunta funciona no
+ * terminal mas quebra com pipe — o primeiro consome o stream até o fim e o
+ * segundo nunca recebe uma linha, deixando a promessa pendurada e o processo
+ * saindo com código 0 sem ter feito nada.
+ *
+ * No terminal, esconde o que é digitado. Com pipe não há eco para esconder.
+ */
+function criarPrompt() {
+  const interativo = Boolean(process.stdin.isTTY);
+
+  if (!interativo) {
+    const rl = createInterface({ input: process.stdin });
+    const pendentes = [];
+    const linhas = [];
+    rl.on("line", (linha) => {
+      const proximo = pendentes.shift();
+      if (proximo) proximo(linha);
+      else linhas.push(linha);
+    });
+    // stdin fechou antes de responder tudo: resolve com vazio para a validação
+    // adiante recusar, em vez de o processo morrer em silêncio.
+    rl.on("close", () => {
+      while (pendentes.length) pendentes.shift()("");
+    });
+
+    return {
+      perguntar: () =>
+        new Promise((resolve) => {
+          if (linhas.length) resolve(linhas.shift());
+          else pendentes.push(resolve);
+        }),
+      fechar: () => rl.close(),
+    };
+  }
+
   let muted = false;
   const output = new Writable({
     write(chunk, encoding, callback) {
@@ -51,17 +88,21 @@ function promptHidden(question) {
       callback();
     },
   });
+  const rl = createInterface({ input: process.stdin, output, terminal: true });
 
-  return new Promise((resolve) => {
-    const rl = createInterface({ input: process.stdin, output, terminal: true });
-    rl.question(question, (answer) => {
-      muted = false;
-      process.stdout.write("\n");
-      rl.close();
-      resolve(answer);
-    });
-    muted = true;
-  });
+  return {
+    perguntar: (pergunta) =>
+      new Promise((resolve) => {
+        muted = false;
+        rl.question(pergunta, (resposta) => {
+          muted = false;
+          process.stdout.write("\n");
+          resolve(resposta);
+        });
+        muted = true;
+      }),
+    fechar: () => rl.close(),
+  };
 }
 
 async function main() {
@@ -81,9 +122,15 @@ async function main() {
     process.exit(1);
   }
 
-  const senha = await promptHidden(`Senha para ${email}: `);
-  const confirma = await promptHidden("Confirme a senha: ");
+  const prompt = criarPrompt();
+  const senha = await prompt.perguntar(`Senha para ${email}: `);
+  const confirma = await prompt.perguntar("Confirme a senha: ");
+  prompt.fechar();
 
+  if (!senha) {
+    console.error("Nenhuma senha informada.");
+    process.exit(1);
+  }
   if (senha !== confirma) {
     console.error("As senhas não conferem.");
     process.exit(1);
@@ -123,9 +170,28 @@ async function main() {
   }
 }
 
-// Só executa quando chamado direto. O teste de compatibilidade importa
-// `hashPassword` daqui, e importar não deve abrir conexão nem pedir senha.
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+/**
+ * Só executa quando chamado direto. O teste de compatibilidade importa
+ * `hashPassword` daqui, e importar não deve abrir conexão nem pedir senha.
+ *
+ * A comparação é feita sobre o caminho REAL dos dois lados: em produção a
+ * aplicação roda a partir de `/var/www/bryanai/current`, que é um symlink para o
+ * release. O Node resolve o symlink em `import.meta.url` mas não em
+ * `process.argv[1]`, então comparar as strings direto daria sempre falso — e o
+ * script terminaria com código 0 sem ter feito nada.
+ */
+function chamadoDiretamente() {
+  if (!process.argv[1]) return false;
+  try {
+    return (
+      realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1])
+    );
+  } catch {
+    return false;
+  }
+}
+
+if (chamadoDiretamente()) {
   main().catch((e) => {
     console.error("Erro:", e instanceof Error ? e.message : e);
     process.exit(1);

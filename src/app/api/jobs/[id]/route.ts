@@ -1,4 +1,4 @@
-import { ok, fail, preflight, handle, guardApi } from "@/server/http/api";
+import { ok, fail, preflight, handle, guardApi, parseId } from "@/server/http/api";
 import { db } from "@/server/db/client";
 import { applicationEvents } from "@/server/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
@@ -20,7 +20,7 @@ export async function GET(
     const denied = await guardApi();
     if (denied) return denied;
 
-    const appId = Number((await params).id);
+    const appId = parseId((await params).id);
 
     const events = await db
       .select()
@@ -60,7 +60,7 @@ export async function PATCH(
     const denied = await guardApi();
     if (denied) return denied;
 
-    const appId = Number((await params).id);
+    const appId = parseId((await params).id);
     const { notes, followUpDate } = await request.json();
     await db.execute(sql`
       UPDATE applications

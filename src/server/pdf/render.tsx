@@ -1,6 +1,6 @@
 import "server-only";
 import HTMLtoDOCX from "html-to-docx";
-import { getBrowser } from "./browser";
+import { comBrowser } from "./browser";
 import {
   ResumeBody,
   getTemplateCss,
@@ -55,25 +55,26 @@ export async function renderResumePdf(
   props: ResumeTemplateProps,
 ): Promise<PdfResult> {
   const html = await renderResumeHtml(templateId, props);
-  const browser = await getBrowser();
-  const page = await browser.newPage();
-  try {
-    // Puppeteer 25: setContent aceita só 'load'/'domcontentloaded' (networkidle
-    // é exclusivo de goto). 'load' basta para HTML estático.
-    await page.setContent(html, { waitUntil: "load", timeout: 30000 });
-    await page.evaluateHandle("document.fonts.ready");
-    const buffer = Buffer.from(
-      await page.pdf({
-        format: "A4",
-        margin: { top: "20mm", right: "20mm", bottom: "20mm", left: "20mm" },
-        printBackground: true,
-        preferCSSPageSize: true,
-      }),
-    );
-    return { buffer };
-  } finally {
-    await page.close(); // fecha só a página; o browser fica no pool
-  }
+  return comBrowser(async (browser) => {
+    const page = await browser.newPage();
+    try {
+      // Puppeteer 25: setContent aceita só 'load'/'domcontentloaded' (networkidle
+      // é exclusivo de goto). 'load' basta para HTML estático.
+      await page.setContent(html, { waitUntil: "load", timeout: 30000 });
+      await page.evaluateHandle("document.fonts.ready");
+      const buffer = Buffer.from(
+        await page.pdf({
+          format: "A4",
+          margin: { top: "20mm", right: "20mm", bottom: "20mm", left: "20mm" },
+          printBackground: true,
+          preferCSSPageSize: true,
+        }),
+      );
+      return { buffer };
+    } finally {
+      await page.close(); // fecha só a página; o browser fica no pool
+    }
+  });
 }
 
 /** Gera o DOCX do currículo a partir do template + dados. */

@@ -1,4 +1,4 @@
-import { ok, fail, preflight, handle, guardApi } from "@/server/http/api";
+import { ok, fail, preflight, handle, guardApi, parseId } from "@/server/http/api";
 import { applicationRepo } from "@/server/db/repositories";
 
 const VALID = ["saved", "applied", "interview", "offer", "rejected", "archived"] as const;
@@ -17,12 +17,12 @@ export async function POST(
     const denied = await guardApi();
     if (denied) return denied;
 
-    const { id } = await params;
+    const id = parseId((await params).id);
     const { status } = await request.json();
     if (!VALID.includes(status as Status)) {
       return fail(`Status inválido. Use: ${VALID.join(", ")}.`);
     }
-    const row = await applicationRepo.updateStatus(Number(id), status as Status);
+    const row = await applicationRepo.updateStatus(id, status as Status);
     if (!row) return fail("Candidatura não encontrada.", 404);
     return ok(row);
   });
