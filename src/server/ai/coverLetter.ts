@@ -1,4 +1,5 @@
 import { generateText, generateStructured, MODELS } from "./client";
+import { contextoDeData } from "./prompts";
 import {
   CoverLetterImprovementSchema,
   type CoverLetterImprovement,
@@ -39,7 +40,9 @@ export async function generate(
   tom = "formal",
 ): Promise<CoverLetterResult> {
   const p = curriculo.perfil;
-  const prompt = `Você é um especialista em redação de Cover Letters para processos seletivos.
+  const prompt = `${contextoDeData()}
+
+Você é um especialista em redação de Cover Letters para processos seletivos.
 
 DADOS DO CANDIDATO:
 Nome: ${p?.nome_completo ?? "Candidato"}
@@ -105,7 +108,9 @@ export async function improve(
   coverLetter: string,
   vaga: Vaga,
 ): Promise<CoverLetterImprovement> {
-  const prompt = `Analise e melhore esta Cover Letter para a vaga descrita.
+  const prompt = `${contextoDeData()}
+
+Analise e melhore esta Cover Letter para a vaga descrita.
 
 COVER LETTER ATUAL:
 ${coverLetter}

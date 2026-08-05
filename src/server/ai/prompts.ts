@@ -3,6 +3,30 @@
  * estender com as regras canadenses.
  */
 
+/**
+ * Informa ao modelo que dia é hoje.
+ *
+ * Sem isso ele usa a própria data de treinamento como referência e passa a
+ * tratar como "datas futuras" experiências que já aconteceram — o analisador
+ * apontava como problema um emprego iniciado em out/2025 e um curso concluído
+ * em dez/2025. Além do falso alarme na análise, o risco maior é o writer
+ * reescrever o currículo "corrigindo" períodos corretos.
+ *
+ * É função, e não constante, porque o processo fica semanas no ar: uma string
+ * avaliada na carga do módulo envelheceria junto.
+ */
+export function contextoDeData(): string {
+  const hoje = new Date();
+  const iso = hoje.toISOString().slice(0, 10);
+  const extenso = hoje.toLocaleDateString("pt-BR", {
+    year: "numeric",
+    month: "long",
+  });
+  return `CONTEXTO TEMPORAL: hoje é ${iso} (${extenso}). Use esta data como
+referência para julgar o que é passado, presente ou futuro. Datas anteriores a
+ela são experiências JÁ REALIZADAS — não as trate como inconsistência.`;
+}
+
 export const ANALYZER_SYSTEM_PROMPT = `Você é um Recrutador Técnico Sênior com mais de 15 anos de experiência em empresas de tecnologia de ponta (FAANG, startups unicórnio). Sua especialidade é avaliar a compatibilidade entre candidatos e vagas com precisão cirúrgica.
 
 SUAS RESPONSABILIDADES:

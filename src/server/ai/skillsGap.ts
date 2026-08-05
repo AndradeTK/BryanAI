@@ -1,4 +1,5 @@
 import { generateStructured, MODELS } from "./client";
+import { contextoDeData } from "./prompts";
 import {
   SkillsGapSchema,
   MarketAnalysisSchema,
@@ -24,7 +25,9 @@ export async function analyze(
   curriculo: Curriculo,
   alvo: Alvo,
 ): Promise<SkillsGap> {
-  const prompt = `Você é um especialista em desenvolvimento de carreira e análise de competências.
+  const prompt = `${contextoDeData()}
+
+Você é um especialista em desenvolvimento de carreira e análise de competências.
 
 PERFIL ATUAL DO CANDIDATO:
 ${JSON.stringify(curriculo, null, 1)}
@@ -53,7 +56,9 @@ export async function compareMarket(
   curriculo: Curriculo,
   area: string,
 ): Promise<MarketAnalysis> {
-  const prompt = `Analise o perfil do candidato e compare com as demandas atuais do mercado na área de ${area}.
+  const prompt = `${contextoDeData()}
+
+Analise o perfil do candidato e compare com as demandas atuais do mercado na área de ${area}.
 
 PERFIL DO CANDIDATO:
 ${JSON.stringify(curriculo, null, 2)}
@@ -75,7 +80,9 @@ export async function generateStudyPlan(
   gaps: unknown,
   horasPorSemana = 10,
 ): Promise<StudyPlan> {
-  const prompt = `Crie um plano de estudos detalhado de 12 semanas para preencher estes gaps de habilidades.
+  const prompt = `${contextoDeData()}
+
+Crie um plano de estudos detalhado de 12 semanas para preencher estes gaps de habilidades.
 
 GAPS A PREENCHER:
 ${JSON.stringify(gaps, null, 2)}

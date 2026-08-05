@@ -1,6 +1,6 @@
 import { generateStructured, MODELS } from "./client";
 import { ResumeSchema, type Resume } from "./schemas";
-import { WRITER_SYSTEM_PROMPT, IDIOMA_INSTRUCOES } from "./prompts";
+import { WRITER_SYSTEM_PROMPT, IDIOMA_INSTRUCOES, contextoDeData } from "./prompts";
 import type { Curriculo, Vaga } from "./types";
 import type { JobFitAnalysis } from "./schemas";
 
@@ -18,7 +18,9 @@ export async function rewriteResume(
   const keywordsToFocus = analise?.keywords_match?.ausentes?.join(", ") ?? "";
   const experienciasDestacar = analise?.experiencias_destacar?.join(", ") ?? "";
 
-  const prompt = `${WRITER_SYSTEM_PROMPT}
+  const prompt = `${contextoDeData()}
+
+${WRITER_SYSTEM_PROMPT}
 
 IDIOMA OBRIGATÓRIO: ${lang.instrucao}
 ${lang.verbos}

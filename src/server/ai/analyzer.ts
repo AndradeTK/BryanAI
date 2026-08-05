@@ -9,7 +9,7 @@ import {
   type QuickAnalysis,
   type ExternalResumeAnalysis,
 } from "./schemas";
-import { ANALYZER_SYSTEM_PROMPT } from "./prompts";
+import { ANALYZER_SYSTEM_PROMPT, contextoDeData } from "./prompts";
 import type { Curriculo, Vaga } from "./types";
 import {
   workAuthVerdict,
@@ -106,7 +106,9 @@ export async function analyzeJobFit(
         }
       : null;
 
-  const prompt = `${ANALYZER_SYSTEM_PROMPT}
+  const prompt = `${contextoDeData()}
+
+${ANALYZER_SYSTEM_PROMPT}
 ${canadaGrounding(curriculo)}
 
 DADOS DO CANDIDATO:
@@ -146,7 +148,9 @@ export async function quickAnalysis(
   curriculo: Curriculo,
   vaga: Vaga,
 ): Promise<QuickAnalysis> {
-  const prompt = `Você é um Recrutador Técnico Sênior muito experiente. Analise a compatibilidade entre o candidato e a vaga de forma JUSTA e EQUILIBRADA, considerando habilidades TRANSFERÍVEIS.
+  const prompt = `${contextoDeData()}
+
+Você é um Recrutador Técnico Sênior muito experiente. Analise a compatibilidade entre o candidato e a vaga de forma JUSTA e EQUILIBRADA, considerando habilidades TRANSFERÍVEIS.
 
 ESCALA DE SCORE:
 - 85-100: Match excelente
@@ -181,7 +185,9 @@ export async function analyzeExternalResume(
   textoExtraido: string,
   vaga: Vaga,
 ): Promise<ExternalResumeAnalysis> {
-  const prompt = `${ANALYZER_SYSTEM_PROMPT}
+  const prompt = `${contextoDeData()}
+
+${ANALYZER_SYSTEM_PROMPT}
 
 CURRÍCULO DO CANDIDATO (texto extraído de arquivo):
 ---
