@@ -5,19 +5,13 @@ import { historicoRepo } from "@/server/db/repositories";
 export const dynamic = "force-dynamic"; // sempre lê o banco
 
 export default async function DashboardPage() {
-  const [validacao, recentes] = await Promise.all([
+  // Os totais vêm de uma agregação no banco, não da lista dos 10 recentes que
+  // alimenta a tabela abaixo — senão o "total" seria no máximo 10.
+  const [validacao, recentes, totais] = await Promise.all([
     validateResume(),
     historicoRepo.getRecent(10),
+    historicoRepo.counts(),
   ]);
-
-  const concluidos = recentes.filter((r) => r.status === "concluido");
-  const scores = concluidos
-    .map((r) => r.score)
-    .filter((s): s is number => s != null);
-  const scoreMedio =
-    scores.length > 0
-      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-      : null;
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -29,13 +23,16 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
           label="Score Médio"
-          value={scoreMedio != null ? `${scoreMedio}` : "—"}
-          hint="das análises concluídas"
+          value={totais.scoreMedio != null ? `${totais.scoreMedio}` : "—"}
+          hint={`de ${totais.analises} análise${totais.analises === 1 ? "" : "s"}`}
         />
+        {/* Análise e geração gravam na mesma tabela; só a geração produz
+            arquivo. Contá-las juntas como "currículos gerados" inflava o
+            número — hoje são 6 análises e nenhum currículo. */}
         <StatCard
           label="Currículos Gerados"
-          value={`${concluidos.length}`}
-          hint="com sucesso"
+          value={`${totais.curriculos}`}
+          hint={totais.curriculos === 0 ? "nenhum ainda" : "com arquivo salvo"}
         />
         <StatCard
           label="Completude do Perfil"

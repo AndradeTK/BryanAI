@@ -213,6 +213,32 @@ export const idiomaRepo = {
 
 // ---------- Histórico de gerações ----------
 export const historicoRepo = {
+  /**
+   * Totais do histórico, separando o que é análise do que é currículo gerado.
+   *
+   * As duas coisas gravam na mesma tabela: `/api/jobfit/analyze` cria um
+   * registro sem arquivo, `/api/jobfit/generate` cria um com `pdf_path`. O
+   * dashboard contava as duas juntas sob o rótulo "Currículos Gerados" — e,
+   * como lia só os 10 mais recentes, o número nem era um total.
+   */
+  counts: async (): Promise<{
+    analises: number;
+    curriculos: number;
+    scoreMedio: number | null;
+  }> => {
+    const [row] = await db
+      .select({
+        analises: sql<number>`count(*) FILTER (WHERE ${historicoGeracoes.status} = 'concluido')::int`,
+        curriculos: sql<number>`count(*) FILTER (WHERE ${historicoGeracoes.status} = 'concluido' AND ${historicoGeracoes.pdfPath} IS NOT NULL)::int`,
+        scoreMedio: sql<number | null>`round(avg(${historicoGeracoes.score}) FILTER (WHERE ${historicoGeracoes.status} = 'concluido'))::int`,
+      })
+      .from(historicoGeracoes);
+    return {
+      analises: row?.analises ?? 0,
+      curriculos: row?.curriculos ?? 0,
+      scoreMedio: row?.scoreMedio ?? null,
+    };
+  },
   getRecent: (limit = 10) =>
     db
       .select()
