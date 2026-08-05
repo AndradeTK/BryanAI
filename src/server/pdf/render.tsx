@@ -64,8 +64,15 @@ export async function renderResumePdf(
       await page.evaluateHandle("document.fonts.ready");
       const buffer = Buffer.from(
         await page.pdf({
-          format: "A4",
-          margin: { top: "20mm", right: "20mm", bottom: "20mm", left: "20mm" },
+          /**
+           * Letter, não A4. Canadá e EUA usam 8.5×11 pol (216×279mm); A4 é
+           * 210×297 — mais estreito e mais alto. Um currículo em A4 impresso
+           * por recrutador canadense sai com margens erradas e pode empurrar
+           * conteúdo para uma página extra. Fora que o formato em si já sinaliza
+           * "documento de fora".
+           */
+          format: "Letter",
+          margin: { top: "0.75in", right: "0.75in", bottom: "0.75in", left: "0.75in" },
           printBackground: true,
           preferCSSPageSize: true,
         }),

@@ -36,7 +36,7 @@
         }
         
         .container {
-            max-width: 210mm;
+            max-width: 8.5in; /* Letter — padrão canadense/norte-americano, não A4 */
             margin: 0 auto;
             padding: 16mm 18mm;
         }
