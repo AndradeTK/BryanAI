@@ -327,6 +327,12 @@ export const documents = pgTable("documents", {
   title: varchar("title", { length: 255 }).notNull(),
   filename: varchar("filename", { length: 500 }).notNull(), // no volume generated
   extractedText: text("extracted_text"), // texto do PDF (para a IA)
+  /**
+   * true quando o texto veio da leitura por IA — documento escaneado, que o
+   * pdfjs não consegue ler. Transcrição é reprodução, não cópia: fica marcado
+   * para o usuário poder conferir antes que alimente a geração de currículo.
+   */
+  textoViaOcr: boolean("texto_via_ocr").notNull().default(false),
   useForAi: boolean("use_for_ai").notNull().default(true),
   jobId: integer("job_id").references(() => jobs.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),

@@ -5,12 +5,8 @@ import { requireUser } from "@/server/auth";
 import { revalidatePath } from "next/cache";
 import { documentRepo } from "@/server/db/repositories";
 import { generateFilename, saveGenerated, resolveInside } from "@/server/pdf/storage";
-import {
-  extractTextFromPdf,
-  extractTextFromDocx,
-  detectFileType,
-  temTextoUtil,
-} from "@/server/pdf/extract";
+import { detectFileType } from "@/server/pdf/extract";
+import { extrairTexto } from "@/server/documentos/texto";
 import { unlink } from "node:fs/promises";
 import type { NewDocument } from "@/server/db/schema";
 
@@ -48,17 +44,8 @@ export async function uploadDocument(
   if (tipo === "unknown")
     return { error: "Formato não suportado. Envie um PDF ou um DOCX." };
 
-  let extractedText: string | null = null;
-  let falhaExtracao = false;
-  try {
-    const texto =
-      tipo === "pdf"
-        ? await extractTextFromPdf(buffer)
-        : await extractTextFromDocx(buffer);
-    extractedText = temTextoUtil(texto) ? texto : null;
-  } catch {
-    falhaExtracao = true;
-  }
+  // Extração nativa e, se o PDF for escaneado, leitura por IA.
+  const { texto, viaOcr, motivo } = await extrairTexto(buffer, tipo);
 
   const filename = generateFilename("DOC", tipo === "pdf" ? "pdf" : "docx");
   await saveGenerated(filename, buffer);
@@ -73,20 +60,26 @@ export async function uploadDocument(
     kind,
     title,
     filename,
-    extractedText,
-    useForAi: kind === "reference_letter" && extractedText !== null,
+    extractedText: texto,
+    textoViaOcr: viaOcr,
+    useForAi: kind === "reference_letter" && texto !== null,
     jobId,
   };
   await documentRepo.create(data);
 
   revalidatePath("/documentos");
 
-  if (extractedText === null) {
+  if (texto === null) {
     return {
       success: true,
-      aviso: falhaExtracao
-        ? `Documento salvo, mas não consegui ler o ${tipo.toUpperCase()}. Ele fica disponível para download e anexo, mas a IA não vai usar o conteúdo.`
-        : "Documento salvo, mas este PDF é um escaneamento (imagem, sem texto selecionável). Ele fica disponível para download e anexo, mas a IA não consegue ler o conteúdo. Para a IA aproveitar as conquistas descritas nele, envie o DOCX original ou uma versão com texto — ou copie o texto para a descrição de uma experiência.",
+      aviso: `Documento salvo, mas sem texto aproveitável. ${motivo ?? ""} Ele continua disponível para download e anexo; a IA é que não vai usar o conteúdo.`.trim(),
+    };
+  }
+  if (viaOcr) {
+    return {
+      success: true,
+      aviso:
+        "Documento salvo. Este PDF é um escaneamento, então o texto foi lido por IA — confira a transcrição abaixo antes de gerar currículos com ele. Diferente da extração direta, uma transcrição pode conter erros de leitura.",
     };
   }
   return { success: true };

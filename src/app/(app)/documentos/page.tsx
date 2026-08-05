@@ -44,6 +44,14 @@ export default async function DocumentosPage() {
           title: d.title,
           filename: d.filename,
           hasText: !!d.extractedText,
+          textoViaOcr: d.textoViaOcr,
+          // Trecho, não o texto inteiro: uma carta longa engordaria o payload
+          // RSC de toda a página sem necessidade. Dá para conferir o começo,
+          // que é onde erros de transcrição aparecem primeiro.
+          amostraTexto: d.extractedText
+            ? d.extractedText.slice(0, 1500) +
+              (d.extractedText.length > 1500 ? "\n\n[…]" : "")
+            : null,
           useForAi: d.useForAi,
           jobId: d.jobId,
           data: d.createdAt?.toLocaleDateString("pt-BR") ?? "",

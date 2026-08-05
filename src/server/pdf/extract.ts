@@ -8,11 +8,13 @@
  * nome como pistas secundárias. Não confia só no mimetype (pode vir vazio ou
  * errado num upload).
  */
+export type TipoArquivo = "pdf" | "docx" | "unknown";
+
 export function detectFileType(
   buffer: Buffer,
   mimetype?: string,
   filename?: string,
-): "pdf" | "docx" | "unknown" {
+): TipoArquivo {
   // Magic bytes: PDF começa com "%PDF", DOCX (zip/OOXML) com "PK".
   if (buffer.length >= 4 && buffer.toString("ascii", 0, 4) === "%PDF") return "pdf";
   if (buffer.length >= 2 && buffer[0] === 0x50 && buffer[1] === 0x4b) return "docx";

@@ -1,11 +1,8 @@
 import { ok, fail, preflight, handle, guardPanel } from "@/server/http/api";
 import { generateStructured, MODELS } from "@/server/ai/client";
 import { ExtractedResumeSchema } from "@/server/ai/schemas";
-import {
-  extractTextFromPdf,
-  extractTextFromDocx,
-  detectFileType,
-} from "@/server/pdf/extract";
+import { detectFileType } from "@/server/pdf/extract";
+import { extrairTexto } from "@/server/documentos/texto";
 import {
   perfilRepo,
   experienciaRepo,
@@ -45,17 +42,10 @@ export async function POST(request: Request) {
     const tipo = detectFileType(buffer, file.type, file.name);
     if (tipo === "unknown") return fail("Formato não suportado (PDF ou DOCX).");
 
-    let texto: string;
-    try {
-      texto =
-        tipo === "pdf"
-          ? await extractTextFromPdf(buffer)
-          : await extractTextFromDocx(buffer);
-    } catch {
-      return fail("Não foi possível ler o arquivo.");
-    }
-    if (!texto || texto.trim().length < 50)
-      return fail("Texto insuficiente no arquivo.");
+    // Extração direta e, quando o PDF é escaneado, leitura por IA. Um currículo
+    // digitalizado antes parava aqui com "texto insuficiente no arquivo".
+    const { texto, motivo } = await extrairTexto(buffer, tipo);
+    if (!texto) return fail(motivo ?? "Não foi possível ler o arquivo.");
 
     const extraido = await generateStructured({
       model: MODELS.fast,

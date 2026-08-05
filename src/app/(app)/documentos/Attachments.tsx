@@ -16,6 +16,10 @@ export interface AttachmentRow {
   title: string;
   filename: string;
   hasText: boolean;
+  /** Texto veio da leitura por IA (documento escaneado), não do arquivo. */
+  textoViaOcr: boolean;
+  /** Trecho da transcrição, para o usuário conferir sem abrir o arquivo. */
+  amostraTexto: string | null;
   useForAi: boolean;
   jobId: number | null;
   data: string;
@@ -150,14 +154,39 @@ export function Attachments({
                   </span>
                   {!d.hasText && (
                     <span
-                      className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded"
-                      title="Não foi possível extrair texto (PDF digitalizado?). O arquivo está salvo, mas a IA não o lê."
+                      className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300 px-2.5 py-1 rounded-full"
+                      title="Nem a extração direta nem a leitura por IA encontraram texto. O arquivo está salvo, mas a IA não o lê."
                     >
                       sem texto
                     </span>
                   )}
+                  {d.textoViaOcr && (
+                    <span
+                      className="text-xs bg-blue-soft text-blue px-2.5 py-1 rounded-full"
+                      title="PDF escaneado: o texto foi transcrito por IA. Confira antes de gerar currículos com ele."
+                    >
+                      texto lido por IA
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-content-subtle mt-1">{d.data}</p>
+
+                {/* Transcrição visível. Se o texto veio de um modelo, o usuário
+                    precisa poder conferir — é ele que vai alimentar a geração
+                    de currículo, e um erro de leitura vira uma afirmação que
+                    ele teria que defender numa entrevista. */}
+                {d.amostraTexto && (
+                  <details className="mt-2 group">
+                    <summary className="text-xs text-content-subtle cursor-pointer hover:text-content list-none">
+                      {d.textoViaOcr ? "Conferir transcrição" : "Ver texto extraído"}
+                      <span className="ml-1 opacity-60 group-open:hidden">▸</span>
+                      <span className="ml-1 opacity-60 hidden group-open:inline">▾</span>
+                    </summary>
+                    <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-lg bg-surface-2 border border-line-soft p-3 text-xs leading-relaxed text-content-muted font-sans">
+                      {d.amostraTexto}
+                    </pre>
+                  </details>
+                )}
               </div>
 
               {/* Vincular a vaga */}

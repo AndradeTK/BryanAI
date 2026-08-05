@@ -1,10 +1,7 @@
 import { ok, fail, preflight, handle, guardApi } from "@/server/http/api";
 import { analyzeExternalResume } from "@/server/ai/analyzer";
-import {
-  extractTextFromPdf,
-  extractTextFromDocx,
-  detectFileType,
-} from "@/server/pdf/extract";
+import { detectFileType } from "@/server/pdf/extract";
+import { extrairTexto } from "@/server/documentos/texto";
 
 export function OPTIONS() {
   return preflight();
@@ -32,26 +29,17 @@ export async function POST(request: Request) {
     if (tipo === "unknown")
       return fail("Formato não suportado. Envie um PDF ou DOCX.");
 
-    let texto: string;
-    try {
-      texto =
-        tipo === "pdf"
-          ? await extractTextFromPdf(buffer)
-          : await extractTextFromDocx(buffer);
-    } catch {
-      return fail(
-        "Não foi possível ler o arquivo. Verifique se é um PDF ou DOCX válido.",
-      );
-    }
-
-    if (!texto || texto.trim().length < 50)
-      return fail("Não foi possível extrair texto suficiente do arquivo.");
+    // Extração direta e, quando o PDF é escaneado, leitura por IA. Um currículo
+    // digitalizado antes parava aqui com "não foi possível extrair texto".
+    const { texto, viaOcr, motivo } = await extrairTexto(buffer, tipo);
+    if (!texto) return fail(motivo ?? "Não foi possível ler o arquivo.");
 
     const analise = await analyzeExternalResume(texto, { titulo, descricao });
     return ok({
       analise,
       arquivoOriginal: file.name,
       caracteresExtraidos: texto.length,
+      textoViaOcr: viaOcr,
     });
   });
 }
