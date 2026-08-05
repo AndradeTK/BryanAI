@@ -22,6 +22,25 @@ const nextConfig: NextConfig = {
 
   // Pacotes que precisam ser exigidos em runtime pelo Node, não empacotados
   // pelo bundler: têm binários, leem arquivos próprios ou usam APIs nativas.
+  /**
+   * O tracer do Next só inclui o que consegue enxergar estaticamente, e o
+   * pdfjs (usado pelo pdf-parse) carrega duas coisas dinamicamente:
+   *
+   *   - `@napi-rs/canvas`, que fornece os polyfills DOMMatrix/ImageData/Path2D.
+   *     Sem ele o import lança "DOMMatrix is not defined".
+   *   - `pdf.worker.mjs`, o worker que faz o parse de fato. Sem ele o erro é
+   *     "Setting up fake worker failed".
+   *
+   * Nenhum dos dois entrava no bundle standalone: a extração de PDF funcionava
+   * em desenvolvimento e falhava em produção. Incluídos à força.
+   */
+  outputFileTracingIncludes: {
+    "/**": [
+      "./node_modules/@napi-rs/canvas*/**",
+      "./node_modules/pdfjs-dist/legacy/build/**",
+    ],
+  },
+
   serverExternalPackages: [
     "puppeteer",
     "pdf-parse",
@@ -38,6 +57,17 @@ const nextConfig: NextConfig = {
   // (retry com backoff). O default do Next mataria a request antes.
   experimental: {
     proxyTimeout: 120_000,
+
+    /**
+     * Server Actions aceitam 1MB de corpo por padrão, e o upload de documentos
+     * é uma Server Action. Uma carta de recomendação em PDF passa fácil disso
+     * (as reais têm ~1.2MB), e o erro chegava como um 413 genérico — o nginx
+     * deixava passar com client_max_body_size 12M e o Next rejeitava depois.
+     * Os dois limites agora combinam.
+     */
+    serverActions: {
+      bodySizeLimit: "12mb",
+    },
   },
 };
 

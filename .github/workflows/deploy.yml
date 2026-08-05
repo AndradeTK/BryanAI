@@ -120,14 +120,32 @@ jobs:
           # link seja criado DENTRO dele.
           ln -sfnT "$RELEASE" "$APP_DIR/current"
 
+          # PM2 em CLUSTER, não fork. Em fork mode o `reload` mata o processo e
+          # sobe outro: por alguns segundos nada escuta na porta, e o nginx
+          # devolve 502 para quem estiver navegando. Em cluster o reload é
+          # realmente gradual — um worker de cada vez, sem janela sem
+          # atendimento (verificado: 60 requisições durante um reload, 60x 200).
+          #
+          # max-memory-restart protege o vizinho: se esta aplicação vazar
+          # memória, o worker reinicia antes de o OOM killer escolher uma vítima
+          # qualquer na VPS.
           echo "==> Recarregando a aplicação"
+          MODO=$(pm2 jlist 2>/dev/null \
+            | grep -o "\"name\":\"$APP_NAME\".*\?\"exec_mode\":\"[a-z_]*\"" \
+            | grep -o '"exec_mode":"[a-z_]*"' | head -1 || true)
+
           if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-            pm2 reload "$APP_NAME" --update-env
+            if echo "$MODO" | grep -q fork; then
+              # Migração única de fork para cluster: exige recriar o processo.
+              echo "    processo estava em fork mode; recriando em cluster"
+              pm2 delete "$APP_NAME"
+              pm2 start "$APP_DIR/current/server.js" --name "$APP_NAME" -i 2 \
+                --cwd "$APP_DIR/current" --max-memory-restart 600M --update-env
+            else
+              pm2 reload "$APP_NAME" --update-env
+            fi
           else
-            # max-memory-restart protege o vizinho: se esta aplicação vazar
-            # memória, ela reinicia sozinha antes de o OOM killer escolher uma
-            # vítima qualquer na VPS.
-            pm2 start "$APP_DIR/current/server.js" --name "$APP_NAME" \
+            pm2 start "$APP_DIR/current/server.js" --name "$APP_NAME" -i 2 \
               --cwd "$APP_DIR/current" --max-memory-restart 600M --update-env
           fi
           pm2 save --force

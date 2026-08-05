@@ -63,8 +63,16 @@ export function Attachments({
         className="bg-surface border border-line rounded-xl p-5 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4"
       >
         {state.error && (
-          <div className="md:col-span-2 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 px-4 py-2 text-sm">
+          <div className="md:col-span-2 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300 px-4 py-3 text-sm">
             {state.error}
+          </div>
+        )}
+        {/* Salvou, mas com ressalva — tipicamente PDF escaneado, de que a IA
+            não consegue extrair texto. Precisa ser visível: caso contrário o
+            documento parece pronto para uso e não está. */}
+        {state.aviso && (
+          <div className="md:col-span-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300 px-4 py-3 text-sm leading-relaxed">
+            {state.aviso}
           </div>
         )}
         <label className="block">
