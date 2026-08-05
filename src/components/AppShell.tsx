@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CommandPalette } from "./CommandPalette";
+import { Icone, type NomeIcone } from "./Icone";
 import { logout } from "@/app/login/actions";
 
 /**
@@ -12,35 +13,38 @@ import { logout } from "@/app/login/actions";
  * anti-flash do layout) e persistido num cookie de 1 ano.
  */
 
-const NAV: { section: string | null; items: { href: string; label: string; icon: string }[] }[] = [
-  { section: null, items: [{ href: "/", label: "Dashboard", icon: "▣" }] },
+const NAV: {
+  section: string | null;
+  items: { href: string; label: string; icon: NomeIcone }[];
+}[] = [
+  { section: null, items: [{ href: "/", label: "Dashboard", icon: "dashboard" }] },
   {
     section: "Gestão de Dados",
     items: [
-      { href: "/perfil", label: "Meu Perfil", icon: "◉" },
-      { href: "/canada", label: "Perfil Canadense", icon: "🍁" },
-      { href: "/experiencias", label: "Experiências", icon: "≣" },
-      { href: "/formacao", label: "Formação e Projetos", icon: "◈" },
-      { href: "/cursos", label: "Certificações", icon: "✦" },
-      { href: "/idiomas", label: "Idiomas", icon: "⌘" },
+      { href: "/perfil", label: "Meu Perfil", icon: "perfil" },
+      { href: "/canada", label: "Perfil Canadense", icon: "canada" },
+      { href: "/experiencias", label: "Experiências", icon: "experiencias" },
+      { href: "/formacao", label: "Formação e Projetos", icon: "formacao" },
+      { href: "/cursos", label: "Certificações", icon: "certificacoes" },
+      { href: "/idiomas", label: "Idiomas", icon: "idiomas" },
     ],
   },
   {
     section: "Inteligência",
     items: [
-      { href: "/jobfit", label: "Job Fit & Gerador", icon: "◎" },
-      { href: "/jobs", label: "Vagas (Kanban)", icon: "▦" },
-      { href: "/cover-letter", label: "Cover Letter", icon: "✉" },
-      { href: "/skills-gap", label: "Skills Gap", icon: "◭" },
-      { href: "/documentos", label: "Documentos", icon: "▤" },
-      { href: "/historico", label: "Histórico", icon: "↻" },
+      { href: "/jobfit", label: "Job Fit & Gerador", icon: "jobfit" },
+      { href: "/jobs", label: "Vagas (Kanban)", icon: "vagas" },
+      { href: "/cover-letter", label: "Cover Letter", icon: "carta" },
+      { href: "/skills-gap", label: "Skills Gap", icon: "skills" },
+      { href: "/documentos", label: "Documentos", icon: "documentos" },
+      { href: "/historico", label: "Histórico", icon: "historico" },
     ],
   },
   {
     section: "Sistema",
     items: [
-      { href: "/aprendizado", label: "Aprendizado", icon: "🧠" },
-      { href: "/settings", label: "Configurações", icon: "⚙" },
+      { href: "/aprendizado", label: "Aprendizado", icon: "aprendizado" },
+      { href: "/settings", label: "Configurações", icon: "config" },
     ],
   },
 ];
@@ -134,7 +138,11 @@ export function AppShell({
                             : "text-content-muted hover:bg-surface-3 hover:text-content"
                         }`}
                       >
-                        <span className="w-4 text-center opacity-70">{item.icon}</span>
+                        <Icone
+                          nome={item.icon}
+                          tamanho="1.15em"
+                          className={active ? "" : "opacity-70"}
+                        />
                         {item.label}
                       </Link>
                     </li>
@@ -157,8 +165,9 @@ export function AppShell({
               <form action={logout}>
                 <button
                   type="submit"
-                  className="text-xs text-content-subtle hover:text-content transition px-2.5 py-1 rounded-full hover:bg-surface-3"
+                  className="flex items-center gap-1.5 text-xs text-content-subtle hover:text-content transition px-2.5 py-1 rounded-full hover:bg-surface-3"
                 >
+                  <Icone nome="sair" tamanho="1em" />
                   Sair
                 </button>
               </form>
@@ -182,7 +191,7 @@ export function AppShell({
               aria-label="Alternar tema"
               className="w-9 h-9 rounded-full text-content-muted hover:bg-surface-3 hover:text-content transition flex items-center justify-center"
             >
-              {dark ? "☀" : "☾"}
+              <Icone nome={dark ? "claro" : "escuro"} tamanho="1.15em" />
             </button>
           </div>
         </header>

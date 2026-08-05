@@ -4,7 +4,8 @@
  */
 
 // Configuração
-const DEFAULT_SERVER_URL = 'http://localhost:3000';
+// Produção — ver a nota em content.js.
+const DEFAULT_SERVER_URL = 'https://app.bryanandrade.dev';
 let serverUrl = DEFAULT_SERVER_URL;
 let apiToken = '';
 let isConnected = false;

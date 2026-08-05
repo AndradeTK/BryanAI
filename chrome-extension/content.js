@@ -10,7 +10,34 @@
  * (src/server/jobs/ingest-parse.ts), então a lógica de parsing fica num lugar só.
  */
 
-const DEFAULT_SERVER = "http://localhost:3000";
+// Produção. Quem instala a extensão sem configurar nada já aponta para o
+// servidor certo; localhost só serve para desenvolvimento e é ajustado na aba
+// Config.
+const DEFAULT_SERVER = "https://app.bryanandrade.dev";
+
+/**
+ * Paleta do painel injetado — os mesmos tokens do app (globals.css).
+ * Repetidos aqui porque o content script roda no contexto do site da vaga e
+ * não tem acesso ao CSS da aplicação.
+ */
+const UI = {
+  superficie: "#ffffff",
+  superficie2: "#f8f9fc",
+  conteudo: "#121317",
+  conteudoSuave: "#45474d",
+  conteudoSutil: "#6a6a71",
+  linha: "rgba(33,34,38,.12)",
+  linhaSuave: "rgba(33,34,38,.06)",
+  acento: "#212226",
+  sobreAcento: "#ffffff",
+  ok: "#16a34a",
+  atencao: "#b45309",
+  erro: "#dc2626",
+  fonte:
+    "'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
+};
+
+
 
 /**
  * Cabeçalhos das chamadas ao backend.
@@ -188,8 +215,9 @@ async function injectScoreBadge() {
   const badge = document.createElement("div");
   badge.id = "bryanai-score-badge";
   badge.style.cssText =
-    "position:fixed;top:16px;right:16px;z-index:999999;background:#111827;color:#fff;" +
-    "padding:10px 14px;border-radius:10px;font:600 13px system-ui;box-shadow:0 4px 12px rgba(0,0,0,.3)";
+    `position:fixed;top:16px;right:16px;z-index:999999;background:${UI.acento};color:${UI.sobreAcento};` +
+    `padding:10px 16px;border-radius:9999px;font:500 13px ${UI.fonte};letter-spacing:-.01em;` +
+    `box-shadow:0 4px 16px rgba(18,19,23,.18)`;
   badge.textContent = "BryanAI: analisando…";
   document.body.appendChild(badge);
 
@@ -202,7 +230,7 @@ async function injectScoreBadge() {
     const data = await res.json();
     if (data.success) {
       const a = data.data.analise;
-      const cor = a.score >= 80 ? "#16a34a" : a.score >= 60 ? "#ca8a04" : "#dc2626";
+      const cor = a.score >= 80 ? UI.ok : a.score >= 60 ? UI.atencao : UI.erro;
       const blocker =
         a.canadian?.work_auth_verdict === "needs_sponsorship_blocker"
           ? " ⚠️ exige autorização"
@@ -264,11 +292,14 @@ function ghostReason(scope) {
 // ---------- Painel de ações flutuante ----------
 let panelInjected = false;
 
-function btnStyle(bg) {
-  return (
-    `display:block;width:100%;margin:4px 0;padding:8px 10px;border:0;border-radius:8px;` +
-    `background:${bg};color:#fff;font:600 12px system-ui;cursor:pointer;text-align:left`
-  );
+function btnStyle(primario) {
+  const base =
+    `display:flex;align-items:center;justify-content:center;width:100%;margin:6px 0;` +
+    `padding:9px 12px;border-radius:9999px;font:500 12px ${UI.fonte};cursor:pointer;` +
+    `letter-spacing:-.01em;transition:background .12s,border-color .12s;`;
+  return primario
+    ? base + `border:0;background:${UI.acento};color:${UI.sobreAcento};`
+    : base + `border:1px solid ${UI.linha};background:${UI.superficie};color:${UI.conteudo};`;
 }
 
 async function injectActionPanel() {
@@ -281,37 +312,38 @@ async function injectActionPanel() {
   const panel = document.createElement("div");
   panel.id = "bryanai-panel";
   panel.style.cssText =
-    "position:fixed;top:80px;right:16px;z-index:2147483647;width:240px;" +
-    "background:#0f172a;color:#e2e8f0;padding:14px;border-radius:12px;" +
-    "font:13px system-ui;box-shadow:0 8px 24px rgba(0,0,0,.4);max-height:80vh;overflow:auto";
+    `position:fixed;top:80px;right:16px;z-index:2147483647;width:252px;` +
+    `background:${UI.superficie};color:${UI.conteudo};padding:16px;border-radius:20px;` +
+    `border:1px solid ${UI.linha};font:13px ${UI.fonte};letter-spacing:-.01em;` +
+    `box-shadow:0 4px 16px rgba(18,19,23,.08);max-height:80vh;overflow:auto`;
 
   const ghost = ghostReason(document.body);
   panel.innerHTML =
     `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">` +
-    `<strong style="color:#38bdf8">BryanAI</strong>` +
-    `<span id="bryanai-close" style="cursor:pointer;opacity:.6">✕</span></div>` +
-    `<div id="bryanai-score" style="font-size:12px;color:#94a3b8;margin-bottom:8px">Score: —</div>` +
+    `<strong style="font-weight:500;letter-spacing:-.02em">BryanAI</strong>` +
+    `<span id="bryanai-close" style="cursor:pointer;opacity:.45;font-size:15px;line-height:1">✕</span></div>` +
+    `<div id="bryanai-score" style="font-size:12px;color:${UI.conteudoSutil};margin-bottom:10px">Score: —</div>` +
     (ghost
-      ? `<div style="background:#7c2d12;color:#fed7aa;padding:6px 8px;border-radius:6px;font-size:11px;margin-bottom:8px">⚠️ Possível vaga fantasma (${ghost})</div>`
+      ? `<div style="background:#fff7ed;color:${UI.atencao};border:1px solid rgba(180,83,9,.16);padding:7px 10px;border-radius:10px;font-size:11px;margin-bottom:10px">Possível vaga fantasma — ${ghost}</div>`
       : "");
 
   const actions = [
-    { id: "act-score", label: "Analisar compatibilidade", bg: "#2563eb" },
-    { id: "act-save", label: "Salvar no kanban", bg: "#16a34a" },
-    { id: "act-cv", label: "Gerar CV", bg: "#7c3aed" },
-    { id: "act-cover", label: "Cover letter", bg: "#7c3aed" },
-    { id: "act-prepare", label: "Preparar aplicação", bg: "#ca8a04" },
+    { id: "act-score", label: "Analisar compatibilidade", primario: true },
+    { id: "act-save", label: "Salvar no kanban" },
+    { id: "act-cv", label: "Gerar CV" },
+    { id: "act-cover", label: "Cover letter" },
+    { id: "act-prepare", label: "Preparar aplicação" },
   ];
   for (const a of actions) {
     const b = document.createElement("button");
     b.id = a.id;
     b.textContent = a.label;
-    b.style.cssText = btnStyle(a.bg);
+    b.style.cssText = btnStyle(a.primario);
     panel.appendChild(b);
   }
   const status = document.createElement("div");
   status.id = "bryanai-panel-status";
-  status.style.cssText = "font-size:11px;color:#94a3b8;margin-top:8px;white-space:pre-wrap";
+  status.style.cssText = `font-size:11px;color:${UI.conteudoSutil};margin-top:10px;white-space:pre-wrap;line-height:1.5`;
   panel.appendChild(status);
 
   document.body.appendChild(panel);
@@ -331,11 +363,11 @@ async function injectActionPanel() {
       const data = await res.json();
       if (data.success) {
         const a = data.data.analise;
-        const cor = a.score >= 80 ? "#4ade80" : a.score >= 60 ? "#facc15" : "#f87171";
+        const cor = a.score >= 80 ? UI.ok : a.score >= 60 ? UI.atencao : UI.erro;
         document.getElementById("bryanai-score").innerHTML =
           `Score: <b style="color:${cor}">${a.score}/100</b> · ${a.nivel_compatibilidade}` +
           (a.canadian?.work_auth_verdict === "needs_sponsorship_blocker"
-            ? `<br><span style="color:#fca5a5">⚠️ exige autorização de trabalho</span>`
+            ? `<br><span style="color:${UI.erro}">Exige autorização de trabalho</span>`
             : "");
         setStatus("");
       } else setStatus("Erro: " + data.error);
@@ -476,7 +508,7 @@ async function prepareApplication(base, captured, setStatus) {
     const field = fields.find((f) => f.label === r.label);
     if (!field) continue;
     if (r.source === "needs_input") {
-      field.el.style.outline = "2px solid #facc15"; // amarelo = falta você preencher
+      field.el.style.outline = `2px solid ${UI.atencao}`; // falta você preencher
       field.el.dataset.bryanaiKey = r.key;
       field.el.dataset.bryanaiLabel = r.label;
       pendentes++;
@@ -485,7 +517,7 @@ async function prepareApplication(base, captured, setStatus) {
         field.el.value = r.value;
         field.el.dispatchEvent(new Event("input", { bubbles: true }));
         field.el.dispatchEvent(new Event("change", { bubbles: true }));
-        field.el.style.outline = "2px solid #4ade80"; // verde = preenchido
+        field.el.style.outline = `2px solid ${UI.ok}`; // preenchido
         preenchidos++;
       } catch (e) {}
     }
@@ -497,7 +529,7 @@ async function prepareApplication(base, captured, setStatus) {
     const learn = document.createElement("button");
     learn.id = "bryanai-learn";
     learn.textContent = `Salvar minhas respostas (${pendentes})`;
-    learn.style.cssText = btnStyle("#0891b2");
+    learn.style.cssText = btnStyle(false);
     learn.onclick = async () => {
       let salvos = 0;
       for (const field of fields) {
@@ -513,7 +545,7 @@ async function prepareApplication(base, captured, setStatus) {
               answer: field.el.value.trim(),
             }),
           });
-          field.el.style.outline = "2px solid #4ade80";
+          field.el.style.outline = `2px solid ${UI.ok}`;
           salvos++;
         } catch (e) {}
       }
@@ -536,22 +568,22 @@ async function prepareApplication(base, captured, setStatus) {
     const box = document.createElement("div");
     box.id = "bryanai-refs";
     box.style.cssText =
-      "margin-top:8px;padding:8px;border-radius:8px;background:#1e293b;font-size:11px;color:#e2e8f0";
+      `margin-top:10px;padding:10px;border-radius:12px;background:${UI.superficie2};border:1px solid ${UI.linhaSuave};font-size:11px;color:${UI.conteudoSuave};line-height:1.5`;
     const docs = data.documentosSugeridos || [];
     if (docs.length) {
       const base2 = base;
       box.innerHTML =
-        `<b style="color:#facc15">📎 Esta vaga pede reference letter.</b><br>` +
+        `<b style="color:${UI.atencao};font-weight:500">Esta vaga pede reference letter.</b><br>` +
         `Suas cartas salvas (baixe e anexe você):<br>` +
         docs
           .map(
             (d) =>
-              `<a href="${base2}${d.url}" target="_blank" style="color:#38bdf8;text-decoration:underline">${d.titulo}</a>`,
+              `<a href="${base2}${d.url}" target="_blank" style="color:#1a73e8;text-decoration:underline">${d.titulo}</a>`,
           )
           .join("<br>");
     } else {
       box.innerHTML =
-        `<b style="color:#facc15">📎 Esta vaga pede reference letter</b>, ` +
+        `<b style="color:${UI.atencao};font-weight:500">Esta vaga pede reference letter</b>, ` +
         `mas você não tem nenhuma salva. Adicione em Documentos → Meus anexos.`;
     }
     document.getElementById("bryanai-panel").appendChild(box);
