@@ -58,6 +58,32 @@ function formatarValor(v: unknown): string {
 const ACEITA =
   "application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg,image/webp";
 
+const CHAVE_STORAGE = "bryanai_conversa";
+
+/**
+ * Monta o histórico enviado ao modelo.
+ *
+ * Não basta o texto: quando ele propõe uma alteração e você aplica, o resultado
+ * precisa entrar na conversa. Sem isso ele não sabe que a mudança aconteceu e
+ * volta a oferecer a mesma coisa no turno seguinte — o que parece falta de
+ * memória, mas é informação que nunca chegou até ele.
+ */
+function montarHistorico(bolhas: Bolha[]) {
+  return bolhas.map((b) => {
+    if (b.papel !== "model" || !b.proposta) {
+      return { papel: b.papel, texto: b.texto };
+    }
+    const resumo = JSON.stringify(b.proposta.argumentos);
+    const desfecho =
+      b.decidida === "aplicada"
+        ? `[A alteração foi APLICADA pelo usuário: ${b.proposta.rotulo} — ${resumo}]`
+        : b.decidida === "descartada"
+          ? `[O usuário DESCARTOU esta alteração: ${b.proposta.rotulo}. Não insista sem ele pedir.]`
+          : `[Proposta feita, ainda sem decisão: ${b.proposta.rotulo}]`;
+    return { papel: b.papel, texto: `${b.texto}\n${desfecho}` };
+  });
+}
+
 export function ChatClient() {
   const [bolhas, setBolhas] = useState<Bolha[]>([]);
   const [entrada, setEntrada] = useState("");
@@ -66,10 +92,35 @@ export function ChatClient() {
   const [aplicando, setAplicando] = useState<number | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [arrastando, setArrastando] = useState(false);
+  /** Evita gravar o estado vazio por cima da conversa antes de recuperá-la. */
+  const [pronto, setPronto] = useState(false);
 
   const fimRef = useRef<HTMLDivElement>(null);
   const inputArquivo = useRef<HTMLInputElement>(null);
   const areaTexto = useRef<HTMLTextAreaElement>(null);
+
+  // Recupera a conversa ao abrir. Sem isto, recarregar a página apagava tudo —
+  // e a sensação era de um assistente que esquece.
+  useEffect(() => {
+    try {
+      const salvo = localStorage.getItem(CHAVE_STORAGE);
+      if (salvo) setBolhas(JSON.parse(salvo));
+    } catch {
+      // storage indisponível ou conteúdo corrompido: começa limpo
+    }
+    setPronto(true);
+  }, []);
+
+  // Guarda a cada mudança. Anexos não entram: são arquivos, e o que importa
+  // preservar é a conversa.
+  useEffect(() => {
+    if (!pronto) return;
+    try {
+      localStorage.setItem(CHAVE_STORAGE, JSON.stringify(bolhas.slice(-60)));
+    } catch {
+      // cota estourada: a conversa em memória segue funcionando
+    }
+  }, [bolhas, pronto]);
 
   useEffect(() => {
     fimRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -93,7 +144,7 @@ export function ChatClient() {
     const msg = texto.trim();
     if ((!msg && arquivos.length === 0) || carregando) return;
 
-    const historico = bolhas.map((b) => ({ papel: b.papel, texto: b.texto }));
+    const historico = montarHistorico(bolhas);
     const nomesAnexos = arquivos.map((a) => a.name);
 
     setBolhas((b) => [
@@ -173,6 +224,25 @@ export function ChatClient() {
       {arrastando && (
         <div className="absolute inset-0 z-20 rounded-2xl border-2 border-dashed border-blue bg-blue-soft/60 flex items-center justify-center pointer-events-none">
           <span className="text-sm font-medium text-blue">Solte para anexar</span>
+        </div>
+      )}
+
+      {bolhas.length > 0 && (
+        <div className="flex justify-end pb-3">
+          <button
+            onClick={() => {
+              setBolhas([]);
+              setErro(null);
+              try {
+                localStorage.removeItem(CHAVE_STORAGE);
+              } catch {
+                /* sem storage: basta limpar a memória */
+              }
+            }}
+            className="text-xs text-content-subtle hover:text-content transition px-3 py-1.5 rounded-full hover:bg-surface-3"
+          >
+            Nova conversa
+          </button>
         </div>
       )}
 
