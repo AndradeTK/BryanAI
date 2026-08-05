@@ -47,7 +47,11 @@ export type JobFitAnalysis = z.infer<typeof JobFitAnalysisSchema>;
 
 /** Veredictos canadenses anexados à análise (vêm das regras, não do LLM). */
 export interface CanadianVerdicts {
-  work_auth_verdict: "ok" | "needs_sponsorship_blocker" | "unclear";
+  work_auth_verdict:
+    | "ok"
+    | "needs_sponsorship_blocker"
+    | "study_permit_limited"
+    | "unclear";
   language_verdict: "ok" | "below_requirement" | "unclear";
   regulated_gap: string | null;
 }

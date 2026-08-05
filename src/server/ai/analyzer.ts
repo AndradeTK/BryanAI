@@ -90,6 +90,22 @@ export async function analyzeJobFit(
     };
   }
 
+  /**
+   * Study permit numa vaga de carga integral não é bloqueio: o candidato pode
+   * se candidatar, e muitos empregadores acomodam início após a formatura ou
+   * carga reduzida durante o período letivo. A análise segue normalmente e a
+   * limitação entra como gap — zerar aqui esconderia vagas tecnicamente ótimas.
+   */
+  const gapStudyPermit =
+    canadian?.work_auth_verdict === "study_permit_limited"
+      ? {
+          gap: "Carga horária permitida pelo study permit",
+          criticidade: "Importante" as const,
+          sugestao_acao:
+            "Com study permit são 24h/semana durante o período letivo (integral nas férias programadas, até 180 dias/ano). Vale confirmar se a vaga aceita início após a formatura, carga reduzida ou formato co-op.",
+        }
+      : null;
+
   const prompt = `${ANALYZER_SYSTEM_PROMPT}
 ${canadaGrounding(curriculo)}
 
@@ -114,7 +130,15 @@ incerto).`;
     temperature: 0.3,
   });
 
-  return { ...analise, canadian };
+  // O gap do study permit vem da regra determinística, não do modelo — que não
+  // tem como saber a carga permitida pela permissão do candidato.
+  return {
+    ...analise,
+    gaps_identificados: gapStudyPermit
+      ? [gapStudyPermit, ...analise.gaps_identificados]
+      : analise.gaps_identificados,
+    canadian,
+  };
 }
 
 /** Análise rápida (extensão): só score, resumo e fit. */
