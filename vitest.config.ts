@@ -2,6 +2,10 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 export default defineConfig({
+  // Componentes são .tsx; sem isto o vitest só compila TypeScript e falha ao
+  // encontrar JSX. `automatic` dispensa importar React em cada arquivo.
+  // O vitest 4 usa oxc, não esbuild — opções de esbuild aqui são ignoradas.
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     globals: true,
     environment: "node",

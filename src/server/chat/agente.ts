@@ -25,6 +25,14 @@ import {
 
 const SISTEMA = `Você é o assistente do BryanAI, uma ferramenta pessoal de candidatura a vagas com foco no mercado canadense. Você conversa com o DONO dos dados sobre o próprio currículo e ajuda a mantê-lo em dia.
 
+O QUE VOCÊ ENXERGA:
+- Além dos dados cadastrados, o usuário tem DOCUMENTOS anexados — tipicamente
+  cartas de recomendação. Use listarDocumentos para ler o conteúdo delas.
+- As cartas costumam descrever experiências que ainda NÃO estão cadastradas.
+  Quando notar isso, diga qual é e ofereça cadastrar.
+- O usuário pode anexar arquivos direto na conversa. Leia o que vier e trate
+  como informação dele — mas continue sem inventar o que não estiver escrito.
+
 COMO TRABALHAR:
 - Antes de propor qualquer alteração em algo que já existe, LEIA primeiro (listarExperiencias, lerPerfil...) para pegar o id certo e o valor atual. Nunca adivinhe um id.
 - Ao criar algo novo, não passe id.
@@ -47,6 +55,31 @@ export interface Mensagem {
   texto: string;
 }
 
+/**
+ * Arquivo enviado junto da mensagem.
+ *
+ * PDF e imagem vão inteiros ao modelo, que é multimodal e lê os dois — inclusive
+ * documento escaneado. DOCX o Gemini não abre, então o texto é extraído antes e
+ * entra como texto comum.
+ */
+export interface Anexo {
+  nome: string;
+  mimeType: string;
+  /** Conteúdo em base64 para PDF/imagem, ou texto já extraído para DOCX. */
+  dados: string;
+  ehTexto?: boolean;
+}
+
+/** Tipos que o Gemini aceita como `inline_data`. */
+export const MIMES_SUPORTADOS = [
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+];
+
 export interface PropostaEscrita {
   ferramenta: NomeEscrita;
   rotulo: string;
@@ -64,6 +97,7 @@ const MAX_VOLTAS = 6;
 export async function conversar(
   historico: Mensagem[],
   mensagem: string,
+  anexos: Anexo[] = [],
 ): Promise<RespostaAgente> {
   const model = genAI.getGenerativeModel({
     model: MODELS.fast,
@@ -78,7 +112,21 @@ export async function conversar(
   }));
 
   const chat = model.startChat({ history });
-  let resultado = await withRetry(() => chat.sendMessage(mensagem));
+
+  // Anexos entram como partes da mesma mensagem: o modelo vê arquivo e pergunta
+  // juntos, em vez de precisar correlacionar duas mensagens.
+  const partes: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> =
+    [];
+  for (const a of anexos) {
+    if (a.ehTexto) {
+      partes.push({ text: `[Arquivo anexado: ${a.nome}]\n\n${a.dados}` });
+    } else {
+      partes.push({ inlineData: { mimeType: a.mimeType, data: a.dados } });
+    }
+  }
+  partes.push({ text: mensagem });
+
+  let resultado = await withRetry(() => chat.sendMessage(partes));
 
   for (let volta = 0; volta < MAX_VOLTAS; volta++) {
     const chamadas = resultado.response.functionCalls() ?? [];

@@ -14,6 +14,7 @@ import {
   idiomaRepo,
   applicationRepo,
   answerRepo,
+  documentRepo,
 } from "@/server/db/repositories";
 
 /**
@@ -251,6 +252,29 @@ export const LEITURAS = {
   listarIdiomas: () => idiomaRepo.getAll(),
   listarCandidaturas: () => applicationRepo.getBoard(),
   listarRespostas: () => answerRepo.getAll(),
+
+  /**
+   * Documentos anexados (cartas de recomendação etc.) COM o texto.
+   *
+   * Sem isto o assistente não sabia que as cartas existem — respondia sobre o
+   * perfil ignorando a experiência que só está descrita nelas. O texto vai
+   * truncado porque uma carta inteira multiplicada por vários documentos
+   * encheria a janela de contexto sem necessidade.
+   */
+  listarDocumentos: async () => {
+    const docs = await documentRepo.getAll();
+    return docs.map((d) => ({
+      id: d.id,
+      titulo: d.title,
+      tipo: d.kind,
+      usadoPelaIa: d.useForAi,
+      textoLidoPorIa: d.textoViaOcr,
+      texto: d.extractedText
+        ? d.extractedText.slice(0, 4000) +
+          (d.extractedText.length > 4000 ? "\n[...truncado]" : "")
+        : null,
+    }));
+  },
 } as const;
 
 export type NomeLeitura = keyof typeof LEITURAS;
@@ -308,6 +332,12 @@ export const DECLARACOES: FunctionDeclaration[] = [
   {
     name: "listarRespostas",
     description: "Lista as respostas reutilizáveis de formulários de candidatura.",
+    parameters: { type: S.OBJECT, properties: {} },
+  },
+  {
+    name: "listarDocumentos",
+    description:
+      "Lista os documentos anexados (cartas de recomendação, comprovantes) COM o texto de cada um. Use quando o usuário mencionar carta de recomendação, referência, ou perguntar o que você sabe sobre a trajetória dele — as cartas costumam descrever experiências que ainda não estão cadastradas.",
     parameters: { type: S.OBJECT, properties: {} },
   },
 
