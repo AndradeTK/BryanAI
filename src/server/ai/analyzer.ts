@@ -145,7 +145,10 @@ fit (Baixo|Médio|Alto|Excelente).`;
     schema: QuickAnalysisSchema,
     prompt,
     temperature: 0.3,
-    maxOutputTokens: 1024,
+    // Precisa acomodar os tokens de "thinking" do 2.5-flash além do JSON: eles
+    // saem do mesmo orçamento e crescem com o tamanho do currículo no prompt.
+    // Com 1024 a resposta chegava truncada quando o perfil estava preenchido.
+    maxOutputTokens: 4096,
   });
 }
 

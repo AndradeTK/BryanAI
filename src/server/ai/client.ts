@@ -114,6 +114,28 @@ export async function generateStructured<T>(opts: {
   });
 
   const result = await withRetry(() => model.generateContent(opts.prompt));
+
+  /**
+   * Os modelos 2.5 gastam tokens de "thinking" ANTES de escrever a resposta, e
+   * esse gasto sai do mesmo maxOutputTokens. Quando o orçamento acaba no meio,
+   * a API devolve finishReason=MAX_TOKENS e um JSON cortado na metade de uma
+   * string — que o JSON.parse rejeita.
+   *
+   * Sem esta checagem o erro vira "Resposta inválida da IA", culpando o modelo
+   * por um limite que é nosso. A mensagem precisa dizer o que realmente houve.
+   */
+  const finishReason = result.response.candidates?.[0]?.finishReason;
+  if (finishReason === "MAX_TOKENS") {
+    const usados = result.response.usageMetadata;
+    console.error(
+      `[AI] Resposta truncada por limite de tokens (maxOutputTokens=${opts.maxOutputTokens ?? 8192}).`,
+      usados ? `Uso: ${JSON.stringify(usados)}` : "",
+    );
+    throw new Error(
+      "A resposta da IA foi cortada por limite de tamanho. Tente de novo com uma descrição de vaga mais curta.",
+    );
+  }
+
   const raw = result.response.text();
 
   let parsed: unknown;
