@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { Progresso } from "@/components/Progresso";
 import type { CoverLetterImprovement } from "@/server/ai/schemas";
 
 const TONS = [
@@ -137,6 +138,7 @@ function GerarTab() {
         >
           {loading ? "Gerando..." : "Gerar Cover Letter"}
         </button>
+        <Progresso ativo={loading} className="mt-4" />
       </div>
 
       <div className="bg-surface rounded-xl border border-line p-6">
@@ -227,6 +229,7 @@ function MelhorarTab() {
         >
           {loading ? "Analisando..." : "Melhorar carta"}
         </button>
+        <Progresso ativo={loading} className="mt-4" />
       </div>
 
       <div className="bg-surface rounded-xl border border-line p-6">

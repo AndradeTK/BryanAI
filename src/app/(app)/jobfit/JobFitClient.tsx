@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { Progresso } from "@/components/Progresso";
 import type { JobFitAnalysisWithCanada } from "@/server/ai/schemas";
 
 const TEMPLATES = [
@@ -191,6 +192,21 @@ export function JobFitClient({
             Gerar Word
           </button>
         </div>
+
+        <Progresso
+          ativo={loading !== null}
+          className="mt-4"
+          etapas={
+            loading === "generate"
+              ? [
+                  { apos: 0, texto: "Analisando a vaga…" },
+                  { apos: 10, texto: "Reescrevendo o currículo para as palavras-chave da vaga…" },
+                  { apos: 30, texto: "Montando o documento — o navegador de renderização está subindo." },
+                  { apos: 60, texto: "Ainda gerando. Geração completa costuma levar até ~1 min." },
+                ]
+              : undefined
+          }
+        />
       </div>
 
       {/* Resultado */}

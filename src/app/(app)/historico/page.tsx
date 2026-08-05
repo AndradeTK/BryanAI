@@ -5,16 +5,10 @@ import { HistoricoRow } from "./HistoricoRow";
 export const dynamic = "force-dynamic";
 
 export default async function HistoricoPage() {
-  const registros = await historicoRepo.getAll();
-
-  const concluidos = registros.filter((r) => r.status === "concluido");
-  const scores = concluidos
-    .map((r) => r.score)
-    .filter((s): s is number => s != null);
-  const scoreMedio =
-    scores.length > 0
-      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-      : null;
+  const [registros, totais] = await Promise.all([
+    historicoRepo.getAll(),
+    historicoRepo.counts(),
+  ]);
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -23,10 +17,15 @@ export default async function HistoricoPage() {
         Todas as análises e currículos gerados, do mais recente ao mais antigo.
       </p>
 
+      {/* Mesma distinção da tabela: análise não produz arquivo, geração sim.
+          Somar as duas num "total de gerações" contava errado. */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Stat label="Total de gerações" value={`${registros.length}`} />
-        <Stat label="Concluídas" value={`${concluidos.length}`} />
-        <Stat label="Score médio" value={scoreMedio != null ? `${scoreMedio}` : "—"} />
+        <Stat label="Análises" value={`${totais.analises}`} />
+        <Stat label="Currículos gerados" value={`${totais.curriculos}`} />
+        <Stat
+          label="Score médio"
+          value={totais.scoreMedio != null ? `${totais.scoreMedio}` : "—"}
+        />
       </div>
 
       <div className="bg-surface rounded-xl border border-line p-6">
@@ -44,6 +43,7 @@ export default async function HistoricoPage() {
               <thead>
                 <tr className="text-left text-content-subtle border-b border-line">
                   <th className="py-2 pr-4">Vaga</th>
+                  <th className="py-2 pr-4">Tipo</th>
                   <th className="py-2 pr-4">Score</th>
                   <th className="py-2 pr-4">Status</th>
                   <th className="py-2 pr-4">Data</th>

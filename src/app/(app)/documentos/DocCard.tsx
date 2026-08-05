@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Badge, scoreTone } from "@/components/ui";
+import { Icone } from "@/components/Icone";
 
 export function DocCard({
   id,
@@ -21,14 +22,26 @@ export function DocCard({
   const [pending, startTransition] = useTransition();
   const [confirming, setConfirming] = useState(false);
 
+  // Só PDF renderiza inline. Num iframe, o DOCX dispara download ou fica em
+  // branco — pior que não mostrar nada, porque parece defeito.
+  const ehPdf = nome.toLowerCase().endsWith(".pdf");
+
   return (
     <div className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col">
-      {/* Preview do PDF (inline) */}
-      <iframe
-        src={`/api/arquivos/${nome}#toolbar=0&navpanes=0`}
-        title={vaga}
-        className="w-full h-64 bg-surface-2 border-b border-line"
-      />
+      {ehPdf ? (
+        <iframe
+          src={`/api/arquivos/${nome}#toolbar=0&navpanes=0`}
+          title={vaga}
+          className="w-full h-64 bg-surface-2 border-b border-line"
+        />
+      ) : (
+        <div className="w-full h-64 bg-surface-2 border-b border-line flex flex-col items-center justify-center gap-2 text-content-subtle">
+          <Icone nome="documentos" tamanho="2rem" />
+          <span className="text-xs">
+            {nome.split(".").pop()?.toUpperCase()} — sem pré-visualização
+          </span>
+        </div>
+      )}
       <div className="p-4 flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-medium text-content leading-snug line-clamp-2">

@@ -5,9 +5,10 @@ import type { HistoricoGeracao } from "@/server/db/schema";
 import { deleteHistorico } from "./actions";
 
 const STATUS_CLS: Record<string, string> = {
-  concluido: "bg-green-100 text-green-700",
-  falha: "bg-red-100 text-red-700",
-  processando: "bg-yellow-100 text-yellow-700",
+  concluido: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-300",
+  falha: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
+  processando:
+    "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
 };
 
 export function HistoricoRow({ registro }: { registro: HistoricoGeracao }) {
@@ -16,13 +17,32 @@ export function HistoricoRow({ registro }: { registro: HistoricoGeracao }) {
 
   const cls = STATUS_CLS[registro.status ?? ""] ?? "bg-surface-3 text-content-muted";
 
+  /**
+   * Análise e geração gravam nesta mesma tabela; só a geração produz arquivo.
+   * Sem distinguir, a lista virava um monte de linhas iguais com a coluna de
+   * download vazia, e não dava para saber se o currículo tinha falhado ou se
+   * aquilo nunca foi uma geração.
+   */
+  const ehGeracao = registro.pdfPath !== null;
+
   function remover() {
     startTransition(() => deleteHistorico(registro.id));
   }
 
   return (
-    <tr className="border-b border-line">
+    <tr className="border-b border-line-soft">
       <td className="py-2 pr-4 text-content">{registro.vagaTitulo ?? "—"}</td>
+      <td className="py-2 pr-4">
+        <span
+          className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+            ehGeracao
+              ? "bg-blue-soft text-blue"
+              : "bg-surface-3 text-content-muted"
+          }`}
+        >
+          {ehGeracao ? "Currículo" : "Análise"}
+        </span>
+      </td>
       <td className="py-2 pr-4">{registro.score ?? "—"}</td>
       <td className="py-2 pr-4">
         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
@@ -33,15 +53,17 @@ export function HistoricoRow({ registro }: { registro: HistoricoGeracao }) {
         {registro.createdAt?.toLocaleDateString("pt-BR")}
       </td>
       <td className="py-2 pr-4">
-        {registro.pdfPath ? (
+        {ehGeracao ? (
           <a
             href={`/api/arquivos/${registro.pdfPath}?download=true`}
-            className="text-primary-600 hover:underline"
+            className="text-blue hover:underline"
           >
             Baixar
           </a>
         ) : (
-          <span className="text-content-subtle">—</span>
+          <span className="text-content-subtle" title="Análises não geram arquivo">
+            —
+          </span>
         )}
       </td>
       <td className="py-2 text-right">

@@ -114,15 +114,19 @@ export function Attachments({
         </label>
         <label className="block">
           <span className="block text-sm font-medium text-content-muted mb-1">
-            Arquivo PDF <span className="text-red-500">*</span>
+            Arquivo <span className="text-red-500">*</span>
           </span>
           <input
             name="arquivo"
             type="file"
-            accept="application/pdf,.pdf"
+            accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx"
             required
             className="w-full text-sm text-content-muted file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:text-on-accent file:text-sm"
           />
+          <span className="block text-xs text-content-subtle mt-1.5">
+            PDF ou DOCX, até 12 MB. Prefira DOCX quando tiver: PDF escaneado é
+            imagem, e a IA não consegue ler o conteúdo.
+          </span>
         </label>
         <div className="md:col-span-2">
           <SubmitButton label="Enviar documento" />

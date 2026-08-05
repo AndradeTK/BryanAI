@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
+import { Progresso } from "@/components/Progresso";
 import type { SkillsGap, MarketAnalysis, StudyPlan } from "@/server/ai/schemas";
 
 export function SkillsGapClient() {
@@ -115,6 +116,7 @@ export function SkillsGapClient() {
         >
           {loading ? "Analisando..." : "Analisar Skills Gap"}
         </button>
+        <Progresso ativo={loading} className="mt-4" />
       </div>
 
       {result && (

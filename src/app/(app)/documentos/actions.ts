@@ -5,16 +5,25 @@ import { requireUser } from "@/server/auth";
 import { revalidatePath } from "next/cache";
 import { documentRepo } from "@/server/db/repositories";
 import { generateFilename, saveGenerated, resolveInside } from "@/server/pdf/storage";
-import { extractTextFromPdf, detectFileType, temTextoUtil } from "@/server/pdf/extract";
+import {
+  extractTextFromPdf,
+  extractTextFromDocx,
+  detectFileType,
+  temTextoUtil,
+} from "@/server/pdf/extract";
 import { unlink } from "node:fs/promises";
 import type { NewDocument } from "@/server/db/schema";
 
 export type ActionState = { error?: string; success?: boolean; aviso?: string };
 
 /**
- * Upload de um documento do usuário (reference letter etc.). Salva o PDF no
+ * Upload de um documento do usuário (reference letter etc.). Salva o arquivo no
  * volume `generated` (reusa o storage/route de download) e extrai o texto para
- * a IA. DOCX/imagem: guardamos o arquivo, mas sem texto extraído.
+ * a IA.
+ *
+ * Aceita PDF e DOCX. Carta de recomendação costuma chegar nos dois formatos, e
+ * o DOCX tem a vantagem de sempre ter texto de verdade — é o PDF que às vezes
+ * vem como escaneamento.
  */
 export async function uploadDocument(
   _prev: ActionState,
@@ -30,23 +39,28 @@ export async function uploadDocument(
 
   if (!title) return { error: "Dê um título ao documento." };
   if (!(file instanceof File) || file.size === 0)
-    return { error: "Selecione um arquivo PDF." };
+    return { error: "Selecione um arquivo PDF ou DOCX." };
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  // Detecta pelos magic bytes: o mimetype do navegador vem errado com alguma
+  // frequência, sobretudo em DOCX (que é um zip).
   const tipo = detectFileType(buffer, file.type, file.name);
-  if (tipo !== "pdf")
-    return { error: "Por enquanto só PDF é aceito (com texto selecionável)." };
+  if (tipo === "unknown")
+    return { error: "Formato não suportado. Envie um PDF ou um DOCX." };
 
   let extractedText: string | null = null;
   let falhaExtracao = false;
   try {
-    const texto = await extractTextFromPdf(buffer);
+    const texto =
+      tipo === "pdf"
+        ? await extractTextFromPdf(buffer)
+        : await extractTextFromDocx(buffer);
     extractedText = temTextoUtil(texto) ? texto : null;
   } catch {
     falhaExtracao = true;
   }
 
-  const filename = generateFilename("DOC", "pdf");
+  const filename = generateFilename("DOC", tipo === "pdf" ? "pdf" : "docx");
   await saveGenerated(filename, buffer);
 
   /**
@@ -71,8 +85,8 @@ export async function uploadDocument(
     return {
       success: true,
       aviso: falhaExtracao
-        ? "Documento salvo, mas não consegui ler o PDF. Ele fica disponível para download e anexo, mas a IA não vai usar o conteúdo."
-        : "Documento salvo, mas este PDF é um escaneamento (imagem, sem texto selecionável). Ele fica disponível para download e anexo, mas a IA não consegue ler o conteúdo. Para a IA aproveitar as conquistas descritas nele, envie uma versão com texto — ou copie o texto para a descrição de uma experiência.",
+        ? `Documento salvo, mas não consegui ler o ${tipo.toUpperCase()}. Ele fica disponível para download e anexo, mas a IA não vai usar o conteúdo.`
+        : "Documento salvo, mas este PDF é um escaneamento (imagem, sem texto selecionável). Ele fica disponível para download e anexo, mas a IA não consegue ler o conteúdo. Para a IA aproveitar as conquistas descritas nele, envie o DOCX original ou uma versão com texto — ou copie o texto para a descrição de uma experiência.",
     };
   }
   return { success: true };
