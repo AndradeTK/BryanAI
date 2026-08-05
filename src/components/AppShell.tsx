@@ -32,6 +32,7 @@ const NAV: {
   {
     section: "Inteligência",
     items: [
+      { href: "/assistente", label: "Assistente", icon: "assistente" },
       { href: "/jobfit", label: "Job Fit & Gerador", icon: "jobfit" },
       { href: "/jobs", label: "Vagas (Kanban)", icon: "vagas" },
       { href: "/cover-letter", label: "Cover Letter", icon: "carta" },
@@ -57,6 +58,7 @@ const TITLES: Record<string, string> = {
   "/formacao": "Formação e Projetos",
   "/cursos": "Certificações",
   "/idiomas": "Idiomas",
+  "/assistente": "Assistente",
   "/jobfit": "Job Fit & Gerador",
   "/jobs": "Vagas",
   "/cover-letter": "Cover Letter",
