@@ -92,7 +92,7 @@ export function JobsBoard({ initialBoard }: { initialBoard: BoardItem[] }) {
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <button
           onClick={() => setShowForm((s) => !s)}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700"
+          className="px-4 py-2 bg-accent text-on-accent rounded-full text-sm font-medium hover:bg-accent-hover"
         >
           {showForm ? "Fechar" : "Adicionar vaga manual"}
         </button>
@@ -246,7 +246,7 @@ function ManualForm({ onDone }: { onDone: () => void }) {
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
       <button
         type="submit"
-        className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700"
+        className="px-4 py-2 bg-accent text-on-accent rounded-full text-sm font-medium hover:bg-accent-hover"
       >
         Salvar vaga
       </button>

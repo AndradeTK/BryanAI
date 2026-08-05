@@ -113,7 +113,7 @@ export function Attachments({
             type="file"
             accept="application/pdf,.pdf"
             required
-            className="w-full text-sm text-content-muted file:mr-3 file:rounded-lg file:border-0 file:bg-primary-600 file:px-4 file:py-2 file:text-white file:text-sm"
+            className="w-full text-sm text-content-muted file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-4 file:py-2 file:text-on-accent file:text-sm"
           />
         </label>
         <div className="md:col-span-2">

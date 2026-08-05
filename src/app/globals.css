@@ -3,21 +3,58 @@
 /* Dark-mode por classe .dark no <html> (Tailwind v4 — sem tailwind.config). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  /* Escala primária (azul). */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+/* ============================================================
+   Paleta — extraída do design do Google Antigravity
+   ============================================================
+   Uma única escala de cinzas frios do branco ao quase-preto. A cor é
+   deliberadamente escassa: o azul só aparece como acento pontual, e a
+   hierarquia vem de tipografia, espaço e bordas hairline — não de cor.
+   ------------------------------------------------------------ */
+:root {
+  --grey-0: #ffffff;
+  --grey-10: #f8f9fc;
+  --grey-15: #f0f1f5;
+  --grey-20: #eff2f7;
+  --grey-50: #e6eaf0;
+  --grey-100: #e1e6ec;
+  --grey-200: #cdd4dc;
+  --grey-300: #b2bbc5;
+  --grey-400: #b7bfd9;
+  --grey-800: #45474d;
+  --grey-850: #6a6a71;
+  --grey-900: #2f3034;
+  --grey-1000: #212226;
+  --grey-1100: #18191d;
+  --grey-1200: #121317;
 
-  /* Tokens semânticos, resolvidos pelas CSS vars light/dark abaixo. Expostos ao
-     Tailwind como cores utilitárias: bg-surface, text-content, border-line... */
+  --grey-0-rgb: 255, 255, 255;
+  --grey-50-rgb: 230, 234, 240;
+  --grey-1000-rgb: 33, 34, 38;
+
+  /* Acento — usado com parcimônia: links, foco, destaques pontuais. */
+  --blue: #1a73e8;
+  --blue-strong: #185abc;
+  --blue-soft: #e8f0fe;
+}
+
+@theme {
+  /*
+    A escala "primary" NÃO é azul. No Antigravity o botão primário é o
+    quase-preto, e o azul é acento. Manter o nome `primary` evita reescrever
+    as ~15 chamadas espalhadas pelas páginas; o que muda é o valor.
+  */
+  --color-primary-50: var(--grey-10);
+  --color-primary-100: var(--grey-20);
+  --color-primary-200: var(--grey-100);
+  --color-primary-300: var(--grey-200);
+  --color-primary-400: var(--grey-300);
+  --color-primary-500: var(--grey-800);
+  --color-primary-600: var(--accent);
+  --color-primary-700: var(--accent-hover);
+  --color-primary-800: var(--grey-1100);
+  --color-primary-900: var(--grey-1200);
+
+  /* Superfícies e texto, resolvidos pelos blocos light/dark abaixo. */
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
@@ -25,35 +62,102 @@
   --color-content-muted: var(--content-muted);
   --color-content-subtle: var(--content-subtle);
   --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+
+  /* Botão primário. `on-accent` inverte junto com o tema — em dark o botão
+     vira claro com texto escuro, como no sistema original. */
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-primary: var(--on-accent);
+  --color-on-accent: var(--on-accent);
+
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+
+  /*
+    Raios maiores que o padrão do Tailwind. O visual do Antigravity é de
+    cantos generosos em cartões e pílula completa em botões e selos — o que
+    os componentes aplicam com rounded-full.
+  */
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+
+  --font-sans: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-code), ui-monospace, monospace;
 }
 
-/* Tokens light (default) */
+/* ---------- Tema claro (padrão) ---------- */
 :root {
-  --surface: #ffffff;
-  --surface-2: #f9fafb;
-  --surface-3: #f3f4f6;
-  --content: #111827;
-  --content-muted: #4b5563;
-  --content-subtle: #9ca3af;
-  --line: #e5e7eb;
+  --surface: var(--grey-0);
+  --surface-2: var(--grey-10);
+  --surface-3: var(--grey-20);
+  --content: var(--grey-1200);
+  --content-muted: var(--grey-800);
+  --content-subtle: var(--grey-850);
+  --line: rgba(var(--grey-1000-rgb), 0.12);
+  --line-soft: rgba(var(--grey-1000-rgb), 0.06);
+  --accent: var(--grey-1000);
+  --accent-hover: var(--grey-900);
+  --on-accent: var(--grey-0);
   color-scheme: light;
 }
 
-/* Tokens dark */
+/* ---------- Tema escuro (a "inverse surface" do sistema) ---------- */
 .dark {
-  --surface: #111827;
-  --surface-2: #0b0f1a;
-  --surface-3: #1f2937;
-  --content: #f3f4f6;
-  --content-muted: #9ca3af;
-  --content-subtle: #6b7280;
-  --line: #1f2937;
+  --surface: var(--grey-1100);
+  --surface-2: var(--grey-1200);
+  --surface-3: var(--grey-1000);
+  --content: var(--grey-10);
+  --content-muted: var(--grey-300);
+  --content-subtle: #8a8f99;
+  --line: rgba(var(--grey-50-rgb), 0.12);
+  --line-soft: rgba(var(--grey-50-rgb), 0.06);
+  /* Invertido: no escuro o botão primário é claro com texto escuro. */
+  --accent: var(--grey-10);
+  --accent-hover: var(--grey-0);
+  --on-accent: var(--grey-1200);
+  --blue: #8ab4f8;
+  --blue-soft: rgba(138, 180, 248, 0.14);
   color-scheme: dark;
 }
 
 body {
   background: var(--surface-2);
   color: var(--content);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+  Tracking negativo progressivo: quanto maior o texto, mais apertado. É a
+  assinatura tipográfica do Antigravity — títulos grandes e leves, com as
+  letras quase se tocando. Em corpo de texto o tracking volta a zero.
+*/
+h1,
+.text-display {
+  letter-spacing: -0.035em;
+  font-weight: 500;
+}
+h2 {
+  letter-spacing: -0.025em;
+  font-weight: 500;
+}
+h3,
+h4 {
+  letter-spacing: -0.015em;
+  font-weight: 500;
+}
+
+/*
+  Foco visível no acento azul — para o que NÃO tem tratamento próprio.
+  Campos de formulário já trocam a borda e ganham um halo; somar o outline
+  global desenhava dois indicadores concêntricos no mesmo campo.
+*/
+:focus-visible:not(input):not(textarea):not(select) {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
 }
 
 /* Transição suave de cores ao alternar o tema. */
@@ -62,4 +166,14 @@ body {
 *::after {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 120ms;
+}
+
+/* Respeita quem pediu menos movimento. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

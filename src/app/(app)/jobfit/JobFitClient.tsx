@@ -179,7 +179,7 @@ export function JobFitClient({
           <button
             onClick={() => gerar("pdf")}
             disabled={loading !== null}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-60"
+            className="px-4 py-2 bg-accent text-on-accent rounded-full text-sm font-medium hover:bg-accent-hover disabled:opacity-60"
           >
             {loading === "generate" ? "Gerando..." : "Gerar PDF"}
           </button>

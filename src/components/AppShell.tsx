@@ -96,21 +96,21 @@ export function AppShell({
 
   return (
     <>
-      <aside className="fixed left-0 top-0 h-full w-64 bg-surface border-r border-line z-50 flex flex-col">
-        <div className="p-6 border-b border-line">
-          <h1 className="text-2xl font-bold text-primary-500">
-            <span className="text-content">Bryan</span>AI
+      <aside className="fixed left-0 top-0 h-full w-64 bg-surface border-r border-line-soft z-50 flex flex-col">
+        <div className="px-6 py-7">
+          <h1 className="text-xl font-medium tracking-tight text-content">
+            Bryan<span className="text-content-subtle">AI</span>
           </h1>
-          <p className="text-xs text-content-subtle mt-1">
-            Otimização de Currículos · Canadá
+          <p className="text-xs text-content-subtle mt-1.5">
+            Otimização de currículos · Canadá
           </p>
         </div>
 
-        <nav className="p-3 flex-1 overflow-y-auto">
+        <nav className="px-3 flex-1 overflow-y-auto">
           {NAV.map((group, gi) => (
             <div key={gi} className="mb-1">
               {group.section && (
-                <span className="block px-3 pt-4 pb-1 text-[11px] font-semibold text-content-subtle uppercase tracking-wider">
+                <span className="block px-3 pt-5 pb-2 text-[11px] font-medium text-content-subtle tracking-wide">
                   {group.section}
                 </span>
               )}
@@ -124,13 +124,17 @@ export function AppShell({
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${
+                        aria-current={active ? "page" : undefined}
+                        /* Item ativo em pílula preenchida — o mesmo tratamento
+                           do botão primário, para a navegação ler como uma
+                           família só de controles. */
+                        className={`flex items-center gap-3 px-3.5 py-2 rounded-full text-[13px] transition ${
                           active
-                            ? "bg-primary-600 text-white"
+                            ? "bg-accent text-on-accent font-medium"
                             : "text-content-muted hover:bg-surface-3 hover:text-content"
                         }`}
                       >
-                        <span className="w-4 text-center opacity-80">{item.icon}</span>
+                        <span className="w-4 text-center opacity-70">{item.icon}</span>
                         {item.label}
                       </Link>
                     </li>
@@ -141,7 +145,7 @@ export function AppShell({
           ))}
         </nav>
 
-        <div className="p-4 border-t border-line space-y-2">
+        <div className="p-4 border-t border-line-soft space-y-3">
           {userEmail && (
             <div className="flex items-center gap-2">
               <span
@@ -153,36 +157,36 @@ export function AppShell({
               <form action={logout}>
                 <button
                   type="submit"
-                  className="text-xs text-content-subtle hover:text-content underline underline-offset-2 transition"
+                  className="text-xs text-content-subtle hover:text-content transition px-2.5 py-1 rounded-full hover:bg-surface-3"
                 >
                   Sair
                 </button>
               </form>
             </div>
           )}
-          <p className="text-xs text-content-subtle text-center">
+          <p className="text-[11px] text-content-subtle text-center">
             Criado por Bryan Andrade
           </p>
         </div>
       </aside>
 
       <div className="ml-64 min-h-screen flex flex-col">
-        <header className="sticky top-0 z-40 h-14 bg-surface/80 backdrop-blur border-b border-line flex items-center justify-between px-8">
-          <span className="text-sm font-medium text-content-muted">{title}</span>
+        <header className="sticky top-0 z-40 h-16 bg-surface-2/80 backdrop-blur-md border-b border-line-soft flex items-center justify-between px-10">
+          <span className="text-[13px] text-content-muted">{title}</span>
           <div className="flex items-center gap-2">
-            <span className="hidden sm:inline text-xs text-content-subtle border border-line rounded px-2 py-1">
+            <span className="hidden sm:inline text-[11px] text-content-subtle border border-line rounded-full px-2.5 py-1 font-mono">
               Ctrl+K
             </span>
             <button
               onClick={toggleTheme}
               aria-label="Alternar tema"
-              className="w-9 h-9 rounded-lg text-content-muted hover:bg-surface-3 hover:text-content transition flex items-center justify-center"
+              className="w-9 h-9 rounded-full text-content-muted hover:bg-surface-3 hover:text-content transition flex items-center justify-center"
             >
               {dark ? "☀" : "☾"}
             </button>
           </div>
         </header>
-        <main className="flex-1 p-8">{children}</main>
+        <main className="flex-1 px-10 py-10 max-w-[1100px] w-full mx-auto">{children}</main>
       </div>
       <CommandPalette />
     </>

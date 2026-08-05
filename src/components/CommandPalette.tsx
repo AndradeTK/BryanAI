@@ -98,7 +98,7 @@ export function CommandPalette() {
                 onClick={() => go(d.href)}
                 onMouseEnter={() => setActive(i)}
                 className={`w-full text-left px-4 py-2 text-sm ${
-                  i === active ? "bg-primary-600 text-white" : "text-content hover:bg-surface-3"
+                  i === active ? "bg-accent text-on-accent" : "text-content hover:bg-surface-3"
                 }`}
               >
                 {d.label}

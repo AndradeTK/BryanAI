@@ -10,7 +10,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full px-4 py-2.5 rounded-lg text-sm font-medium transition bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60 disabled:cursor-not-allowed"
+      className="w-full px-4 py-2.5 rounded-full text-sm font-medium transition bg-accent text-on-accent hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed"
     >
       {pending ? "Entrando…" : "Entrar"}
     </button>
@@ -25,7 +25,7 @@ export function LoginForm() {
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-medium text-content mb-1.5"
+          className="block text-[13px] font-medium text-content mb-1.5"
         >
           E-mail
         </label>
@@ -36,14 +36,14 @@ export function LoginForm() {
           required
           autoComplete="username"
           autoFocus
-          className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-content placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3.5 py-2.5 rounded-lg bg-surface border border-line text-content placeholder:text-content-subtle transition outline-none focus:border-blue focus:ring-2 focus:ring-blue/20"
         />
       </div>
 
       <div>
         <label
           htmlFor="password"
-          className="block text-sm font-medium text-content mb-1.5"
+          className="block text-[13px] font-medium text-content mb-1.5"
         >
           Senha
         </label>
@@ -53,7 +53,7 @@ export function LoginForm() {
           type="password"
           required
           autoComplete="current-password"
-          className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-content placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3.5 py-2.5 rounded-lg bg-surface border border-line text-content placeholder:text-content-subtle transition outline-none focus:border-blue focus:ring-2 focus:ring-blue/20"
         />
       </div>
 

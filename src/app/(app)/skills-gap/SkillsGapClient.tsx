@@ -111,7 +111,7 @@ export function SkillsGapClient() {
         <button
           onClick={analisar}
           disabled={loading}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-60"
+          className="px-4 py-2 bg-accent text-on-accent rounded-full text-sm font-medium hover:bg-accent-hover disabled:opacity-60"
         >
           {loading ? "Analisando..." : "Analisar Skills Gap"}
         </button>
@@ -121,7 +121,7 @@ export function SkillsGapClient() {
         <div className="space-y-6">
           <div className="bg-surface rounded-xl border border-line p-6">
             <div className="flex items-center gap-4 mb-3">
-              <div className="w-14 h-14 rounded-full bg-primary-600 text-white flex items-center justify-center text-lg font-bold">
+              <div className="w-14 h-14 rounded-full bg-accent text-on-accent flex items-center justify-center text-lg font-bold">
                 {result.analise_geral.score_compatibilidade}
               </div>
               <div>
@@ -201,7 +201,7 @@ export function SkillsGapClient() {
                 <button
                   onClick={gerarPlano}
                   disabled={loadingPlano}
-                  className="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-60"
+                  className="px-3 py-1.5 bg-accent text-on-accent rounded-full text-sm font-medium hover:bg-accent-hover disabled:opacity-60"
                 >
                   {loadingPlano ? "Gerando..." : "Gerar plano"}
                 </button>

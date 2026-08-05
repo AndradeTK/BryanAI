@@ -1,9 +1,25 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+/**
+ * O Antigravity usa Google Sans Flex (display) e Google Sans Code (mono) —
+ * fontes proprietárias, não distribuídas publicamente. DM Sans é o substituto
+ * livre mais próximo: mesma construção geométrica, terminais retos e altura-x
+ * generosa, que é o que sustenta os títulos grandes com tracking negativo.
+ */
+const display = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono-code",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "BryanAI — Otimização de Currículos",
@@ -30,7 +46,7 @@ export default async function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${inter.variable} h-full ${cookieTheme === "dark" ? "dark" : ""}`}
+      className={`${display.variable} ${mono.variable} h-full ${cookieTheme === "dark" ? "dark" : ""}`}
       suppressHydrationWarning
     >
       <head>
