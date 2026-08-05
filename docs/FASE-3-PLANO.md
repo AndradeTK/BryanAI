@@ -1,7 +1,11 @@
 # Fase 3 — Migração para Next.js + TypeScript + Zod (a base)
 
+> **Documento histórico.** Registra o planejamento de uma fase já concluída.
+> Os caminhos citados (`../app.js`, `../services/*`) são da versão Express/EJS,
+> que hoje vive só na tag `v2-legacy`. Mantido porque explica POR QUE várias
+> decisões do código atual são como são — não como documentação de uso.
+
 > **Escopo:** Reescrever a aplicação de Express/EJS/JS para Next.js 16 / React 19 / TypeScript / Zod. **Sem tocar no banco** — MySQL e a camada `mysql2` continuam intactos; a troca para Postgres é a Fase 4.
-> **Referência:** plano macro em `C:\Users\zequinha\.claude\plans\agents-agent-workflows-pm-md-claude-age-cosmic-boot.md`
 > **Branch:** `fase-3-nextjs-ts` (a partir de `main`, após merge da `fase-0-1`)
 > **Ordem:** esta fase vem **antes** da Fase 2. Ver "Por que a base vem primeiro".
 

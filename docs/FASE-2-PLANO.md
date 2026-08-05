@@ -1,7 +1,11 @@
 # Fase 2 — Domínio canadense (sobre a base TS/Zod)
 
+> **Documento histórico.** Registra o planejamento de uma fase já concluída.
+> Os caminhos citados (`../app.js`, `../services/*`) são da versão Express/EJS,
+> que hoje vive só na tag `v2-legacy`. Mantido porque explica POR QUE várias
+> decisões do código atual são como são — não como documentação de uso.
+
 > **Escopo:** Ensinar o sistema o que é uma candidatura canadense — NOC, autorização de trabalho, CLB/NCLC, equivalência de diplomas (ECA), formato canadense de CV, e o anti-alucinação de métricas. Tudo em TypeScript/Zod, sobre a base da Fase 3.
-> **Referência:** plano macro em `C:\Users\zequinha\.claude\plans\agents-agent-workflows-pm-md-claude-age-cosmic-boot.md`
 > **Branch:** `fase-2-dominio-canadense` (a partir da `fase-3` já mergeada)
 > **Ordem:** executada **depois** da Fase 3. Ver "Por que depois".
 

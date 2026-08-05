@@ -1,80 +1,116 @@
-# BryanAI Chrome Extension
+# Extensão Chrome — BryanAI
 
-Extensão para capturar vagas de sites como LinkedIn, Gupy, Indeed e outros, e analisar a compatibilidade com seu currículo.
+Captura a vaga que está aberta no navegador e envia para o BryanAI: análise de
+compatibilidade, geração de currículo e cover letter, sem sair da página.
 
-## 📦 Instalação
+## Instalação
 
-### 1. Gerar ícones (obrigatório)
+1. `chrome://extensions/`
+2. Ative o **Modo do desenvolvedor**
+3. **Carregar sem compactação** → selecione esta pasta
 
-Antes de instalar, você precisa gerar os ícones PNG a partir do SVG. Você pode:
+Os ícones PNG já estão em `icons/`; não é preciso gerar nada.
 
-**Opção A: Usar conversor online**
-1. Acesse [SVG to PNG Converter](https://svgtopng.com/)
-2. Faça upload do arquivo `icons/icon128.svg`
-3. Baixe versões em 16x16, 48x48 e 128x128 pixels
-4. Salve como `icon16.png`, `icon48.png` e `icon128.png` na pasta `icons/`
+## Configuração — obrigatória
 
-**Opção B: Criar ícones simples**
-Salve estas imagens na pasta `icons/`:
+A extensão fala com `https://app.bryanandrade.dev` por padrão. O servidor exige
+autenticação em todas as rotas desde que passou a responder num domínio
+público, e a extensão **não tem cookie de sessão** — ela roda no contexto do
+site da vaga, não no do painel. Sem o token, toda chamada volta `401`.
 
-Você pode criar imagens PNG simples com qualquer editor de imagem com fundo azul (#3b82f6) e a letra "B" em branco.
+1. Clique no ícone da extensão → aba **Config**
+2. Cole o valor de `EXTENSION_API_TOKEN` no campo **Token de acesso**
+3. **Salvar Configurações**
 
-### 2. Instalar no Chrome
+O token está no `.env` do servidor:
 
-1. Abra o Chrome e acesse `chrome://extensions/`
-2. Ative o **Modo do desenvolvedor** (canto superior direito)
-3. Clique em **Carregar sem compactação**
-4. Selecione a pasta `chrome-extension`
+```bash
+ssh SEU_SERVIDOR "grep '^EXTENSION_API_TOKEN=' /var/www/bryanai/shared/.env"
+```
 
-## 🚀 Como Usar
+O indicador no topo do popup mostra **Online** quando o servidor responde e o
+token é aceito.
 
-### Captura Automática
-1. Navegue até uma página de vaga (LinkedIn, Gupy, etc.)
-2. Um botão azul flutuante aparecerá no canto inferior direito
-3. Clique no botão ou no ícone da extensão
-4. Os dados da vaga serão capturados automaticamente
+> Rodando local? Troque a URL do servidor para `http://localhost:3000` na mesma
+> aba. O token continua sendo o do seu `.env`.
 
-### Análise Manual
-1. Clique no ícone da extensão na barra do Chrome
-2. Cole o título e descrição da vaga manualmente
-3. Clique em **Analisar Compatibilidade** ou **Gerar Currículo Otimizado**
+## Como usar
 
-## 🌐 Sites Suportados
+**Na página de uma vaga**, a extensão injeta um painel flutuante:
 
-- LinkedIn (linkedin.com)
-- Gupy (gupy.io)
-- Indeed (indeed.com)
-- Glassdoor (glassdoor.com)
-- Vagas.com.br
-- Catho (catho.com.br)
-- InfoJobs (infojobs.com.br)
+| Ação | O que faz |
+| --- | --- |
+| Analisar compatibilidade | Score, gaps e veredictos canadenses |
+| Salvar no kanban | Cria a candidatura em `/jobs` |
+| Gerar CV | Currículo adaptado à vaga, em PDF |
+| Cover letter | Carta de apresentação |
+| Preparar aplicação | Casa os campos do formulário com suas respostas salvas |
 
-## ⚙️ Configuração
+**Pelo popup**, dá para colar título e descrição na mão — útil em site sem
+suporte, ou quando a captura não pega a descrição inteira.
 
-Por padrão, a extensão conecta em `http://localhost:3000`. Para alterar:
+O painel pode ser desligado pelo popup (**Painel na página**).
 
-1. Clique no ícone da extensão
-2. Expanda **Configurações**
-3. Altere a URL do servidor
-4. Clique em **Salvar**
+### Como a captura funciona
 
-## 🔒 Permissões
+Em cascata, parando no primeiro que der certo:
 
-- **activeTab**: Permite acessar a página atual para capturar dados
-- **storage**: Salva suas configurações localmente
-- **host_permissions**: Permite conectar ao servidor BryanAI
+1. **JSON-LD** `schema.org/JobPosting` — quase todo ATS canadense emite, e é o
+   caminho mais confiável
+2. **Seletores CSS** por site — fallback para quem não emite JSON-LD
+3. **Seleção manual** — você seleciona o texto da vaga e a extensão usa isso
 
-## 🐛 Troubleshooting
+O HTML da página vai inteiro para o servidor, que faz o parse. A lógica de
+extração fica num lugar só (`src/server/jobs/ingest-parse.ts`), em vez de
+duplicada entre extensão e backend.
 
-### "Servidor offline"
-- Verifique se o servidor BryanAI está rodando
-- Execute `npm start` na pasta do projeto
+## Sites suportados
 
-### "Não foi possível capturar os dados"
-- Alguns sites podem ter estruturas diferentes
-- Tente selecionar o texto da vaga manualmente antes de capturar
-- Use a opção de colar manualmente
+`linkedin.com` · `indeed.ca` · `indeed.com` · `jobbank.gc.ca` ·
+`greenhouse.io` · `lever.co` · `ashbyhq.com` · `myworkdayjobs.com` ·
+`glassdoor.ca`
 
-### Extensão não aparece
-- Verifique se os ícones PNG estão na pasta `icons/`
-- Recarregue a extensão em `chrome://extensions/`
+> Os sites brasileiros (Gupy, Catho, InfoJobs, Vagas.com.br) saíram quando o
+> projeto passou a focar no mercado canadense.
+
+## O que a extensão **não** faz
+
+**Não captura listas de vagas em lote.** Existia uma função que varria a página
+de resultados, abria cada vaga e importava todas para uma fila de triagem. A
+extração das listagens não era confiável — os cards só trazem título e empresa,
+e a navegação automática quebrava com a renderização assíncrona do LinkedIn e
+do Indeed. Foi removida junto com a tela de triagem.
+
+**Não envia formulário de candidatura.** O "Preparar aplicação" preenche os
+campos e para aí — o clique em *Enviar* é sempre seu. É uma linha deliberada,
+para não violar os termos de uso dos sites.
+
+## Permissões
+
+| Permissão | Para quê |
+| --- | --- |
+| `activeTab` | Ler a página da vaga que você está vendo |
+| `storage` | Guardar a URL do servidor e o token, localmente |
+| `downloads` | Baixar o PDF/DOCX gerado |
+| `host_permissions` | Falar com o servidor BryanAI |
+
+O token fica no `chrome.storage.local`: não sincroniza entre dispositivos e não
+sai da máquina, além das chamadas ao seu próprio servidor.
+
+## Problemas comuns
+
+**"Offline" no indicador**
+Servidor fora do ar, URL errada ou token ausente/incorreto — os três falham
+igual. Confira a aba Config e teste a URL no navegador.
+
+**Toda chamada volta 401**
+Token não configurado ou desatualizado. Se você rotacionou o
+`EXTENSION_API_TOKEN` no servidor, precisa colar o novo aqui.
+
+**"Não consegui ler a vaga nesta página"**
+O site não emitiu JSON-LD e os seletores não casaram. Selecione o texto da
+descrição na página e tente de novo — a seleção é o terceiro fallback.
+
+**Mudanças no código não aparecem**
+A extensão é carregada sem compactação: não se atualiza sozinha. Recarregue em
+`chrome://extensions/` depois de cada `git pull`.

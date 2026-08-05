@@ -18,7 +18,7 @@ Produção: **https://app.bryanandrade.dev** — instância de um usuário só, 
 | ORM | Drizzle |
 | IA | Google Gemini (`gemini-2.5-flash` / `-pro`) com structured output |
 | Documentos | Puppeteer (PDF) · html-to-docx (DOCX) |
-| Estilo | Tailwind v4 |
+| Estilo | Tailwind v4 · DM Sans · Material Symbols (Iconify) |
 | Testes | Vitest |
 
 A versão anterior (Express + EJS + MySQL) está na história do repositório, na tag
@@ -38,6 +38,41 @@ A versão anterior (Express + EJS + MySQL) está na história do repositório, n
 - **Kanban de vagas** com matching semântico perfil × vaga via pgvector.
 - **Extensão Chrome** — captura a vaga aberta em 10 job boards (LinkedIn,
   Indeed.ca, Job Bank, Greenhouse, Lever, Workday, Ashby, Glassdoor) via JSON-LD.
+
+---
+
+## Design
+
+A interface segue a linguagem visual do **Google Antigravity**, extraída do CSS
+da página original — não imitada de olho.
+
+- Uma escala única de cinzas frios, do branco a `#121317`. Cor é escassa de
+  propósito: `#1a73e8` aparece só como acento, e a hierarquia vem de
+  tipografia, espaço e bordas hairline (12% e 6% de opacidade) em vez de
+  sombras.
+- **O botão primário é neutro**, não colorido. A escala Tailwind `primary`
+  aponta para o quase-preto; `accent`/`on-accent` invertem com o tema, então no
+  escuro o botão fica claro com texto escuro — como as *inverse surfaces* do
+  sistema original.
+- Botões, selos e o item ativo da navegação são pílulas completas.
+- Tracking negativo progressivo: quanto maior o texto, mais apertado.
+
+**Fontes.** O Antigravity usa Google Sans Flex e Google Sans Code, que são
+proprietárias. DM Sans é o substituto livre mais próximo — mesma construção
+geométrica, que é o que sustenta título grande com tracking negativo. Mono é
+JetBrains Mono.
+
+**Ícones.** Material Symbols Rounded, do set `material-symbols` do
+[Iconify](https://icones.js.org). Não é escolha estética: o CSS do Antigravity
+declara `font-family: Google Symbols`, o nome atual dessa mesma família.
+
+Os 23 caminhos SVG estão embutidos em [`src/components/Icone.tsx`](src/components/Icone.tsx)
+em vez de virem do `@iconify/react`. O `<Icon>` daquele pacote busca os dados na
+API pública do Iconify em runtime — o navegador pediria a `api.iconify.design` a
+cada tela, contando a um terceiro quais páginas de um painel autenticado são
+usadas, e quebrando se a API cair. Para um conjunto fixo, embutir custa ~13KB,
+não faz requisição externa e é tree-shakeable. O arquivo documenta como
+acrescentar um ícone novo.
 
 ### Formato canadense
 Um currículo canadense não leva foto, idade, estado civil ou nacionalidade —
@@ -66,6 +101,13 @@ npm run dev
 node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
 
+### Carregando seus dados
+
+O `db:seed` insere dados **fictícios**, só para a tela não ficar vazia num
+ambiente novo. Os dados reais nunca passam pelo código: use
+**Configurações → Importar** com o JSON de `/api/dados/export`. Assim o
+repositório não vira uma segunda cópia — desatualizada — do que está no banco.
+
 ### Comandos
 
 | Comando | O quê |
@@ -75,8 +117,10 @@ node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 | `npm test` | Vitest |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run db:migrate` | aplica migrations pendentes |
+| `npm run db:seed` | dados de exemplo (fictícios) |
 | `npm run db:seed-noc` | popula o catálogo NOC 2021 (516 grupos) |
 | `npm run user:create` | cria conta ou troca a senha |
+| `npm run gen:css` | reembute o CSS dos templates de currículo |
 
 ---
 
@@ -121,7 +165,27 @@ espaço com outra aplicação.
 /var/lib/bryanai/generated/   PDFs e anexos (sobrevivem ao deploy)
 ```
 
-Rollback: apontar `current` para o release anterior e `pm2 reload bryanai`.
+Depois do reload o workflow **verifica autorização em produção**, não só se a
+página responde: `/login` tem que dar 200, uma rota protegida tem que
+redirecionar sem sessão, e a API tem que devolver 401 sem credencial. Se
+qualquer uma falhar, ele volta sozinho para o release anterior — as migrations
+**não** são revertidas, então um problema de schema exige olhar o banco à mão.
+
+Rollback manual: apontar `current` para o release anterior e
+`pm2 reload bryanai`. Os três últimos releases ficam no disco.
+
+Detalhes da VPS, do nginx e das decisões que não se explicam sozinhas estão em
+[`deploy/`](deploy/). Dois pontos que já custaram tempo:
+
+- **`HOSTNAME=127.0.0.1` precisa estar no ambiente do processo**, não só no
+  `.env`. O `server.js` do build standalone lê a variável antes de o Next
+  carregar os arquivos de ambiente; sem ela a aplicação escuta em `0.0.0.0` e
+  responde direto pela porta, sem HTTPS e sem os cabeçalhos `X-Forwarded-*` de
+  que o rate limit do login depende.
+- **`deploymentId` é o SHA do commit.** O id de cada Server Action deriva do
+  build. Sem essa marcação, uma aba aberta durante o deploy envia um id que o
+  servidor novo não conhece e o Next responde com um erro opaco — na tela,
+  *"this page couldn't load"*. Com ela, o router recarrega a página sozinho.
 
 ---
 

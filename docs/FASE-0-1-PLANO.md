@@ -1,7 +1,11 @@
 # Fase 0 + 1 — Plano de Implementação
 
+> **Documento histórico.** Registra o planejamento de uma fase já concluída.
+> Os caminhos citados (`../app.js`, `../services/*`) são da versão Express/EJS,
+> que hoje vive só na tag `v2-legacy`. Mantido porque explica POR QUE várias
+> decisões do código atual são como são — não como documentação de uso.
+
 > **Escopo:** Segurança e higiene do código. Nada muda de stack.
-> **Referência:** plano macro em `C:\Users\zequinha\.claude\plans\agents-agent-workflows-pm-md-claude-age-cosmic-boot.md`
 > **Branch:** `fase-0-1-seguranca-higiene` (a partir de `main`)
 
 ---
