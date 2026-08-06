@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useActionState } from "react";
 import { SubmitButton } from "./form";
 import { Button } from "./ui";
+import { CampoComIa, type CampoIa } from "./CampoComIa";
 
 /**
  * Lista CRUD com edição inline e reordenação — totalmente client-side.
@@ -38,6 +39,10 @@ export type FieldSpec =
       name: string;
       label: string;
       rows?: number;
+      placeholder?: string;
+      hint?: string;
+      /** Liga o botão "Melhorar com IA" e diz que tipo de texto é este. */
+      ia?: CampoIa;
     }
   | {
       kind: "select";
@@ -131,6 +136,7 @@ export function CrudList({
                 defaults={item.values}
                 itemId={item.id}
                 onDone={() => setEditingId(null)}
+                contextoIa={[item.summary.title, item.summary.subtitle].filter(Boolean).join(" — ")}
               />
             </div>
           );
@@ -208,12 +214,14 @@ function CrudForm({
   defaults,
   itemId,
   onDone,
+  contextoIa,
 }: {
   saveAction: SaveAction;
   fields: FieldSpec[];
   defaults: Record<string, string | boolean | undefined>;
   itemId?: number;
   onDone: () => void;
+  contextoIa?: string;
 }) {
   const [state, formAction] = useActionState<ActionState, FormData>(saveAction, {});
   if (state.success) onDone();
@@ -233,11 +241,11 @@ function CrudForm({
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {gridFields.map((f) => (
-          <FieldInput key={f.name} field={f} value={defaults[f.name]} />
+          <FieldInput key={f.name} field={f} value={defaults[f.name]} contextoIa={contextoIa} />
         ))}
       </div>
       {fullFields.map((f) => (
-        <FieldInput key={f.name} field={f} value={defaults[f.name]} />
+        <FieldInput key={f.name} field={f} value={defaults[f.name]} contextoIa={contextoIa} />
       ))}
       <div className="flex gap-2">
         <SubmitButton label={itemId != null ? "Salvar alterações" : "Adicionar"} />
@@ -252,9 +260,12 @@ function CrudForm({
 function FieldInput({
   field,
   value,
+  contextoIa,
 }: {
   field: FieldSpec;
   value: string | boolean | undefined;
+  /** Cargo/empresa do item em edição — dá ao modelo o vocabulário certo. */
+  contextoIa?: string;
 }) {
   if (field.kind === "checkbox") {
     return (
@@ -265,15 +276,33 @@ function FieldInput({
     );
   }
   if (field.kind === "textarea") {
+    if (field.ia) {
+      return (
+        <CampoComIa
+          name={field.name}
+          label={field.label}
+          campo={field.ia}
+          contexto={contextoIa}
+          rows={field.rows ?? 3}
+          defaultValue={typeof value === "string" ? value : ""}
+          placeholder={field.placeholder}
+          hint={field.hint}
+        />
+      );
+    }
     return (
       <label className="block">
-        <span className="block text-sm font-medium text-content-muted mb-1">{field.label}</span>
+        <span className="block text-[13px] font-medium text-content mb-1.5">{field.label}</span>
         <textarea
           name={field.name}
           rows={field.rows ?? 3}
           defaultValue={typeof value === "string" ? value : ""}
-          className="w-full rounded-lg border border-line px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+          placeholder={field.placeholder}
+          className="w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm text-content placeholder:text-content-subtle outline-none transition focus:border-blue focus:ring-2 focus:ring-blue/20"
         />
+        {field.hint && (
+          <span className="block text-xs text-content-subtle mt-1.5">{field.hint}</span>
+        )}
       </label>
     );
   }

@@ -9,7 +9,7 @@ const FIELDS: FieldSpec[] = [
   { kind: "text", name: "tituloDoCurso", label: "Título do curso", required: true },
   { kind: "text", name: "emissorInstituicao", label: "Emissor / Instituição" },
   { kind: "url", name: "link", label: "Link do certificado", placeholder: "https://..." },
-  { kind: "textarea", name: "descricao", label: "Descrição" },
+  { kind: "textarea", name: "descricao", label: "Descrição" , ia: "descricao" },
   { kind: "checkbox", name: "destaque", label: "Marcar como destaque" },
 ];
 

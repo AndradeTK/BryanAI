@@ -12,8 +12,8 @@ const FIELDS: FieldSpec[] = [
   { kind: "date", name: "dataFim", label: "Data de fim (vazio = atual)" },
   { kind: "text", name: "categoria", label: "Categoria", placeholder: "Tecnologia" },
   { kind: "text", name: "tagsTecnicas", label: "Tags técnicas (vírgula)", placeholder: "Node.js, Docker" },
-  { kind: "textarea", name: "descricaoAtividades", label: "Descrição das atividades" },
-  { kind: "textarea", name: "principaisConquistas", label: "Principais conquistas" },
+  { kind: "textarea", name: "descricaoAtividades", label: "Descrição das atividades" , ia: "atividades" },
+  { kind: "textarea", name: "principaisConquistas", label: "Principais conquistas" , ia: "conquistas" },
 ];
 
 export default async function ExperienciasPage() {

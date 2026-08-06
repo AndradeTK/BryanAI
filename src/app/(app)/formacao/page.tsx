@@ -19,7 +19,7 @@ const FIELDS: FieldSpec[] = [
   { kind: "text", name: "tituloCurso", label: "Título / Curso" },
   { kind: "text", name: "status", label: "Status", placeholder: "Concluído / Em andamento" },
   { kind: "url", name: "link", label: "Link (repo/demo/diploma)", placeholder: "https://..." },
-  { kind: "textarea", name: "descricaoDetalhada", label: "Descrição detalhada" },
+  { kind: "textarea", name: "descricaoDetalhada", label: "Descrição detalhada" , ia: "descricao" },
 ];
 
 export default async function FormacaoPage() {
