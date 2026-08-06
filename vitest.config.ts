@@ -26,6 +26,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // `server-only` existe para explodir se um módulo de servidor for
+      // importado no cliente. Sob teste isso não se aplica — e sem o atalho,
+      // qualquer arquivo que o importe fica intestável.
+      "server-only": fileURLToPath(new URL("./src/testes/vazio.ts", import.meta.url)),
     },
   },
 });

@@ -34,6 +34,7 @@ const NAV: {
     items: [
       { href: "/assistente", label: "Assistente", icon: "assistente" },
       { href: "/jobfit", label: "Job Fit & Gerador", icon: "jobfit" },
+      { href: "/entrevista", label: "Entrevista", icon: "entrevista" },
       { href: "/jobs", label: "Vagas (Kanban)", icon: "vagas" },
       { href: "/cover-letter", label: "Cover Letter", icon: "carta" },
       { href: "/skills-gap", label: "Skills Gap", icon: "skills" },
@@ -60,6 +61,7 @@ const TITLES: Record<string, string> = {
   "/idiomas": "Idiomas",
   "/assistente": "Assistente",
   "/jobfit": "Job Fit & Gerador",
+  "/entrevista": "Preparação para entrevista",
   "/jobs": "Vagas",
   "/cover-letter": "Cover Letter",
   "/skills-gap": "Skills Gap",

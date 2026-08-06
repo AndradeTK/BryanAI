@@ -26,7 +26,6 @@ vi.mock("@/server/ai/ocr", () => ({
   DocumentoGrandeDemais: class extends Error {},
 }));
 
-vi.mock("server-only", () => ({}));
 
 const { extrairTexto } = await import("./texto");
 

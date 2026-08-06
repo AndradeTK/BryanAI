@@ -5,6 +5,7 @@ import {
 import { z } from "zod";
 import { env } from "@/lib/env";
 import { withRetry } from "./retry";
+import { logChamadaIa } from "@/server/log";
 
 const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 
@@ -113,7 +114,33 @@ export async function generateStructured<T>(opts: {
     },
   });
 
-  const result = await withRetry(() => model.generateContent(opts.prompt));
+  const t0 = Date.now();
+  let result: Awaited<ReturnType<typeof model.generateContent>>;
+  try {
+    result = await withRetry(() => model.generateContent(opts.prompt));
+  } catch (e) {
+    logChamadaIa({
+      operacao: "generateStructured",
+      modelo: opts.model,
+      ms: Date.now() - t0,
+      erro: (e as Error).message,
+    });
+    throw e;
+  }
+
+  const uso = result.response.usageMetadata;
+  logChamadaIa({
+    operacao: "generateStructured",
+    modelo: opts.model,
+    ms: Date.now() - t0,
+    tokensEntrada: uso?.promptTokenCount,
+    tokensSaida: uso?.candidatesTokenCount,
+    // Nos modelos 2.5 esse gasto sai do mesmo maxOutputTokens — é o que já
+    // truncou resposta antes, então vale medir.
+    tokensPensamento: (uso as { thoughtsTokenCount?: number } | undefined)
+      ?.thoughtsTokenCount,
+    finishReason: result.response.candidates?.[0]?.finishReason,
+  });
 
   /**
    * Os modelos 2.5 gastam tokens de "thinking" ANTES de escrever a resposta, e
@@ -164,6 +191,15 @@ export async function generateText(opts: {
       maxOutputTokens: opts.maxOutputTokens ?? 8192,
     },
   });
+  const t0 = Date.now();
   const result = await withRetry(() => model.generateContent(opts.prompt));
+  const uso = result.response.usageMetadata;
+  logChamadaIa({
+    operacao: "generateText",
+    modelo: opts.model,
+    ms: Date.now() - t0,
+    tokensEntrada: uso?.promptTokenCount,
+    tokensSaida: uso?.candidatesTokenCount,
+  });
   return result.response.text().trim();
 }
