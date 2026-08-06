@@ -7,6 +7,12 @@ import { Button } from "@/components/ui";
 interface Detail {
   events: Array<{ id: number; type: string; createdAt: string | null }>;
   parecidas: Array<{ id: number; titulo: string; empresa: string | null }>;
+  curriculos: Array<{
+    id: number;
+    arquivo: string;
+    score: number | null;
+    criadoEm: string | null;
+  }>;
 }
 
 const EVENT_LABEL: Record<string, string> = {
@@ -34,13 +40,45 @@ export function JobDetailModal({
   const [saving, setSaving] = useState(false);
   const [cover, setCover] = useState<string | null>(null);
   const [coverLoading, setCoverLoading] = useState(false);
+  const [gerandoCv, setGerandoCv] = useState(false);
+  const [erroCv, setErroCv] = useState<string | null>(null);
 
-  useEffect(() => {
+  function carregar() {
     fetchWithTimeout(`/api/jobs/${appId}`)
       .then((r) => r.json())
       .then((d) => d.success && setDetail(d.data))
       .catch(() => {});
-  }, [appId]);
+  }
+
+  useEffect(carregar, [appId]);
+
+  /**
+   * Gera um currículo JÁ VINCULADO a esta candidatura. É o que diferencia de
+   * gerar pela tela de Job Fit: ali o arquivo fica solto, aqui ele passa a
+   * responder "qual versão eu mandei para essa vaga".
+   */
+  async function gerarCurriculo() {
+    setGerandoCv(true);
+    setErroCv(null);
+    try {
+      const res = await fetchWithTimeout(
+        "/api/jobfit/generate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ titulo, descricao, formato: "pdf", applicationId: appId }),
+        },
+        180000,
+      );
+      const d = await res.json();
+      if (d.success) carregar();
+      else setErroCv(d.error);
+    } catch (e) {
+      setErroCv(e instanceof Error ? e.message : "Erro ao gerar.");
+    } finally {
+      setGerandoCv(false);
+    }
+  }
 
   async function salvarNotas() {
     setSaving(true);
@@ -110,6 +148,65 @@ export function JobDetailModal({
               {saving ? "Salvando..." : "Salvar"}
             </Button>
           </div>
+        </section>
+
+        {/* Currículos gerados para ESTA vaga */}
+        <section className="mb-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-content">
+              Currículos desta vaga
+            </h3>
+            <Button variant="outline" onClick={gerarCurriculo} disabled={gerandoCv}>
+              {gerandoCv ? "Gerando..." : "Gerar currículo"}
+            </Button>
+          </div>
+
+          {erroCv && (
+            <p className="text-sm text-red-700 dark:text-red-300 mb-2">{erroCv}</p>
+          )}
+
+          {detail?.curriculos?.length ? (
+            <ul className="space-y-1.5">
+              {detail.curriculos.map((c, i) => (
+                <li
+                  key={c.id}
+                  className="flex items-center gap-3 text-sm rounded-lg border border-line-soft px-3 py-2"
+                >
+                  <span className="text-content-subtle text-xs shrink-0">
+                    {/* O primeiro da lista é o mais recente — é o que você
+                        provavelmente enviou. */}
+                    {i === 0 ? "mais recente" : `v${detail.curriculos.length - i}`}
+                  </span>
+                  <span className="text-content-muted text-xs">
+                    {c.criadoEm
+                      ? new Date(c.criadoEm).toLocaleDateString("pt-BR")
+                      : "—"}
+                  </span>
+                  {c.score != null && (
+                    <span className="text-xs text-content-subtle">score {c.score}</span>
+                  )}
+                  <a
+                    href={`/api/arquivos/${c.arquivo}?download=true`}
+                    className="ml-auto text-blue hover:underline text-xs"
+                  >
+                    Baixar
+                  </a>
+                  <a
+                    href={`/api/arquivos/${c.arquivo}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-content-muted hover:underline text-xs"
+                  >
+                    Abrir
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-content-subtle">
+              Nenhum currículo gerado para esta vaga ainda.
+            </p>
+          )}
         </section>
 
         {/* Cover letter do card (#14) */}

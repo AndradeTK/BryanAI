@@ -2,7 +2,7 @@ import { ok, fail, preflight, handle, guardApi, parseId } from "@/server/http/ap
 import { db } from "@/server/db/client";
 import { applicationEvents } from "@/server/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
-import { jobRepo, toVectorLiteral } from "@/server/db/repositories";
+import { jobRepo, historicoRepo, toVectorLiteral } from "@/server/db/repositories";
 
 export function OPTIONS() {
   return preflight();
@@ -47,7 +47,18 @@ export async function GET(
       parecidas = near as unknown as typeof parecidas;
     }
 
-    return ok({ events, parecidas });
+    // Currículos já gerados para esta candidatura — responde "qual versão eu
+    // mandei para essa vaga?", que é a pergunta da véspera da entrevista.
+    const curriculos = (await historicoRepo.porCandidatura(appId))
+      .filter((h) => h.pdfPath)
+      .map((h) => ({
+        id: h.id,
+        arquivo: h.pdfPath!,
+        score: h.score,
+        criadoEm: h.createdAt?.toISOString() ?? null,
+      }));
+
+    return ok({ events, parecidas, curriculos });
   });
 }
 

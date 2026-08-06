@@ -239,6 +239,13 @@ export const historicoRepo = {
       scoreMedio: row?.scoreMedio ?? null,
     };
   },
+  /** Currículos gerados para uma candidatura, do mais recente ao mais antigo. */
+  porCandidatura: (applicationId: number) =>
+    db
+      .select()
+      .from(historicoGeracoes)
+      .where(eq(historicoGeracoes.applicationId, applicationId))
+      .orderBy(desc(historicoGeracoes.id)),
   getRecent: (limit = 10) =>
     db
       .select()

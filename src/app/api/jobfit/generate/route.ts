@@ -18,6 +18,12 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { titulo, descricao, formato = "pdf" } = body;
+    // Vincula à candidatura quando a geração parte do kanban. Null na geração
+    // avulsa pela tela de Job Fit — nem toda análise nasce de uma vaga salva.
+    const applicationId =
+      typeof body.applicationId === "number" && body.applicationId > 0
+        ? body.applicationId
+        : null;
     // Settings do usuário como default quando o request não especifica.
     const settings = await settingsRepo.get();
     const idioma = body.idioma || settings.idiomaDefault || "pt-BR";
@@ -29,6 +35,7 @@ export async function POST(request: Request) {
     const hist = await historicoRepo.create({
       vagaTitulo: titulo,
       status: "processando",
+      applicationId,
     });
 
     try {

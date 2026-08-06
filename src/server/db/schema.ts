@@ -97,6 +97,13 @@ export const statusGeracaoEnum = pgEnum("status_geracao", [
 export const historicoGeracoes = pgTable("historico_geracoes", {
   id: serial("id").primaryKey(),
   vagaTitulo: varchar("vaga_titulo", { length: 255 }),
+  /**
+   * Candidatura para a qual este currículo foi gerado, quando houver.
+   * Null para geração avulsa pela tela de Job Fit — nem toda análise nasce de
+   * uma vaga no kanban. É o que responde "qual versão eu mandei para essa
+   * vaga?" na véspera da entrevista.
+   */
+  applicationId: integer("application_id"),
   score: integer("score"),
   keywordsFocadas: text("keywords_focadas"),
   status: statusGeracaoEnum("status").default("processando"),
