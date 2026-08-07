@@ -37,6 +37,22 @@ export function JobFitClient({
   const [metricas, setMetricas] = useState<
     Array<{ experiencia: string; bullet: string; sugestao: string }>
   >([]);
+  /**
+   * De qual vaga é o resultado exibido. Sem isso, um resultado antigo fica
+   * indistinguível de um novo — foi o que fez uma análise da vaga anterior
+   * parecer que "não saía da tela" depois de trocar a vaga.
+   */
+  const [vagaDoResultado, setVagaDoResultado] = useState<string | null>(null);
+  const resultadoDesatualizado =
+    vagaDoResultado !== null && vagaDoResultado !== titulo.trim();
+
+  /** Toda execução começa do zero: nada da rodada anterior sobrevive na tela. */
+  function limparResultado() {
+    setAnalise(null);
+    setMetricas([]);
+    setVagaDoResultado(null);
+    setErro(null);
+  }
 
   // Análise de CV externo (upload de arquivo).
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -77,17 +93,26 @@ export function JobFitClient({
 
   async function analisar() {
     if (!titulo || !descricao) return setErro("Preencha título e descrição da vaga.");
+    limparResultado();
     setLoading("analyze");
-    setErro(null);
     try {
-      const res = await fetchWithTimeout("/api/jobfit/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titulo, descricao }),
-      });
+      const res = await fetchWithTimeout(
+        "/api/jobfit/analyze",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ titulo, descricao }),
+        },
+        // A análise sozinha leva ~20-40s. O default de 45s cortava as mais
+        // longas; o nginx aceita até 300s, então o cliente não precisa ser
+        // o gargalo.
+        120000,
+      );
       const data = await res.json();
-      if (data.success) setAnalise(data.data.analise);
-      else setErro(data.error);
+      if (data.success) {
+        setAnalise(data.data.analise);
+        setVagaDoResultado(titulo.trim());
+      } else setErro(data.error);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao analisar.");
     } finally {
@@ -97,8 +122,8 @@ export function JobFitClient({
 
   async function gerar(formato: "pdf" | "docx") {
     if (!titulo || !descricao) return setErro("Preencha título e descrição da vaga.");
+    limparResultado();
     setLoading("generate");
-    setErro(null);
     try {
       const res = await fetchWithTimeout(
         "/api/jobfit/generate",
@@ -107,17 +132,29 @@ export function JobFitClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ titulo, descricao, formato, idioma, templateId: template }),
         },
-        60000,
+        // Análise + reescrita + Puppeteer somam ~50-60s, e o antigo limite de
+        // 60s cortava a resposta bem no fim: o servidor terminava e salvava o
+        // arquivo, mas a tela mostrava erro. 240s dá folga real.
+        240000,
       );
       const data = await res.json();
       if (data.success) {
         setAnalise(data.data.analise);
         setMetricas(data.data.metricas_a_preencher ?? []);
+        setVagaDoResultado(titulo.trim());
         const nome = data.data.arquivo?.nome;
         if (nome) window.location.href = `/api/arquivos/${nome}?download=true`;
       } else setErro(data.error);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao gerar.");
+      // Quando o cliente desiste, a geração no servidor normalmente termina
+      // mesmo assim — o arquivo existe, só não foi baixado. Dizer isso evita
+      // que o usuário gere a mesma vaga várias vezes achando que falhou.
+      const msg = e instanceof Error ? e.message : "Erro ao gerar.";
+      setErro(
+        msg.includes("demorou demais")
+          ? `${msg} A geração pode ter concluído no servidor — confira em Histórico antes de tentar de novo.`
+          : msg,
+      );
     } finally {
       setLoading(null);
     }
@@ -202,7 +239,8 @@ export function JobFitClient({
                   { apos: 0, texto: "Analisando a vaga…" },
                   { apos: 10, texto: "Reescrevendo o currículo para as palavras-chave da vaga…" },
                   { apos: 30, texto: "Montando o documento — o navegador de renderização está subindo." },
-                  { apos: 60, texto: "Ainda gerando. Geração completa costuma levar até ~1 min." },
+                  { apos: 55, texto: "Quase lá — a geração completa costuma levar de 50s a 1min30." },
+                  { apos: 100, texto: "Ainda gerando. Não recarregue a página: o download começa sozinho." },
                 ]
               : undefined
           }
@@ -233,7 +271,20 @@ export function JobFitClient({
           </div>
         )}
         <div className="bg-surface rounded-xl border border-line p-6">
-        <h2 className="text-lg font-semibold text-content mb-4">Análise</h2>
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-content">Análise</h2>
+          {vagaDoResultado && (
+            <p className="text-xs text-content-subtle mt-0.5">
+              Resultado de: <strong className="text-content-muted">{vagaDoResultado}</strong>
+            </p>
+          )}
+        </div>
+        {resultadoDesatualizado && (
+          <div className="mb-4 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 px-3 py-2 text-xs">
+            Você mudou a vaga desde esta análise. Rode de novo para o resultado
+            corresponder à vaga atual.
+          </div>
+        )}
         {!analise ? (
           <p className="text-content-subtle text-sm">
             Analise uma vaga para ver o score de compatibilidade, pontos fortes e gaps.

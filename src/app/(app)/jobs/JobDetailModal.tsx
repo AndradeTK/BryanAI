@@ -68,13 +68,20 @@ export function JobDetailModal({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ titulo, descricao, formato: "pdf", applicationId: appId }),
         },
-        180000,
+        240000,
       );
       const d = await res.json();
       if (d.success) carregar();
       else setErroCv(d.error);
     } catch (e) {
-      setErroCv(e instanceof Error ? e.message : "Erro ao gerar.");
+      // Mesmo abortando no cliente, a geração costuma concluir no servidor.
+      const msg = e instanceof Error ? e.message : "Erro ao gerar.";
+      setErroCv(
+        msg.includes("demorou demais")
+          ? `${msg} Recarregue este painel antes de gerar de novo — o arquivo pode já estar na lista.`
+          : msg,
+      );
+      carregar();
     } finally {
       setGerandoCv(false);
     }
