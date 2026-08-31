@@ -122,17 +122,35 @@ function normalizar(s: string): string {
  * A proteção do formato canadense continua estrutural: o schema não declara
  * photo/idade/estado civil, então nenhum texto os reintroduz.
  */
-function avisarEmpresaInventada(curriculo: Curriculo, resume: Resume): void {
-  const reais = new Set(
-    (curriculo.experiencias ?? [])
-      .map((e) => normalizar(String((e as { empresa?: unknown }).empresa ?? "")))
-      .filter(Boolean),
-  );
-  if (reais.size === 0) return;
+export function empresasForaDosDados(
+  curriculo: Curriculo,
+  resume: Pick<Resume, "experiencias">,
+): string[] {
+  const reais = (curriculo.experiencias ?? [])
+    .map((e) => normalizar(String((e as { empresa?: unknown }).empresa ?? "")))
+    .filter(Boolean);
+  if (reais.length === 0) return [];
 
-  const inventadas = resume.experiencias
+  return resume.experiencias
     .map((e) => e.empresa)
-    .filter((nome) => nome && !reais.has(normalizar(nome)));
+    .filter((nome) => {
+      if (!nome) return false;
+      const gerada = normalizar(nome);
+      /**
+       * Compara por continência, não por igualdade.
+       *
+       * A IA reescreve o nome legitimamente: "Tribunal de Justiça do Estado de
+       * São Paulo - Comarca de Salto" sai como "Tribunal de Justiça do Estado
+       * de São Paulo", e uma comparação exata acusaria invenção onde houve só
+       * encurtamento. O alerta é para nome que não tem NENHUMA relação com os
+       * dados — que é o sinal de fato inventado.
+       */
+      return !reais.some((real) => real.includes(gerada) || gerada.includes(real));
+    });
+}
+
+function avisarEmpresaInventada(curriculo: Curriculo, resume: Resume): void {
+  const inventadas = empresasForaDosDados(curriculo, resume);
 
   if (inventadas.length > 0) {
     console.warn(
