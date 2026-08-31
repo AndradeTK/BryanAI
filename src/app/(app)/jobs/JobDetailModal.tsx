@@ -38,6 +38,12 @@ export function JobDetailModal({
   const [notes, setNotes] = useState(initialNotes ?? "");
   const [followUp, setFollowUp] = useState("");
   const [saving, setSaving] = useState(false);
+  const [erroSalvar, setErroSalvar] = useState<string | null>(null);
+  /** Última versão confirmada pelo servidor — base para saber o que está sujo. */
+  const [salvoEm, setSalvoEm] = useState({
+    notes: initialNotes ?? "",
+    followUp: "",
+  });
   const [cover, setCover] = useState<string | null>(null);
   const [coverLoading, setCoverLoading] = useState(false);
   const [gerandoCv, setGerandoCv] = useState(false);
@@ -89,15 +95,36 @@ export function JobDetailModal({
 
   async function salvarNotas() {
     setSaving(true);
+    setErroSalvar(null);
     try {
-      await fetchWithTimeout(`/api/jobs/${appId}`, {
+      const res = await fetchWithTimeout(`/api/jobs/${appId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes, followUpDate: followUp || null }),
       });
+      const data = await res.json();
+      // Antes o resultado era ignorado: numa falha o botão voltava ao normal
+      // como se tivesse salvado, e a nota se perdia em silêncio.
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Não foi possível salvar.");
+      }
+      setSalvoEm({ notes, followUp });
+    } catch (e) {
+      setErroSalvar(
+        e instanceof Error ? e.message : "Não foi possível salvar.",
+      );
     } finally {
       setSaving(false);
     }
+  }
+
+  /** Fecha, mas não engole texto que o usuário digitou e não salvou. */
+  function tentarFechar() {
+    const sujo = notes !== salvoEm.notes || followUp !== salvoEm.followUp;
+    if (sujo && !confirm("Você tem alterações não salvas. Fechar mesmo assim?")) {
+      return;
+    }
+    onClose();
   }
 
   async function gerarCover() {
@@ -122,7 +149,7 @@ export function JobDetailModal({
   return (
     <div
       className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
-      onClick={onClose}
+      onClick={tentarFechar}
     >
       <div
         className="bg-surface rounded-xl border border-line max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6"
@@ -130,7 +157,13 @@ export function JobDetailModal({
       >
         <div className="flex items-start justify-between mb-4">
           <h2 className="text-lg font-semibold text-content">{titulo}</h2>
-          <button onClick={onClose} className="text-content-subtle hover:text-content">✕</button>
+          <button
+            onClick={tentarFechar}
+            className="text-content-subtle hover:text-content"
+            aria-label="Fechar"
+          >
+            ✕
+          </button>
         </div>
 
         {/* Notas + follow-up (#9) */}
@@ -155,6 +188,11 @@ export function JobDetailModal({
               {saving ? "Salvando..." : "Salvar"}
             </Button>
           </div>
+          {erroSalvar && (
+            <p role="alert" className="text-xs text-red-600 mt-2">
+              {erroSalvar}
+            </p>
+          )}
         </section>
 
         {/* Currículos gerados para ESTA vaga */}

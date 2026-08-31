@@ -428,6 +428,32 @@ export const applicationRepo = {
     });
     return row;
   },
+  /**
+   * Atualiza só os campos presentes em `data`.
+   *
+   * A rota PATCH montava o UPDATE à mão com as duas colunas fixas, então
+   * salvar uma nota sem mandar a data de follow-up gravava NULL por cima da
+   * data que já existia. Um `.set()` parcial do Drizzle não tem esse problema:
+   * o que não está no objeto não entra no SQL.
+   */
+  updateDetails: async (
+    id: number,
+    data: Partial<Pick<Application, "notes" | "followUpDate">>,
+  ) => {
+    if (Object.keys(data).length === 0) return null;
+    const [row] = await db
+      .update(applications)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(applications.id, id))
+      .returning();
+    return row ?? null;
+  },
+  /**
+   * Exclusão de verdade. Os eventos da timeline caem junto (FK em cascata) e
+   * o histórico de gerações apenas perde o vínculo (ON DELETE SET NULL) — o
+   * PDF gerado continua existindo por si só.
+   */
+  remove: (id: number) => db.delete(applications).where(eq(applications.id, id)),
   setScore: (id: number, score: number) =>
     db
       .update(applications)

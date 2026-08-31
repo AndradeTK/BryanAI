@@ -194,12 +194,37 @@ export async function generateText(opts: {
   const t0 = Date.now();
   const result = await withRetry(() => model.generateContent(opts.prompt));
   const uso = result.response.usageMetadata;
+  const finishReason = result.response.candidates?.[0]?.finishReason;
   logChamadaIa({
     operacao: "generateText",
     modelo: opts.model,
     ms: Date.now() - t0,
     tokensEntrada: uso?.promptTokenCount,
     tokensSaida: uso?.candidatesTokenCount,
+    tokensPensamento: (uso as { thoughtsTokenCount?: number } | undefined)
+      ?.thoughtsTokenCount,
+    finishReason,
   });
+
+  /**
+   * Mesma armadilha do generateStructured, e por muito tempo sem a mesma
+   * defesa: quando o orçamento de tokens acaba, a API devolve
+   * finishReason=MAX_TOKENS com o texto cortado no meio de uma palavra.
+   *
+   * Lá o corte vira erro de parse e alguém percebe. Aqui a saída é texto puro,
+   * então o trecho truncado voltava como se fosse a resposta completa — o
+   * usuário recebia um bullet terminando em "Implementou" e nada indicava
+   * falha. Texto cortado é resultado errado, não resultado parcial.
+   */
+  if (finishReason === "MAX_TOKENS") {
+    console.error(
+      `[AI] Resposta truncada por limite de tokens (maxOutputTokens=${opts.maxOutputTokens ?? 8192}).`,
+      uso ? `Uso: ${JSON.stringify(uso)}` : "",
+    );
+    throw new Error(
+      "A resposta da IA foi cortada por limite de tamanho. Tente de novo com um texto mais curto.",
+    );
+  }
+
   return result.response.text().trim();
 }

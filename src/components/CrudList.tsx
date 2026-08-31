@@ -90,11 +90,32 @@ export function CrudList({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
   const [order, setOrder] = useState(rows);
-  const [, startTransition] = useTransition();
+  const [reordenando, startTransition] = useTransition();
 
-  const idsChanged =
-    rows.map((i) => i.id).join(",") !== order.map((i) => i.id).join(",");
-  if (idsChanged && editingId === null && !adding) setOrder(rows);
+  const idsServidor = rows.map((i) => i.id).join(",");
+  const idsLocais = order.map((i) => i.id).join(",");
+
+  /**
+   * Só aceita a ordem do servidor quando não há reordenação em voo.
+   *
+   * Antes esta sincronização era incondicional, e reordenar desfazia sozinho:
+   * `move` reordena na hora e dispara a Server Action em segundo plano, mas
+   * qualquer revalidação que chegasse antes da resposta (salvar outro item,
+   * melhorar um texto com IA) trazia `rows` ainda na ordem ANTIGA — e a lista
+   * pulava de volta, jogando fora o movimento do usuário.
+   *
+   * Com `reordenando`, uma escrita pendente segura a sincronização até o
+   * servidor responder. Diferenças reais (item criado ou removido) continuam
+   * chegando normalmente, porque aí não há transição em curso.
+   */
+  if (
+    idsServidor !== idsLocais &&
+    editingId === null &&
+    !adding &&
+    !reordenando
+  ) {
+    setOrder(rows);
+  }
 
   function move(index: number, delta: number) {
     const target = index + delta;
@@ -102,7 +123,10 @@ export function CrudList({
     const next = [...order];
     [next[index], next[target]] = [next[target], next[index]];
     setOrder(next);
-    if (reorderAction) startTransition(() => reorderAction(next.map((i) => i.id)));
+    if (reorderAction) {
+      const ids = next.map((i) => i.id);
+      startTransition(() => reorderAction(ids));
+    }
   }
 
   return (
@@ -186,9 +210,12 @@ export function CrudList({
             </div>
             <div className="flex items-start gap-2 shrink-0">
               {reorderAction && (
-                <span className="flex flex-col">
-                  <button onClick={() => move(i, -1)} disabled={i === 0} className="text-content-subtle hover:text-content disabled:opacity-30 text-xs" aria-label="Subir">▲</button>
-                  <button onClick={() => move(i, 1)} disabled={i === order.length - 1} className="text-content-subtle hover:text-content disabled:opacity-30 text-xs" aria-label="Descer">▼</button>
+                <span
+                  className={`flex flex-col transition-opacity ${reordenando ? "opacity-50" : ""}`}
+                  aria-busy={reordenando}
+                >
+                  <button onClick={() => move(i, -1)} disabled={i === 0 || reordenando} className="text-content-subtle hover:text-content disabled:opacity-30 text-xs" aria-label="Subir">▲</button>
+                  <button onClick={() => move(i, 1)} disabled={i === order.length - 1 || reordenando} className="text-content-subtle hover:text-content disabled:opacity-30 text-xs" aria-label="Descer">▼</button>
                 </span>
               )}
               <button onClick={() => setEditingId(item.id)} className="text-sm text-primary-600 hover:underline">

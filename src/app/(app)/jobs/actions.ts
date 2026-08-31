@@ -23,6 +23,21 @@ export async function moveApplication(
   revalidatePath("/jobs");
 }
 
+/**
+ * Exclui uma candidatura de vez.
+ *
+ * Arquivar (`moveApplication(id, "archived")`) continua sendo o caminho normal
+ * para tirar da vista sem perder o registro. Isto é para quando a vaga não
+ * deveria ter entrado no board.
+ */
+export async function deleteApplication(id: number): Promise<void> {
+  await requireUser();
+
+  await applicationRepo.remove(id);
+  revalidatePath("/jobs");
+  revalidatePath("/");
+}
+
 /** Adiciona uma vaga manualmente (form do kanban). */
 export async function addManualJob(
   _prev: ActionState,

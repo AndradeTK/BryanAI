@@ -3,7 +3,12 @@
 import { useState, useTransition } from "react";
 import { useActionState } from "react";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
-import { moveApplication, addManualJob, type ActionState } from "./actions";
+import {
+  moveApplication,
+  addManualJob,
+  deleteApplication,
+  type ActionState,
+} from "./actions";
 import { JobDetailModal } from "./JobDetailModal";
 
 type Status = "saved" | "applied" | "interview" | "offer" | "rejected" | "archived";
@@ -36,6 +41,10 @@ const COLUNAS: { status: Status; label: string; cor: string }[] = [
   { status: "interview", label: "Entrevista", cor: "border-purple-300" },
   { status: "offer", label: "Oferta", cor: "border-green-300" },
   { status: "rejected", label: "Rejeitadas", cor: "border-red-300" },
+  // "archived" existe no enum do banco desde sempre, mas não tinha coluna:
+  // arrastar para lá (ou arquivar por outro caminho) fazia a vaga sumir da
+  // tela sem nenhuma forma de trazer de volta.
+  { status: "archived", label: "Arquivadas", cor: "border-line" },
 ];
 
 export function JobsBoard({ initialBoard }: { initialBoard: BoardItem[] }) {
@@ -46,6 +55,7 @@ export function JobsBoard({ initialBoard }: { initialBoard: BoardItem[] }) {
   const [scoring, setScoring] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<BoardItem | null>(null);
+  const [confirmandoId, setConfirmandoId] = useState<number | null>(null);
 
   // Sincroniza o estado local quando o servidor revalida (ex.: vaga adicionada
   // via Server Action). Sem isto, o board local ignora a vaga nova.
@@ -53,6 +63,13 @@ export function JobsBoard({ initialBoard }: { initialBoard: BoardItem[] }) {
   const localIds = board.map((b) => b.id).join(",");
   if (serverIds !== localIds && dragId === null) {
     setBoard(initialBoard);
+  }
+
+  function excluir(id: number) {
+    // Some do board na hora; a revalidação do servidor confirma depois.
+    setBoard((prev) => prev.filter((b) => b.id !== id));
+    setConfirmandoId(null);
+    startTransition(() => deleteApplication(id));
   }
 
   function onDrop(status: Status) {
@@ -108,7 +125,7 @@ export function JobsBoard({ initialBoard }: { initialBoard: BoardItem[] }) {
 
       {showForm && <ManualForm onDone={() => setShowForm(false)} />}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-4">
         {COLUNAS.map((col) => {
           const items = board.filter((b) => b.status === col.status);
           return (
@@ -185,6 +202,30 @@ export function JobsBoard({ initialBoard }: { initialBoard: BoardItem[] }) {
                       >
                         detalhes
                       </button>
+                      {confirmandoId === item.id ? (
+                        <span className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => excluir(item.id)}
+                            className="text-xs text-red-600 hover:underline font-medium"
+                          >
+                            confirmar
+                          </button>
+                          <button
+                            onClick={() => setConfirmandoId(null)}
+                            className="text-xs text-content-subtle hover:text-content"
+                          >
+                            cancelar
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmandoId(item.id)}
+                          className="text-xs text-content-subtle hover:text-red-600"
+                          aria-label={`Excluir ${item.titulo}`}
+                        >
+                          excluir
+                        </button>
+                      )}
                     </div>
                   </article>
                 ))}
