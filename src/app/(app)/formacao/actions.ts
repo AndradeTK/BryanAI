@@ -3,7 +3,7 @@
 import { requireUser } from "@/server/auth";
 
 import { revalidatePath } from "next/cache";
-import { formacaoRepo } from "@/server/db/repositories";
+import { formacaoRepo, anexoRepo } from "@/server/db/repositories";
 
 export type ActionState = { error?: string; success?: boolean };
 
@@ -51,7 +51,11 @@ export async function deleteFormacao(formData: FormData) {
   await requireUser();
 
   const id = Number(formData.get("id"));
-  if (id) await formacaoRepo.remove(id);
+  if (id) {
+    // Vínculo polimórfico não cascateia: limpar aqui evita anexo órfão.
+    await anexoRepo.removeDaEntidade("formacao", id);
+    await formacaoRepo.remove(id);
+  }
   revalidatePath("/formacao");
   revalidatePath("/");
 }
@@ -65,4 +69,25 @@ export async function reorderFormacoes(ids: number[]): Promise<void> {
   );
   revalidatePath("/formacao");
   revalidatePath("/");
+}
+
+/** Anexa um link a uma formação, projeto ou atividade. Não vai ao currículo. */
+export async function addAnexoFormacao(formData: FormData): Promise<void> {
+  await requireUser();
+
+  const entidadeId = Number(formData.get("entidadeId"));
+  const rotulo = String(formData.get("rotulo") ?? "").trim().slice(0, 150);
+  const url = String(formData.get("url") ?? "").trim().slice(0, 1000);
+  if (!entidadeId || !rotulo || !url) return;
+
+  await anexoRepo.create({ entidade: "formacao", entidadeId, rotulo, url });
+  revalidatePath("/formacao");
+}
+
+export async function removeAnexoFormacao(formData: FormData): Promise<void> {
+  await requireUser();
+
+  const id = Number(formData.get("id"));
+  if (id) await anexoRepo.remove(id);
+  revalidatePath("/formacao");
 }

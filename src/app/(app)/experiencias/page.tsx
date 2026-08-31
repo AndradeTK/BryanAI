@@ -1,6 +1,6 @@
-import { experienciaRepo } from "@/server/db/repositories";
+import { experienciaRepo, anexoRepo } from "@/server/db/repositories";
 import type { Experiencia } from "@/server/db/schema";
-import { saveExperiencia, deleteExperiencia, reorderExperiencias } from "./actions";
+import { saveExperiencia, deleteExperiencia, reorderExperiencias, addAnexoExperiencia, removeAnexoExperiencia } from "./actions";
 import { CrudList, type FieldSpec } from "@/components/CrudList";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,10 @@ const FIELDS: FieldSpec[] = [
 ];
 
 export default async function ExperienciasPage() {
-  const items = await experienciaRepo.getAll();
+  const [items, anexos] = await Promise.all([
+    experienciaRepo.getAll(),
+    anexoRepo.getAllBy("experiencia"),
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -31,6 +34,8 @@ export default async function ExperienciasPage() {
         saveAction={saveExperiencia}
         deleteAction={deleteExperiencia}
         reorderAction={reorderExperiencias}
+        addAnexoAction={addAnexoExperiencia}
+        removeAnexoAction={removeAnexoExperiencia}
         addLabel="Adicionar experiência"
         fields={FIELDS}
         emptyValues={{}}
@@ -41,6 +46,13 @@ export default async function ExperienciasPage() {
             subtitle: e.empresa,
             meta: `${e.dataInicio ?? "?"} — ${e.dataFim ?? "Atual"}`,
             tags: e.tagsTecnicas ?? undefined,
+            anexos: anexos
+              .filter((a) => a.entidadeId === e.id)
+              .map((a) => ({
+                id: a.id,
+                rotulo: a.rotulo,
+                href: a.url ?? `/api/arquivos/${a.filename}`,
+              })),
           },
           values: {
             empresa: e.empresa,

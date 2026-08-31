@@ -65,6 +65,12 @@ export interface ItemSummary {
   meta?: string;
   tags?: string[];
   link?: string | null;
+  /**
+   * Anexos de referência (certificado, repositório, artigo). Existem para
+   * consulta e NUNCA entram no currículo gerado — por isso ficam no resumo do
+   * item, e não entre os campos do formulário.
+   */
+  anexos?: { id: number; rotulo: string; href: string }[];
 }
 
 export function CrudList({
@@ -75,6 +81,8 @@ export function CrudList({
   deleteAction,
   addLabel = "Adicionar",
   reorderAction,
+  addAnexoAction,
+  removeAnexoAction,
 }: {
   /** Linhas pré-computadas no server (summary + valores do form). Serializável. */
   rows: CrudRow[];
@@ -86,6 +94,13 @@ export function CrudList({
   deleteAction: (fd: FormData) => void | Promise<void>;
   addLabel?: string;
   reorderAction?: (ids: number[]) => Promise<void>;
+  /**
+   * Anexar um link de referência ao item. Opcional: só as telas que têm
+   * anexos passam. Fica fora dos campos do formulário de propósito — anexo é
+   * material de consulta, não dado que entra no currículo.
+   */
+  addAnexoAction?: (fd: FormData) => void | Promise<void>;
+  removeAnexoAction?: (fd: FormData) => void | Promise<void>;
 }) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
@@ -194,6 +209,74 @@ export function CrudList({
                     <span key={t} className="text-xs bg-surface-3 text-content-muted px-2 py-0.5 rounded">
                       {t}
                     </span>
+                  ))}
+                </div>
+              )}
+              {addAnexoAction && (
+                <details className="mt-2 group">
+                  <summary className="text-xs text-content-subtle cursor-pointer hover:text-content list-none inline-block">
+                    Anexos
+                    <span className="ml-1 opacity-60 group-open:hidden">▸</span>
+                    <span className="ml-1 opacity-60 hidden group-open:inline">▾</span>
+                  </summary>
+                  <p className="text-xs text-content-subtle mt-2">
+                    Links de referência (certificado, repositório, artigo). Não
+                    entram no currículo gerado.
+                  </p>
+                  <form action={addAnexoAction} className="flex flex-wrap gap-2 mt-2">
+                    <input type="hidden" name="entidadeId" value={item.id} />
+                    <input
+                      name="rotulo"
+                      required
+                      maxLength={150}
+                      placeholder="Rótulo"
+                      className="rounded-lg border border-line px-2 py-1 text-xs bg-surface w-32"
+                    />
+                    <input
+                      name="url"
+                      type="url"
+                      required
+                      maxLength={1000}
+                      placeholder="https://..."
+                      className="rounded-lg border border-line px-2 py-1 text-xs bg-surface flex-1 min-w-40"
+                    />
+                    <button
+                      type="submit"
+                      className="text-xs px-3 py-1 rounded-full border border-line text-content-muted hover:text-content transition"
+                    >
+                      Anexar
+                    </button>
+                  </form>
+                  {removeAnexoAction && s.anexos && s.anexos.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {s.anexos.map((a) => (
+                        <form action={removeAnexoAction} key={`rm-${a.id}`}>
+                          <input type="hidden" name="id" value={a.id} />
+                          <button
+                            type="submit"
+                            className="text-xs text-red-600 hover:underline"
+                            aria-label={`Remover anexo ${a.rotulo}`}
+                          >
+                            remover {a.rotulo}
+                          </button>
+                        </form>
+                      ))}
+                    </div>
+                  )}
+                </details>
+              )}
+              {s.anexos && s.anexos.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {s.anexos.map((a) => (
+                    <a
+                      key={a.id}
+                      href={a.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs border border-line text-content-muted hover:text-content hover:border-content-subtle px-2 py-0.5 rounded-full transition"
+                    >
+                      {a.rotulo}
+                    </a>
                   ))}
                 </div>
               )}

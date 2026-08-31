@@ -1,6 +1,12 @@
-import { formacaoRepo } from "@/server/db/repositories";
+import { formacaoRepo, anexoRepo } from "@/server/db/repositories";
 import type { FormacaoProjeto } from "@/server/db/schema";
-import { saveFormacao, deleteFormacao, reorderFormacoes } from "./actions";
+import {
+  saveFormacao,
+  deleteFormacao,
+  reorderFormacoes,
+  addAnexoFormacao,
+  removeAnexoFormacao,
+} from "./actions";
 import { CrudList, type FieldSpec } from "@/components/CrudList";
 
 export const dynamic = "force-dynamic";
@@ -51,7 +57,10 @@ const TIPO_LABEL: Record<string, { text: string; tone: "primary" | "neutral" }> 
 };
 
 export default async function FormacaoPage() {
-  const items = await formacaoRepo.getAll();
+  const [items, anexos] = await Promise.all([
+    formacaoRepo.getAll(),
+    anexoRepo.getAllBy("formacao"),
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -65,6 +74,8 @@ export default async function FormacaoPage() {
         saveAction={saveFormacao}
         deleteAction={deleteFormacao}
         reorderAction={reorderFormacoes}
+        addAnexoAction={addAnexoFormacao}
+        removeAnexoAction={removeAnexoFormacao}
         addLabel="Adicionar item"
         fields={FIELDS}
         emptyValues={{ tipo: "educacao" }}
@@ -81,6 +92,13 @@ export default async function FormacaoPage() {
                 .filter(Boolean)
                 .join(" · ") || undefined,
             tags: f.noCanada ? ["Canadá"] : undefined,
+            anexos: anexos
+              .filter((a) => a.entidadeId === f.id)
+              .map((a) => ({
+                id: a.id,
+                rotulo: a.rotulo,
+                href: a.url ?? `/api/arquivos/${a.filename}`,
+              })),
             link: f.link,
           },
           values: {

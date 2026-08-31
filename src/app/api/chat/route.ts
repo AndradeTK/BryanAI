@@ -7,6 +7,7 @@ import {
   type Mensagem,
 } from "@/server/chat/agente";
 import { detectFileType } from "@/server/pdf/extract";
+import { chatRepo } from "@/server/db/repositories";
 import { extractTextFromDocx } from "@/server/pdf/extract";
 
 /**
@@ -46,10 +47,30 @@ export async function POST(request: Request) {
     if (arquivos.length > MAX_ANEXOS)
       return fail(`No máximo ${MAX_ANEXOS} arquivos por mensagem.`);
 
-    let historico: Mensagem[] = [];
-    const historicoBruto = form.get("historico");
-    if (typeof historicoBruto === "string" && historicoBruto) {
-      historico = HistoricoSchema.parse(JSON.parse(historicoBruto)) as Mensagem[];
+    /**
+     * O histórico agora vem do banco, não do cliente.
+     *
+     * Antes o navegador reenviava a conversa a cada turno, guardada em
+     * localStorage: limpar dados do site apagava tudo, e abrir de outro
+     * aparelho começava do zero — junto com os fatos corrigidos na conversa.
+     *
+     * O `historico` do form continua aceito como fallback para uma aba que
+     * ainda não recarregou depois do deploy; a partir do próximo turno o banco
+     * assume.
+     */
+    const conversa = await chatRepo.conversaAtual();
+    const gravadas = await chatRepo.mensagens(conversa.id);
+
+    let historico: Mensagem[] = gravadas.map((m) => ({
+      papel: m.papel,
+      texto: m.texto,
+    }));
+
+    if (historico.length === 0) {
+      const historicoBruto = form.get("historico");
+      if (typeof historicoBruto === "string" && historicoBruto) {
+        historico = HistoricoSchema.parse(JSON.parse(historicoBruto)) as Mensagem[];
+      }
     }
 
     const anexos: Anexo[] = [];
@@ -91,7 +112,53 @@ export async function POST(request: Request) {
       });
     }
 
-    const resposta = await conversar(historico, mensagem || "(veja o anexo)", anexos);
+    const texto = mensagem || "(veja o anexo)";
+    const resposta = await conversar(historico, texto, anexos);
+
+    // Grava o turno depois de a resposta existir: se a IA falhar, a conversa
+    // não fica com uma pergunta pendurada sem resposta.
+    await chatRepo.gravar({
+      conversaId: conversa.id,
+      papel: "user",
+      texto,
+      anexosMeta: anexos.length
+        ? anexos.map((a) => ({ nome: a.nome, mimeType: a.mimeType }))
+        : null,
+    });
+    if (resposta.texto) {
+      await chatRepo.gravar({
+        conversaId: conversa.id,
+        papel: "model",
+        texto: resposta.texto,
+      });
+    }
+
     return ok(resposta);
+  });
+}
+
+/** Conversa gravada, para a tela abrir com o histórico real. */
+export async function GET() {
+  return handle(async () => {
+    const denied = await guardPanel();
+    if (denied) return denied;
+
+    const conversa = await chatRepo.conversaAtual();
+    const mensagens = await chatRepo.mensagens(conversa.id, 60);
+    return ok({
+      mensagens: mensagens.map((m) => ({ papel: m.papel, texto: m.texto })),
+    });
+  });
+}
+
+/** "Nova conversa": apaga a atual do banco, não só da tela. */
+export async function DELETE() {
+  return handle(async () => {
+    const denied = await guardPanel();
+    if (denied) return denied;
+
+    const conversa = await chatRepo.conversaAtual();
+    await chatRepo.limpar(conversa.id);
+    return ok({ limpo: true });
   });
 }

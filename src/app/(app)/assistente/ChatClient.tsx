@@ -102,13 +102,37 @@ export function ChatClient() {
   // Recupera a conversa ao abrir. Sem isto, recarregar a página apagava tudo —
   // e a sensação era de um assistente que esquece.
   useEffect(() => {
+    let vivo = true;
+
+    // O banco é a fonte da verdade desde que a conversa saiu do localStorage:
+    // assim ela sobrevive a limpar dados do site e existe em outro aparelho.
+    // O storage local vira cache de abertura, para a tela não piscar vazia.
     try {
       const salvo = localStorage.getItem(CHAVE_STORAGE);
       if (salvo) setBolhas(JSON.parse(salvo));
     } catch {
       // storage indisponível ou conteúdo corrompido: começa limpo
     }
-    setPronto(true);
+
+    fetch("/api/chat")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!vivo || !d?.success) return;
+        const msgs = d.data?.mensagens ?? [];
+        // Só sobrescreve se o servidor tem algo: uma conversa recém-limpa não
+        // deve ressuscitar o cache local.
+        if (msgs.length > 0) setBolhas(msgs);
+      })
+      .catch(() => {
+        // Offline ou erro: segue com o que veio do storage.
+      })
+      .finally(() => {
+        if (vivo) setPronto(true);
+      });
+
+    return () => {
+      vivo = false;
+    };
   }, []);
 
   // Guarda a cada mudança. Anexos não entram: são arquivos, e o que importa
@@ -238,6 +262,9 @@ export function ChatClient() {
               } catch {
                 /* sem storage: basta limpar a memória */
               }
+              // Apaga no banco também: sem isto a conversa voltaria no
+              // próximo carregamento, agora que o servidor é a fonte.
+              fetch("/api/chat", { method: "DELETE" }).catch(() => {});
             }}
             className="text-xs text-content-subtle hover:text-content transition px-3 py-1.5 rounded-full hover:bg-surface-3"
           >

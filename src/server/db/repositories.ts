@@ -16,11 +16,18 @@ import {
   answers,
   documents,
   publicProfileTokens,
+  anexosReferencia,
+  chatConversas,
+  chatMensagens,
   type NewAnswer,
   type Answer,
   type NewDocument,
   type NewPublicProfileToken,
   type PublicProfileToken,
+  type NewAnexoReferencia,
+  type ChatConversa,
+  type ChatMensagem,
+  type NewChatMensagem,
   type Document,
   type NewPerfil,
   type NewExperiencia,
@@ -601,4 +608,67 @@ export const publicTokenRepo = {
       .update(publicProfileTokens)
       .set({ lastUsedAt: new Date(), useCount: sql`${publicProfileTokens.useCount} + 1` })
       .where(eq(publicProfileTokens.id, id)),
+};
+
+// ---------- Anexos de referência (experiências / formação) ----------
+export const anexoRepo = {
+  getBy: (entidade: "experiencia" | "formacao", entidadeId: number) =>
+    db
+      .select()
+      .from(anexosReferencia)
+      .where(
+        sql`${anexosReferencia.entidade} = ${entidade} AND ${anexosReferencia.entidadeId} = ${entidadeId}`,
+      )
+      .orderBy(anexosReferencia.id),
+  /** Todos de uma vez, para a página montar sem N+1. */
+  getAllBy: (entidade: "experiencia" | "formacao") =>
+    db
+      .select()
+      .from(anexosReferencia)
+      .where(eq(anexosReferencia.entidade, entidade))
+      .orderBy(anexosReferencia.id),
+  create: async (data: NewAnexoReferencia) => {
+    const [row] = await db.insert(anexosReferencia).values(data).returning();
+    return row;
+  },
+  remove: (id: number) =>
+    db.delete(anexosReferencia).where(eq(anexosReferencia.id, id)),
+  /**
+   * Limpa os anexos de uma entidade apagada. O vínculo é polimórfico, então
+   * não há FK para o Postgres cascatear — quem apaga a experiência apaga aqui.
+   */
+  removeDaEntidade: (entidade: "experiencia" | "formacao", entidadeId: number) =>
+    db
+      .delete(anexosReferencia)
+      .where(
+        sql`${anexosReferencia.entidade} = ${entidade} AND ${anexosReferencia.entidadeId} = ${entidadeId}`,
+      ),
+};
+
+// ---------- Conversas do assistente ----------
+export const chatRepo = {
+  /** A conversa corrente, criando uma se ainda não existe. */
+  conversaAtual: async (): Promise<ChatConversa> => {
+    const [existente] = await db
+      .select()
+      .from(chatConversas)
+      .orderBy(desc(chatConversas.id))
+      .limit(1);
+    if (existente) return existente;
+    const [nova] = await db.insert(chatConversas).values({}).returning();
+    return nova;
+  },
+  mensagens: (conversaId: number, limite = 40): Promise<ChatMensagem[]> =>
+    db
+      .select()
+      .from(chatMensagens)
+      .where(eq(chatMensagens.conversaId, conversaId))
+      .orderBy(desc(chatMensagens.id))
+      .limit(limite)
+      .then((rows) => rows.reverse()), // do mais antigo para o mais novo
+  gravar: (data: NewChatMensagem) => db.insert(chatMensagens).values(data),
+  limpar: async (conversaId: number) => {
+    await db.delete(chatMensagens).where(eq(chatMensagens.conversaId, conversaId));
+    await db.delete(chatConversas).where(eq(chatConversas.id, conversaId));
+  },
 };

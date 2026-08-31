@@ -412,6 +412,49 @@ export const publicProfileTokens = pgTable("public_profile_tokens", {
   useCount: integer("use_count").notNull().default(0),
 });
 
+
+// 18. Anexos de referência de experiências e formação — links e arquivos que
+// comprovam ou ilustram (certificado, repositório, artigo), como as mídias do
+// LinkedIn. NUNCA entram no currículo gerado: existem para consulta.
+//
+// Tabela própria em vez de reusar `documents`, que serve para alimentar a IA
+// (extracted_text, use_for_ai). Vínculo polimórfico porque atende duas tabelas;
+// Postgres não faz FK condicional, então a limpeza fica nos repositórios.
+export const anexosReferencia = pgTable("anexos_referencia", {
+  id: serial("id").primaryKey(),
+  entidade: varchar("entidade", { length: 20 }).notNull().$type<"experiencia" | "formacao">(),
+  entidadeId: integer("entidade_id").notNull(),
+  rotulo: varchar("rotulo", { length: 150 }).notNull(),
+  /** Um dos dois é obrigatório — CHECK no banco garante. */
+  url: varchar("url", { length: 1000 }),
+  filename: varchar("filename", { length: 500 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// 19. Conversas do assistente. Saíram do localStorage porque a conversa sumia
+// ao limpar dados do site e não existia em outro dispositivo — junto com os
+// fatos que tinham sido corrigidos ali.
+export const chatConversas = pgTable("chat_conversas", {
+  id: serial("id").primaryKey(),
+  titulo: varchar("titulo", { length: 200 }),
+  /** Resumo dos turnos antigos, para o prompt não crescer sem limite. */
+  resumoRolante: text("resumo_rolante"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+export const chatMensagens = pgTable("chat_mensagens", {
+  id: serial("id").primaryKey(),
+  conversaId: integer("conversa_id")
+    .notNull()
+    .references(() => chatConversas.id, { onDelete: "cascade" }),
+  papel: varchar("papel", { length: 10 }).notNull().$type<"user" | "model">(),
+  texto: text("texto").notNull(),
+  /** Só nome e mimeType — o binário não entra no banco. */
+  anexosMeta: jsonb("anexos_meta").$type<{ nome: string; mimeType: string }[]>(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
 // 17. Tentativas de login, para travar força bruta. Uma linha por tentativa
 // falha; as bem-sucedidas limpam as do identificador. Fica no banco (e não em
 // memória) porque o processo reinicia a cada deploy e um atacante não deveria
@@ -459,5 +502,10 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
+export type AnexoReferencia = typeof anexosReferencia.$inferSelect;
+export type NewAnexoReferencia = typeof anexosReferencia.$inferInsert;
+export type ChatConversa = typeof chatConversas.$inferSelect;
+export type ChatMensagem = typeof chatMensagens.$inferSelect;
+export type NewChatMensagem = typeof chatMensagens.$inferInsert;
 export type PublicProfileToken = typeof publicProfileTokens.$inferSelect;
 export type NewPublicProfileToken = typeof publicProfileTokens.$inferInsert;
