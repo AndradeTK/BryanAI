@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import { Button } from "@/components/ui";
 
@@ -39,6 +39,8 @@ export function JobDetailModal({
   const [followUp, setFollowUp] = useState("");
   const [saving, setSaving] = useState(false);
   const [erroSalvar, setErroSalvar] = useState<string | null>(null);
+  /** O contêiner do diálogo — usado para prender o foco e recebê-lo ao abrir. */
+  const caixaRef = useRef<HTMLDivElement>(null);
   /** Última versão confirmada pelo servidor — base para saber o que está sujo. */
   const [salvoEm, setSalvoEm] = useState({
     notes: initialNotes ?? "",
@@ -57,6 +59,13 @@ export function JobDetailModal({
   }
 
   useEffect(carregar, [appId]);
+
+  // Foco entra no diálogo ao abrir: sem isto ele fica no card que estava
+  // atrás, e quem navega por teclado precisaria tabular a página inteira para
+  // alcançar o conteúdo que acabou de aparecer.
+  useEffect(() => {
+    caixaRef.current?.focus();
+  }, []);
 
   /**
    * Gera um currículo JÁ VINCULADO a esta candidatura. É o que diferencia de
@@ -118,6 +127,38 @@ export function JobDetailModal({
     }
   }
 
+  /**
+   * Esc fecha (passando pela checagem de alterações não salvas) e Tab fica
+   * preso dentro do modal.
+   *
+   * Sem o foco preso, tabular a partir do modal desce para os links da página
+   * atrás dele — que o leitor de tela anuncia como se estivessem disponíveis,
+   * apesar de estarem cobertos pelo overlay.
+   */
+  function aoTeclar(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      tentarFechar();
+      return;
+    }
+    if (e.key !== "Tab" || !caixaRef.current) return;
+
+    const focaveis = caixaRef.current.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+    );
+    if (focaveis.length === 0) return;
+    const primeiro = focaveis[0];
+    const ultimo = focaveis[focaveis.length - 1];
+
+    if (e.shiftKey && document.activeElement === primeiro) {
+      e.preventDefault();
+      ultimo.focus();
+    } else if (!e.shiftKey && document.activeElement === ultimo) {
+      e.preventDefault();
+      primeiro.focus();
+    }
+  }
+
   /** Fecha, mas não engole texto que o usuário digitou e não salvou. */
   function tentarFechar() {
     const sujo = notes !== salvoEm.notes || followUp !== salvoEm.followUp;
@@ -152,11 +193,19 @@ export function JobDetailModal({
       onClick={tentarFechar}
     >
       <div
-        className="bg-surface rounded-xl border border-line max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6"
+        ref={caixaRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-candidatura"
+        tabIndex={-1}
+        className="bg-surface rounded-xl border border-line max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 outline-none"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={aoTeclar}
       >
         <div className="flex items-start justify-between mb-4">
-          <h2 className="text-lg font-semibold text-content">{titulo}</h2>
+          <h2 id="titulo-candidatura" className="text-lg font-semibold text-content">
+            {titulo}
+          </h2>
           <button
             onClick={tentarFechar}
             className="text-content-subtle hover:text-content"

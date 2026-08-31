@@ -106,6 +106,12 @@ export function CrudList({
   const [adding, setAdding] = useState(false);
   const [order, setOrder] = useState(rows);
   const [reordenando, startTransition] = useTransition();
+  /**
+   * Anúncio para leitor de tela. As setas mudam a ordem visualmente, mas sem
+   * uma região aria-live nada é falado — quem não vê a lista não recebe
+   * confirmação de que o item se moveu.
+   */
+  const [anuncio, setAnuncio] = useState("");
 
   const idsServidor = rows.map((i) => i.id).join(",");
   const idsLocais = order.map((i) => i.id).join(",");
@@ -138,6 +144,9 @@ export function CrudList({
     const next = [...order];
     [next[index], next[target]] = [next[target], next[index]];
     setOrder(next);
+    setAnuncio(
+      `${next[target].summary.title} movido para a posição ${target + 1} de ${next.length}.`,
+    );
     if (reorderAction) {
       const ids = next.map((i) => i.id);
       startTransition(() => reorderAction(ids));
@@ -146,6 +155,9 @@ export function CrudList({
 
   return (
     <div className="space-y-4">
+      <p aria-live="polite" className="sr-only">
+        {anuncio}
+      </p>
       <div className="flex justify-end">
         {!adding && <Button onClick={() => setAdding(true)}>{addLabel}</Button>}
       </div>

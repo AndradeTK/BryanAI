@@ -1,37 +1,15 @@
-/* BryanAI Content Script Styles */
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeOut {
-    from { opacity: 1; }
-    to { opacity: 0; }
-}
-
-#bryanai-float-btn {
-    animation: slideIn 0.5s ease;
-}
+/*
+ * Folha do content script — injetada em TODA página de vaga que você abre.
+ *
+ * Está vazia de propósito. O painel na página (#bryanai-panel) monta o próprio
+ * estilo inline em content.js, a partir dos tokens em `UI`, porque estilo
+ * inline não corre o risco de colidir com o CSS do LinkedIn ou do Indeed.
+ *
+ * O que havia aqui eram quatro @keyframes e uma regra para #bryanai-float-btn
+ * — um botão flutuante que não existe no content script. Nada referenciava
+ * nada: CSS morto sendo injetado em todo site de vaga visitado.
+ *
+ * O arquivo permanece porque o manifest o declara; regras globais que
+ * precisem escapar do inline entram aqui, sempre com prefixo `bryanai-` para
+ * não vazar para a página hospedeira.
+ */

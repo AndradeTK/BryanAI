@@ -254,64 +254,6 @@ function readSelector(selectors) {
   return "";
 }
 
-/** Injeta um badge de score de compatibilidade na página da vaga (#24). */
-async function injectScoreBadge() {
-  const { serverUrl } = await chrome.storage.local.get(["serverUrl"]);
-  const base = serverUrl || DEFAULT_SERVER;
-  const captured = captureJobData();
-  if (!captured.titulo || !captured.descricao) {
-    return { success: false, error: "Não consegui ler a vaga nesta página." };
-  }
-
-  // remove badge anterior
-  document.getElementById("bryanai-score-badge")?.remove();
-  const badge = document.createElement("div");
-  badge.id = "bryanai-score-badge";
-  badge.style.cssText =
-    `position:fixed;top:16px;right:16px;z-index:999999;background:${UI.acento};color:${UI.sobreAcento};` +
-    `padding:10px 16px;border-radius:9999px;font:500 13px ${UI.fonte};letter-spacing:-.01em;` +
-    `box-shadow:0 4px 16px rgba(18,19,23,.18)`;
-  badge.textContent = "BryanAI: analisando…";
-  document.body.appendChild(badge);
-
-  try {
-    const res = await fetch(`${base}/api/jobfit/analyze`, {
-      method: "POST",
-      headers: await authHeaders(),
-      body: JSON.stringify({ titulo: captured.titulo, descricao: captured.descricao }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      const a = data.data.analise;
-      const cor = a.score >= 80 ? UI.ok : a.score >= 60 ? UI.atencao : UI.erro;
-      const blocker =
-        a.canadian?.work_auth_verdict === "needs_sponsorship_blocker"
-          ? " ⚠️ exige autorização"
-          : "";
-      badge.style.background = cor;
-      badge.textContent = `BryanAI: ${a.score}/100 · ${a.nivel_compatibilidade}${blocker}`;
-      setTimeout(() => badge.remove(), 12000);
-      return { success: true, score: a.score };
-    }
-    badge.textContent = "BryanAI: erro na análise";
-    return { success: false, error: data.error };
-  } catch (e) {
-    badge.textContent = "BryanAI: servidor offline";
-    return { success: false, error: String(e) };
-  }
-}
-
-// ============================================================
-// Fase 10 — Overlay na página da vaga + Copiloto de aplicação
-// ============================================================
-// TUDO é iniciado pelo usuário e o Copiloto NUNCA clica em Enviar (linha
-// TOS-safe). Estilos inline para não brigar com o CSS do site.
-
-async function serverBase() {
-  const { serverUrl } = await chrome.storage.local.get(["serverUrl"]);
-  return serverUrl || DEFAULT_SERVER;
-}
-
 /** Detecta se a página atual é a de UMA vaga aberta (não a lista de busca). */
 function isJobDetailPage() {
   const site = detectSite();
@@ -669,11 +611,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       .then((r) => sendResponse(r))
       .catch((e) => sendResponse({ success: false, error: String(e) }));
     return true; // resposta assíncrona
-  } else if (msg.action === "injectScoreBadge") {
-    injectScoreBadge()
-      .then((r) => sendResponse(r))
-      .catch((e) => sendResponse({ success: false, error: String(e) }));
-    return true;
   }
 });
 

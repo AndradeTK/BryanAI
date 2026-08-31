@@ -8,7 +8,11 @@
 
         /* Tokens do design Antigravity — os mesmos do app (globals.css). */
         :root {
-            --surface: var(--surface);
+            /* Era `--surface: var(--surface)` — auto-referência do mesmo
+               find-replace que trocou `white-space` por `var(--surface)-space`.
+               Sem valor, a variável não resolve e toda superfície do popup caía
+               para transparente. */
+            --surface: #ffffff;
             --surface-2: #f8f9fc;
             --surface-3: #eff2f7;
             --content: #121317;
@@ -23,6 +27,19 @@
             --blue-soft: #e8f0fe;
             --ok: #16a34a;
             --erro: #dc2626;
+            --atencao: #f59e0b;
+            /* Score é semântico: verde/âmbar/vermelho carregam significado que
+               a escala neutra do Antigravity não expressa. Ficam como tokens
+               para o valor não se repetir em cinco regras. */
+            --score-alto-fundo: #f0fdf4;
+            --score-alto-linha: #86efac;
+            --score-alto-texto: #16a34a;
+            --score-medio-fundo: #fff7ed;
+            --score-medio-linha: #fdba74;
+            --score-medio-texto: #ea580c;
+            --score-baixo-fundo: #fef2f2;
+            --score-baixo-linha: #fca5a5;
+            --score-baixo-texto: #dc2626;
         }
 
         * {
@@ -51,9 +68,12 @@
         }
         
         .header-icon {
-            width: 44px;
-            height: 44px;
-            background: rgba(255,255,255,0.2);
+            width: 40px;
+            height: 40px;
+            /* Era rgba(255,255,255,0.2) — branco sobre um header que virou
+               branco no redesign: invisível. */
+            background: var(--surface-3);
+            color: var(--content);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -79,7 +99,7 @@
             align-items: center;
             gap: 6px;
             padding: 6px 10px;
-            background: rgba(255,255,255,0.15);
+            background: var(--surface-3);
             border-radius: 20px;
             font-size: 11px;
         }
@@ -116,7 +136,7 @@
         
         .tab:hover {
             color: var(--accent);
-            background: rgba(79, 70, 229, 0.05);
+            background: var(--surface-3);
         }
         
         .tab.active {
@@ -127,8 +147,7 @@
         
         .tab-icon {
             display: block;
-            font-size: 18px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         
         /* ===== TAB CONTENT ===== */
@@ -152,7 +171,7 @@
         }
         
         .quick-action {
-            padding: 14px 12px;
+            padding: 10px 8px;
             border: 1px solid var(--line);
             border-radius: 14px;
             text-align: center;
@@ -167,8 +186,8 @@
         }
         
         .quick-action-icon {
-            font-size: 24px;
-            margin-bottom: 6px;
+            color: var(--content-muted);
+            margin-bottom: 4px;
         }
         
         .quick-action-text {
@@ -241,7 +260,7 @@
         
         .btn {
             flex: 1;
-            padding: 12px 16px;
+            padding: 8px 14px;
             border: none;
             border-radius: 9999px;
             font-size: 13px;
@@ -259,15 +278,9 @@
             color: var(--on-accent);
         }
         
-        .btn-primary:hover {
-        }
-        
         .btn-green {
             background: var(--accent);
             color: var(--on-accent);
-        }
-        
-        .btn-green:hover {
         }
         
         .btn-outline {
@@ -334,14 +347,14 @@
         .result.active {
             display: block;
             border-color: var(--ok);
-            background: #f0fdf4;
+            background: var(--score-alto-fundo);
             padding: 16px;
             margin-top: 16px;
         }
         
         .score-card {
-            background: #f0fdf4;
-            border: 1px solid #86efac;
+            background: var(--score-alto-fundo);
+            border: 1px solid var(--score-alto-linha);
             border-radius: 12px;
             padding: 20px;
             text-align: center;
@@ -349,24 +362,24 @@
         }
         
         .score-card.medium {
-            background: #fff7ed;
-            border-color: #fdba74;
+            background: var(--score-medio-fundo);
+            border-color: var(--score-medio-linha);
         }
         
         .score-card.low {
-            background: #fef2f2;
-            border-color: #fca5a5;
+            background: var(--score-baixo-fundo);
+            border-color: var(--score-baixo-linha);
         }
         
         .score-value {
             font-size: 48px;
             font-weight: 700;
-            color: #16a34a;
+            color: var(--score-alto-texto);
             line-height: 1;
         }
         
-        .score-card.medium .score-value { color: #ea580c; }
-        .score-card.low .score-value { color: #dc2626; }
+        .score-card.medium .score-value { color: var(--score-medio-texto); }
+        .score-card.low .score-value { color: var(--score-baixo-texto); }
         
         .score-label {
             font-size: 14px;
@@ -389,7 +402,7 @@
         }
         
         .fit-badge.medium {
-            background: #f59e0b;
+            background: var(--atencao);
             color: var(--surface);
         }
         
@@ -545,7 +558,7 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <div class="header-icon">🚀</div>
+        <div class="header-icon"><i data-icone="jobfit" data-tamanho="20"></i></div>
         <div class="header-text">
             <h1>BryanAI</h1>
             <p>Resume Optimizer</p>
@@ -559,19 +572,19 @@
     <!-- Tabs -->
     <div class="tabs">
         <div class="tab active" data-tab="analyze">
-            <span class="tab-icon">🎯</span>
+            <span class="tab-icon"><i data-icone="jobfit" data-tamanho="20"></i></span>
             Analisar
         </div>
         <div class="tab" data-tab="generate">
-            <span class="tab-icon">📄</span>
+            <span class="tab-icon"><i data-icone="documentos" data-tamanho="20"></i></span>
             Gerar CV
         </div>
         <div class="tab" data-tab="letter">
-            <span class="tab-icon">✉️</span>
+            <span class="tab-icon"><i data-icone="carta" data-tamanho="20"></i></span>
             Cover Letter
         </div>
         <div class="tab" data-tab="config">
-            <span class="tab-icon">⚙️</span>
+            <span class="tab-icon"><i data-icone="config" data-tamanho="20"></i></span>
             Config
         </div>
     </div>
@@ -580,27 +593,23 @@
     <div class="tab-content active" id="tab-analyze">
         <div class="quick-actions">
             <div class="quick-action" id="btnCapture">
-                <div class="quick-action-icon">📋</div>
+                <div class="quick-action-icon"><i data-icone="vagas" data-tamanho="20"></i></div>
                 <div class="quick-action-text">Capturar da Página</div>
                 <div class="quick-action-desc">Detectar vaga automaticamente</div>
             </div>
             <div class="quick-action" id="btnSaveTracker">
-                <div class="quick-action-icon">🗂️</div>
+                <div class="quick-action-icon"><i data-icone="vagas" data-tamanho="20"></i></div>
                 <div class="quick-action-text">Salvar no Kanban</div>
                 <div class="quick-action-desc">Adicionar às candidaturas</div>
             </div>
-            <div class="quick-action" id="btnScoreBadge">
-                <div class="quick-action-icon">🎯</div>
-                <div class="quick-action-text">Ver score na página</div>
-                <div class="quick-action-desc">Badge de compatibilidade</div>
             </div>
             <div class="quick-action" id="btnPanel">
-                <div class="quick-action-icon">🧭</div>
+                <div class="quick-action-icon"><i data-icone="busca" data-tamanho="20"></i></div>
                 <div class="quick-action-text">Painel na página</div>
                 <div class="quick-action-desc">Ações + copiloto na vaga</div>
             </div>
             <div class="quick-action" id="btnDashboard">
-                <div class="quick-action-icon">📊</div>
+                <div class="quick-action-icon"><i data-icone="dashboard" data-tamanho="20"></i></div>
                 <div class="quick-action-text">Dashboard</div>
                 <div class="quick-action-desc">Abrir painel completo</div>
             </div>
@@ -621,7 +630,7 @@
         
         <div class="btn-group">
             <button class="btn btn-primary" id="btnAnalyze">
-                🎯 Analisar Fit
+                <i data-icone="jobfit"></i> Analisar Fit
             </button>
         </div>
         
@@ -638,26 +647,26 @@
             </div>
             
             <div class="result-section">
-                <h4>✅ Pontos Fortes</h4>
+                <h4><i data-icone="certificacoes"></i> Pontos Fortes</h4>
                 <ul class="result-list" id="strengthsList"></ul>
             </div>
             
             <div class="result-section">
-                <h4>⚠️ Pontos a Melhorar</h4>
+                <h4><i data-icone="remover"></i> Pontos a Melhorar</h4>
                 <ul class="result-list" id="gapsList"></ul>
             </div>
             
             <div class="result-section">
-                <h4>🏷️ Keywords Match</h4>
+                <h4><i data-icone="skills"></i> Keywords Match</h4>
                 <div class="keywords-list" id="keywordsList"></div>
             </div>
             
             <div class="btn-group">
                 <button class="btn btn-green" id="btnDownloadPdf">
-                    📥 Baixar PDF
+                    <i data-icone="adicionar"></i> Baixar PDF
                 </button>
                 <button class="btn btn-outline" id="btnReset">
-                    🔄 Nova Análise
+                    <i data-icone="historico"></i> Nova Análise
                 </button>
             </div>
         </div>
@@ -666,7 +675,7 @@
     <!-- Tab: Generate -->
     <div class="tab-content" id="tab-generate">
         <div class="config-section">
-            <h4>📋 Informações da Vaga</h4>
+            <h4><i data-icone="vagas"></i> Informações da Vaga</h4>
             <p style="font-size: 12px; color: var(--content-muted); margin-bottom: 12px;">
                 Preencha na aba "Analisar" primeiro, depois gere seu currículo otimizado.
             </p>
@@ -705,10 +714,10 @@
 
         <div class="btn-group">
             <button class="btn btn-green" id="btnGenPdf">
-                📄 Gerar PDF
+                <i data-icone="documentos"></i> Gerar PDF
             </button>
             <button class="btn btn-outline" id="btnGenDocx">
-                📝 Gerar DOCX
+                <i data-icone="editar"></i> Gerar DOCX
             </button>
         </div>
     </div>
@@ -733,7 +742,7 @@
         
         <div class="btn-group">
             <button class="btn btn-primary" id="btnGenLetter">
-                ✉️ Gerar Cover Letter
+                <i data-icone="carta"></i> Gerar Cover Letter
             </button>
         </div>
         
@@ -744,16 +753,16 @@
         
         <div class="result" id="letterResult">
             <div class="result-section">
-                <h4>📝 Sua Cover Letter</h4>
+                <h4><i data-icone="editar"></i> Sua Cover Letter</h4>
                 <div id="coverLetterText" style="font-size: 12px; line-height: 1.6; color: var(--content); background: var(--surface-2); padding: 12px; border-radius: 8px; white-space: pre-wrap; max-height: 200px; overflow-y: auto;"></div>
             </div>
             
             <div class="btn-group">
                 <button class="btn btn-green" id="btnCopyLetter">
-                    📋 Copiar
+                    <i data-icone="vagas"></i> Copiar
                 </button>
                 <button class="btn btn-outline" id="btnDownloadLetter">
-                    📥 Baixar
+                    <i data-icone="adicionar"></i> Baixar
                 </button>
             </div>
         </div>
@@ -762,7 +771,7 @@
     <!-- Tab: Config -->
     <div class="tab-content" id="tab-config">
         <div class="config-section">
-            <h4>🔗 Conexão com Backend</h4>
+            <h4><i data-icone="anexo"></i> Conexão com Backend</h4>
             <div class="config-row">
                 <span class="config-label">URL do Servidor</span>
             </div>
@@ -778,7 +787,7 @@
         </div>
 
         <div class="config-section">
-            <h4>📊 Estatísticas</h4>
+            <h4><i data-icone="dashboard"></i> Estatísticas</h4>
             <div class="config-row">
                 <span class="config-label">Análises realizadas</span>
                 <span class="config-value" id="analyzeCount">0</span>
@@ -791,13 +800,13 @@
         
         <div class="btn-group">
             <button class="btn btn-primary" id="btnSaveConfig">
-                💾 Salvar Configurações
+                <i data-icone="adicionar"></i> Salvar Configurações
             </button>
         </div>
         
         <div class="btn-group">
             <button class="btn btn-outline" id="btnTestConn">
-                🔌 Testar Conexão
+                <i data-icone="anexo"></i> Testar Conexão
             </button>
         </div>
     </div>
@@ -805,7 +814,7 @@
     <!-- Footer -->
     <div class="footer">
         <a href="#" class="footer-link" id="btnFooterDash">
-            📊 Abrir Dashboard Completo
+            <i data-icone="dashboard"></i> Abrir Dashboard Completo
         </a>
         <span class="version">v2.0.0</span>
     </div>
@@ -813,6 +822,7 @@
     <!-- Toast -->
     <div class="toast" id="toast"></div>
     
+    <script src="icons.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>

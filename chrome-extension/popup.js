@@ -27,6 +27,8 @@ async function authHeaders() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
+    // Troca os <i data-icone> pelos SVGs antes de qualquer coisa aparecer.
+    montarIcones();
     await loadConfig();
     await checkConnection();
     setupTabs();
@@ -42,7 +44,6 @@ function setupEventListeners() {
     // Quick Actions
     document.getElementById('btnCapture')?.addEventListener('click', captureFromPage);
     document.getElementById('btnSaveTracker')?.addEventListener('click', saveToTracker);
-    document.getElementById('btnScoreBadge')?.addEventListener('click', showScoreBadge);
     document.getElementById('btnPanel')?.addEventListener('click', togglePanel);
     document.getElementById('btnDashboard')?.addEventListener('click', openDashboard);
     document.getElementById('btnFooterDash')?.addEventListener('click', (e) => {
@@ -257,22 +258,6 @@ async function saveToTracker() {
     }
 }
 
-async function showScoreBadge() {
-    try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (!tab) return showToast('Nenhuma aba ativa.', 'error');
-        showToast('Analisando a vaga...', 'info');
-        const r = await chrome.tabs.sendMessage(tab.id, { action: 'injectScoreBadge' });
-        if (r && r.success) {
-            showToast(`Score ${r.score}/100 — veja o badge na página.`, 'success');
-            window.close();
-        } else {
-            showToast('Erro: ' + (r?.error || 'não foi possível analisar'), 'error');
-        }
-    } catch (e) {
-        showToast('Recarregue a página da vaga (F5) e tente novamente.', 'error');
-    }
-}
 
 async function togglePanel() {
     try {
