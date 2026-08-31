@@ -74,6 +74,18 @@ export default async function FormacaoPage() {
         saveAction={saveFormacao}
         deleteAction={deleteFormacao}
         reorderAction={reorderFormacoes}
+        completar={{
+          tipo: "formacao",
+          rotulos: {
+            tipo: "Tipo",
+            instituicaoProjeto: "Instituição/Projeto",
+            tituloCurso: "Título/Curso",
+            papel: "Papel",
+            status: "Status",
+            descricaoDetalhada: "Descrição",
+          },
+          campoDestino: "descricaoDetalhada",
+        }}
         addAnexoAction={addAnexoFormacao}
         removeAnexoAction={removeAnexoFormacao}
         addLabel="Adicionar item"

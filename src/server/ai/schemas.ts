@@ -330,3 +330,28 @@ export const ExtractedResumeSchema = z.object({
   idiomas: z.array(z.object({ idioma: z.string(), nivel: z.string() })),
 });
 export type ExtractedResume = z.infer<typeof ExtractedResumeSchema>;
+
+// ---------- Formulário de completar item (entrevista de captura) ----------
+
+/**
+ * Perguntas geradas a partir do que o usuário JÁ escreveu num item, para
+ * recuperar o que ele fez e não registrou.
+ *
+ * O contrato é de PERGUNTA, não de sugestão: não existe campo para a IA propor
+ * uma resposta. Um schema com `resposta_sugerida` seria o caminho para o
+ * usuário aceitar com um clique um fato que não é dele — a mesma classe de
+ * problema que `metric_grounded` resolve na geração.
+ */
+export const PerguntasItemSchema = z.object({
+  perguntas: z
+    .array(
+      z.object({
+        /** A pergunta. Sobre o que já aconteceu, nunca hipotética. */
+        pergunta: z.string(),
+        /** O que ela tenta recuperar — mostrado como dica discreta. */
+        area: z.string(),
+      }),
+    )
+    .max(8),
+});
+export type PerguntasItem = z.infer<typeof PerguntasItemSchema>;

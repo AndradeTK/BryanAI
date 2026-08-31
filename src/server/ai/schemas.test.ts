@@ -6,6 +6,7 @@ import {
   ResumeSchema,
   SkillsGapSchema,
   BulletSchema,
+  PerguntasItemSchema,
 } from "./schemas";
 
 describe("CanadianResume — proteção jurídica por ausência de campos", () => {
@@ -93,5 +94,43 @@ describe("schemas de IA — structured output", () => {
       QuickAnalysisSchema.safeParse({ score: 50, resumo: "x", fit: "Ótimo" })
         .success,
     ).toBe(false);
+  });
+});
+
+describe("PerguntasItemSchema", () => {
+  it("aceita uma lista de perguntas com área", () => {
+    const r = PerguntasItemSchema.parse({
+      perguntas: [
+        { pergunta: "Como você processava os pagamentos?", area: "manuseio de dinheiro" },
+      ],
+    });
+    expect(r.perguntas).toHaveLength(1);
+  });
+
+  /**
+   * A garantia estrutural desta feature: o schema NÃO tem onde a IA colocar
+   * uma resposta. Sem esse campo não existe caminho para o usuário aceitar
+   * com um clique um fato que não é dele — que seria inventar competência em
+   * vez de inventar métrica, o mesmo erro com outra roupa.
+   */
+  it("descarta qualquer resposta que a IA tente sugerir", () => {
+    const r = PerguntasItemSchema.parse({
+      perguntas: [
+        {
+          pergunta: "Você fazia controle de estoque?",
+          area: "estoque",
+          resposta_sugerida: "Sim, controlava o estoque de bebidas semanalmente",
+        },
+      ],
+    });
+    expect(r.perguntas[0]).not.toHaveProperty("resposta_sugerida");
+  });
+
+  it("recusa mais de 8 perguntas — formulário longo não é respondido", () => {
+    const muitas = Array.from({ length: 9 }, (_, i) => ({
+      pergunta: `P${i}`,
+      area: "a",
+    }));
+    expect(() => PerguntasItemSchema.parse({ perguntas: muitas })).toThrow();
   });
 });

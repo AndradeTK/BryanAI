@@ -34,6 +34,18 @@ export default async function ExperienciasPage() {
         saveAction={saveExperiencia}
         deleteAction={deleteExperiencia}
         reorderAction={reorderExperiencias}
+        completar={{
+          tipo: "experiencia",
+          rotulos: {
+            empresa: "Empresa",
+            cargo: "Cargo",
+            categoria: "Categoria",
+            tagsTecnicas: "Tecnologias",
+            descricaoAtividades: "Atividades",
+            principaisConquistas: "Conquistas",
+          },
+          campoDestino: "descricaoAtividades",
+        }}
         addAnexoAction={addAnexoExperiencia}
         removeAnexoAction={removeAnexoExperiencia}
         addLabel="Adicionar experiência"

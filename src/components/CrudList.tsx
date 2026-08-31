@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { SubmitButton } from "./form";
 import { Button } from "./ui";
 import { CampoComIa, type CampoIa } from "./CampoComIa";
+import { CompletarComIa, type TipoItem } from "./CompletarComIa";
 
 /**
  * Lista CRUD com edição inline e reordenação — totalmente client-side.
@@ -83,6 +84,7 @@ export function CrudList({
   reorderAction,
   addAnexoAction,
   removeAnexoAction,
+  completar,
 }: {
   /** Linhas pré-computadas no server (summary + valores do form). Serializável. */
   rows: CrudRow[];
@@ -101,6 +103,15 @@ export function CrudList({
    */
   addAnexoAction?: (fd: FormData) => void | Promise<void>;
   removeAnexoAction?: (fd: FormData) => void | Promise<void>;
+  /**
+   * Liga o "Completar com IA" no formulário: gera perguntas a partir do que já
+   * está preenchido, para recuperar o que o usuário fez e não escreveu.
+   */
+  completar?: {
+    tipo: TipoItem;
+    rotulos: Record<string, string>;
+    campoDestino: string;
+  };
 }) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
@@ -168,6 +179,7 @@ export function CrudList({
             saveAction={saveAction}
             fields={fields}
             defaults={emptyValues}
+            completar={completar}
             onDone={() => setAdding(false)}
           />
         </div>
@@ -186,6 +198,7 @@ export function CrudList({
                 fields={fields}
                 defaults={item.values}
                 itemId={item.id}
+                completar={completar}
                 onDone={() => setEditingId(null)}
                 contextoIa={[item.summary.title, item.summary.subtitle].filter(Boolean).join(" — ")}
               />
@@ -337,6 +350,7 @@ function CrudForm({
   itemId,
   onDone,
   contextoIa,
+  completar,
 }: {
   saveAction: SaveAction;
   fields: FieldSpec[];
@@ -344,6 +358,7 @@ function CrudForm({
   itemId?: number;
   onDone: () => void;
   contextoIa?: string;
+  completar?: { tipo: TipoItem; rotulos: Record<string, string>; campoDestino: string };
 }) {
   const [state, formAction] = useActionState<ActionState, FormData>(saveAction, {});
   if (state.success) onDone();
@@ -369,6 +384,13 @@ function CrudForm({
       {fullFields.map((f) => (
         <FieldInput key={f.name} field={f} value={defaults[f.name]} contextoIa={contextoIa} />
       ))}
+      {completar && (
+        <CompletarComIa
+          tipo={completar.tipo}
+          rotulos={completar.rotulos}
+          campoDestino={completar.campoDestino}
+        />
+      )}
       <div className="flex gap-2">
         <SubmitButton label={itemId != null ? "Salvar alterações" : "Adicionar"} />
         <button type="button" onClick={onDone} className="px-4 py-2 text-sm text-content-muted hover:text-content">
