@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { contextoDeData, WRITER_SYSTEM_PROMPT } from "./prompts";
+import {
+  contextoDeData,
+  WRITER_SYSTEM_PROMPT,
+  WRITER_REGRAS_IMUTAVEIS,
+} from "./prompts";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -55,8 +59,15 @@ describe("WRITER_SYSTEM_PROMPT", () => {
     expect(exemplos).not.toContain("Impulsionei vendas em 40%");
   });
 
-  it("mantém a regra de métricas fundamentadas", () => {
-    expect(WRITER_SYSTEM_PROMPT).toContain("metric_grounded");
-    expect(WRITER_SYSTEM_PROMPT).toMatch(/NUNCA invente/i);
+  /**
+   * A regra saiu do WRITER_SYSTEM_PROMPT para WRITER_REGRAS_IMUTAVEIS quando os
+   * prompts viraram editáveis: o que o usuário pode reescrever é o estilo, e a
+   * regra é concatenada depois, fora do alcance do editor.
+   */
+  it("mantém a regra de métricas fora do texto editável", () => {
+    expect(WRITER_REGRAS_IMUTAVEIS).toContain("metric_grounded");
+    expect(WRITER_REGRAS_IMUTAVEIS).toMatch(/NUNCA invente/i);
+    // Se voltar para o texto editável, é porque alguém desfez a separação.
+    expect(WRITER_SYSTEM_PROMPT).not.toContain("metric_grounded");
   });
 });

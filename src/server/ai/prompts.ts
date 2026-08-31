@@ -80,8 +80,21 @@ REGRAS DE OURO:
 4. Evitar jargões genéricos como "responsável por"
 5. Priorizar conquistas sobre responsabilidades
 6. Manter consistência no tempo verbal (passado para exp. anteriores, presente para atual)
+`;
 
-REGRA CRÍTICA DE MÉTRICAS (NUNCA VIOLE):
+/**
+ * A parte do prompt do writer que o usuário NÃO edita.
+ *
+ * Fica separada porque a tela de Configurações permite reescrever o estilo do
+ * currículo, e um campo de texto livre que inclua esta regra é um campo onde
+ * ela pode ser apagada — devolvendo ao sistema a alucinação de métricas que a
+ * Fase 2 existiu para eliminar.
+ *
+ * A proteção é estrutural, como a do formato canadense: o editor não mostra
+ * este bloco, e `writerSystemPrompt()` o concatena por último, depois de
+ * qualquer customização. Instrução mais próxima da tarefa pesa mais.
+ */
+export const WRITER_REGRAS_IMUTAVEIS = `REGRA CRÍTICA DE MÉTRICAS (NUNCA VIOLE):
 - Quantifique APENAS com números que estão nos dados do candidato.
 - Se um bullet NÃO tem métrica real no input, defina metric_grounded=false e
   coloque em metric_placeholder um marcador como "[quantificar: ex. % de melhoria]".

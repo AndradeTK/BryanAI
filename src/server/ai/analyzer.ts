@@ -9,7 +9,8 @@ import {
   type QuickAnalysis,
   type ExternalResumeAnalysis,
 } from "./schemas";
-import { ANALYZER_SYSTEM_PROMPT, contextoDeData } from "./prompts";
+import { contextoDeData } from "./prompts";
+import { promptDe } from "./promptsCustom";
 import type { Curriculo, Vaga } from "./types";
 import {
   workAuthVerdict,
@@ -133,7 +134,7 @@ export async function analyzeJobFit(
 
   const prompt = `${contextoDeData()}
 
-${ANALYZER_SYSTEM_PROMPT}
+${await promptDe("analyzer")}
 ${canadaGrounding(curriculo)}
 
 DADOS DO CANDIDATO:
@@ -212,7 +213,7 @@ export async function analyzeExternalResume(
 ): Promise<ExternalResumeAnalysis> {
   const prompt = `${contextoDeData()}
 
-${ANALYZER_SYSTEM_PROMPT}
+${await promptDe("analyzer")}
 
 CURRÍCULO DO CANDIDATO (texto extraído de arquivo):
 ---

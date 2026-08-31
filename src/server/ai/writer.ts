@@ -1,6 +1,7 @@
 import { generateStructured, MODELS } from "./client";
 import { ResumeSchema, type Resume } from "./schemas";
-import { WRITER_SYSTEM_PROMPT, IDIOMA_INSTRUCOES, contextoDeData } from "./prompts";
+import { IDIOMA_INSTRUCOES, contextoDeData } from "./prompts";
+import { promptDe } from "./promptsCustom";
 import type { Curriculo, Vaga } from "./types";
 import type { JobFitAnalysis } from "./schemas";
 
@@ -20,7 +21,7 @@ export async function rewriteResume(
 
   const prompt = `${contextoDeData()}
 
-${WRITER_SYSTEM_PROMPT}
+${await promptDe("writer")}
 
 IDIOMA OBRIGATÓRIO: ${lang.instrucao}
 ${lang.verbos}

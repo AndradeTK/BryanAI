@@ -455,6 +455,17 @@ export const chatMensagens = pgTable("chat_mensagens", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+// 20. Customização dos prompts. Guarda SÓ o que o usuário reescreveu — o
+// padrão fica no código (src/server/ai/prompts.ts) e nunca é copiado para cá,
+// então "restaurar" é apagar a linha e um default melhorado passa a valer sem
+// migrar dado. A regra anti-alucinação NÃO mora aqui: é concatenada depois,
+// fora do alcance do editor.
+export const promptCustomizacoes = pgTable("prompt_customizacoes", {
+  chave: varchar("chave", { length: 60 }).primaryKey(),
+  texto: text("texto").notNull(),
+  atualizadoEm: timestamp("atualizado_em", { withTimezone: true }).defaultNow(),
+});
+
 // 17. Tentativas de login, para travar força bruta. Uma linha por tentativa
 // falha; as bem-sucedidas limpam as do identificador. Fica no banco (e não em
 // memória) porque o processo reinicia a cada deploy e um atacante não deveria
@@ -507,5 +518,6 @@ export type NewAnexoReferencia = typeof anexosReferencia.$inferInsert;
 export type ChatConversa = typeof chatConversas.$inferSelect;
 export type ChatMensagem = typeof chatMensagens.$inferSelect;
 export type NewChatMensagem = typeof chatMensagens.$inferInsert;
+export type PromptCustomizacao = typeof promptCustomizacoes.$inferSelect;
 export type PublicProfileToken = typeof publicProfileTokens.$inferSelect;
 export type NewPublicProfileToken = typeof publicProfileTokens.$inferInsert;

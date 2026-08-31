@@ -4,15 +4,30 @@ import { SettingsForm } from "./SettingsForm";
 import { SectionsOrderEditor } from "./SectionsOrderEditor";
 import { DadosBackup } from "./DadosBackup";
 import { LinksPerfil } from "./LinksPerfil";
+import { PromptsEditor } from "./PromptsEditor";
+import { PROMPTS_EDITAVEIS, customizacoes } from "@/server/ai/promptsCustom";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const [settings, tokens] = await Promise.all([
+  const [settings, tokens, custom] = await Promise.all([
     settingsRepo.get(),
     publicTokenRepo.list(),
+    customizacoes(),
   ]);
+
+  const prompts = Object.entries(PROMPTS_EDITAVEIS).map(([chave, spec]) => {
+    const salvo = custom[chave as keyof typeof PROMPTS_EDITAVEIS];
+    return {
+      chave,
+      label: spec.label,
+      descricao: spec.descricao,
+      padrao: spec.padrao,
+      atual: salvo ?? spec.padrao,
+      customizado: Boolean(salvo),
+    };
+  });
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -45,6 +60,10 @@ export default async function SettingsPage() {
           Exporte todos os seus dados num arquivo JSON ou importe um backup.
         </p>
         <DadosBackup />
+      </div>
+
+      <div className="mt-6">
+        <PromptsEditor prompts={prompts} />
       </div>
 
       <div className="mt-6">
