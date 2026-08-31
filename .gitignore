@@ -15,6 +15,9 @@ next-env.d.ts
 .env.local
 .env*.local
 .env.production
+# variantes locais de rascunho (.envsemnada, .env.old, .env.bak...)
+.env*
+!.env.example
 
 # documentos gerados/enviados em runtime (ficam no volume da VPS)
 /generated/

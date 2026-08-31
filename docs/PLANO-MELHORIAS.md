@@ -5,6 +5,9 @@
 > **verificados no código** antes de entrar aqui. Cada item cita arquivo:linha.
 >
 > Próxima migration livre: `0013`.
+>
+> **Fase 1 (os 9 P0) entregue em 2026-08-30**, commit `77915a0`, validada com
+> IA real em produção. Ver "Como a Fase 1 foi testada" no fim.
 
 ---
 
@@ -130,6 +133,7 @@ quebras de linha.
 | 16 | Histórico do assistente no banco | G |
 | 17 | API pública de leitura do perfil | M |
 | 18 | Truncamento silencioso na análise | P |
+| 19 | Atividades extracurriculares e de liderança | M |
 
 ### 10. Campo de observações — o ponto mais delicado
 Você quer poder dizer "só 2 páginas", "tirar a experiência X", "focar em backend".
@@ -210,24 +214,104 @@ Ambos silenciosos.
 
 ---
 
+### 19. Atividades extracurriculares e de liderança
+
+Hoje o sistema só sabe registrar **emprego** (`experiencias`), **educação e
+projeto** (`formacao_e_projetos`, enum com apenas `educacao` e `projeto`) e
+**certificação** (`educacao_e_cursos`). Não há onde colocar "Embaixador do SAIT",
+monitoria, representação estudantil, voluntariado ou organização de evento.
+
+Isso não é um buraco pequeno. Para quem está construindo carreira no Canadá, é
+justamente a seção que responde ao que o recrutador canadense procura e que o
+histórico brasileiro não comunica sozinho:
+
+- **É experiência canadense.** Ser embaixador do SAIT é atividade *no Canadá,
+  em instituição canadense, em inglês*. O `canada_profile` tem
+  `canadian_exp_months`, e hoje só emprego formal alimenta essa noção — quando
+  a falta de "Canadian experience" é a objeção nº 1 que candidatos imigrantes
+  enfrentam.
+- **É prova de soft skill**, não afirmação. "Comunicação e liderança" numa lista
+  de habilidades não vale nada; "Embaixador do SAIT — represento a instituição
+  para estudantes internacionais" é a mesma coisa, demonstrada.
+- **Preenche lacuna de tempo** sem parecer desemprego. Um período de estudo com
+  atividades registradas conta uma história melhor que um vazio no currículo.
+
+#### Modelagem
+
+Estender o enum existente é mais barato que criar tabela nova, e a estrutura de
+`formacao_e_projetos` (instituição, título, status, descrição, link, ordem) já
+serve quase inteira:
+
+```sql
+-- 00XX_atividades_extracurriculares.sql
+ALTER TYPE "tipo_formacao" ADD VALUE IF NOT EXISTS 'atividade';
+```
+
+Uma coluna nova para o papel exercido, que hoje não tem onde ir:
+
+```sql
+ALTER TABLE "formacao_e_projetos"
+  ADD COLUMN IF NOT EXISTS "papel" varchar(150);        -- "Embaixador", "Monitor", "Voluntário"
+ALTER TABLE "formacao_e_projetos"
+  ADD COLUMN IF NOT EXISTS "periodo_inicio" varchar(20);
+ALTER TABLE "formacao_e_projetos"
+  ADD COLUMN IF NOT EXISTS "periodo_fim" varchar(20);   -- null = em andamento
+```
+
+> `ADD VALUE` em enum do Postgres **não é reversível** — não existe
+> `DROP VALUE`. Reverter exige recriar o tipo. É aditivo e seguro, mas vale
+> saber antes de rodar.
+
+Alternativa considerada e descartada: tabela `atividades` própria. Seria mais
+limpa conceitualmente, mas duplicaria o CRUD, a página, as actions e a
+agregação do `curriculoService` para um punhado de registros — e a Fase 3 já
+mostrou que a estrutura de `formacao_e_projetos` comporta tipos diferentes.
+
+#### O que muda além do banco
+
+- **Página** `/formacao` ganha o tipo "Atividade" no seletor (o CRUD já existe,
+  é o mesmo componente).
+- **Templates de currículo**: uma seção nova em `SectionName` — sugestão
+  `leadership` (o termo que um recrutador canadense reconhece; "Extracurricular"
+  soa a currículo de estudante, "Volunteer Experience" é mais estreito). Entra
+  no `SectionsOrderEditor` como qualquer outra, então você decide a posição.
+- **`curriculoService`**: as atividades entram na agregação que alimenta o
+  prompt, para a IA poder puxá-las quando a vaga pede liderança ou comunicação.
+- **Análise canadense**: `canadian_exp_months` passa a poder considerar
+  atividade feita no Canadá. Aqui vale cuidado — atividade voluntária não é
+  emprego, e inflar esse número engana você mesmo na hora de avaliar uma vaga.
+  Sugiro contar separado (`canadian_activity_months`) e mostrar como sinal
+  distinto, nunca somado ao tempo de trabalho formal.
+
+#### Cuidado com o anti-alucinação
+
+O risco aqui é a IA transformar "Embaixador do SAIT" em "Liderei uma equipe de
+15 embaixadores, aumentando o engajamento estudantil em 30%". A regra de
+`metric_grounded` já cobre, mas esta seção é especialmente tentadora para o
+modelo porque atividade de liderança *convida* a números. Vale um teste
+específico: cadastrar uma atividade sem nenhum número e conferir que os bullets
+saem sem percentual inventado.
+
+---
+
 ## P2 — Polish
 
 | # | Item | Esforço |
 |---|---|---|
-| 19 | Remover botão "ver score na página" da extensão | P |
-| 20 | Diminuir botões da extensão (`padding 12px 16px` → `8px 14px`) | P |
-| 21 | Trocar emojis por ícones na extensão | M |
-| 22 | CSS morto (`:hover {}` vazio, `#bryanai-float-btn` sem elemento) | P |
-| 23 | `.header-icon` invisível (branco 20% sobre branco) | P |
-| 24 | Cores hardcoded ignorando os tokens do próprio arquivo | P |
-| 25 | Separar currículos gerados de documentos (mover para `/historico`) | M |
-| 26 | Campo "descreva" quando tipo de documento = "Outro" | P |
-| 27 | Prompts editáveis nas configurações | G |
-| 28 | Acessibilidade: focus trap, Esc, `aria-live`, `aria-label` no ✕ | M |
-| 29 | Baixar `temperature` do writer (0.7 → 0.5-0.6) | P |
-| 30 | Health-check da extensão usa `guardPanel` e sempre dá "Offline" | P |
+| 20 | Remover botão "ver score na página" da extensão | P |
+| 21 | Diminuir botões da extensão (`padding 12px 16px` → `8px 14px`) | P |
+| 22 | Trocar emojis por ícones na extensão | M |
+| 23 | CSS morto (`:hover {}` vazio, `#bryanai-float-btn` sem elemento) | P |
+| 24 | `.header-icon` invisível (branco 20% sobre branco) | P |
+| 25 | Cores hardcoded ignorando os tokens do próprio arquivo | P |
+| 26 | Separar currículos gerados de documentos (mover para `/historico`) | M |
+| 27 | Campo "descreva" quando tipo de documento = "Outro" | P |
+| 28 | Prompts editáveis nas configurações | G |
+| 29 | Acessibilidade: focus trap, Esc, `aria-live`, `aria-label` no ✕ | M |
+| 30 | Baixar `temperature` do writer (0.7 → 0.5-0.6) | P |
+| 31 | Health-check da extensão usa `guardPanel` e sempre dá "Offline" | P |
 
-### 21. Sobre os ícones — por que não Font Awesome
+### 22. Sobre os ícones — por que não Font Awesome
 Você citou Font Awesome, e a dor é real: a extensão usa dezenas de emojis
 (🚀 🎯 📄 ✉️ ⚙️ 📋) como interface. Emoji renderiza diferente em cada SO e não
 tem `aria-label`.
@@ -241,7 +325,7 @@ Alternativa: extrair 10-15 SVGs do `Icone.tsx` para um `chrome-extension/icons.j
 standalone. Mesma filosofia, zero requisição externa. Se quiser Font Awesome
 mesmo assim, self-hosted resolve — só não por CDN.
 
-### 27. Prompts editáveis — com proteção estrutural
+### 28. Prompts editáveis — com proteção estrutural
 Você quer editar todos os prompts com botão "restaurar padrão". O risco é óbvio:
 apagar a regra anti-alucinação e o sistema volta a inventar métricas.
 
@@ -255,20 +339,28 @@ da proteção canadense: estrutural, não por confiança.
 ## Ordem sugerida
 
 ```
-1. P0 #1        métrica inventada          ← 1 linha, risco alto, faça já
-2. P0 #2-3      truncamento + prompt       ← conserta "Melhorar com IA"
-3. P0 #4        race condition             ← conserta "não atualizava"
-4. P0 #5-8      kanban (4 bugs)            ← conserta "não exclui/não salva"
-5. P0 #9        CSS inválido               ← trivial
-                                           ← nada mais está quebrado
-6. P1 #12,13,14,18   ganhos rápidos (P)
-7. P1 #10-11    observações + captura      ← as duas maiores dores de uso
-8. P1 #15,16,17 anexos, chat, API pública  ← precisam de migration
-9. P2           polish e acessibilidade
+✅ FASE 1 — os 9 P0, entregues em 2026-08-30 (commit 77915a0)
+   #1 métrica inventada · #2-3 truncamento · #4 race condition
+   #5-8 kanban · #9 CSS inválido
+
+FASE 2 — ganhos rápidos, sem migration
+   P1 #12,13,14,18   configs da extensão, preview, link na home, truncamento
+
+FASE 3 — as duas maiores dores de uso
+   P1 #10-11         campo de observações + captura suja da extensão
+
+FASE 4 — precisam de migration
+   P1 #19            atividades extracurriculares  ← enum aditivo, o mais simples
+   P1 #15            anexos em experiências/formação
+   P1 #16            histórico do assistente no banco
+   P1 #17            API pública do perfil
+
+FASE 5 — P2: polish da extensão, ícones, prompts editáveis, acessibilidade
 ```
 
-Os P0 somados são um dia de trabalho. Os P1 com migration (#15, #16) são os
-únicos itens grandes.
+Entre os itens com migration, #19 é o mais barato (`ALTER TYPE ... ADD VALUE`
+mais três colunas) e o de maior retorno para o seu caso — vale abrir a Fase 4.
+Os itens grandes de verdade são #15 e #16.
 
 ---
 
@@ -284,3 +376,58 @@ Os P0 somados são um dia de trabalho. Os P1 com migration (#15, #16) são os
 - **Não deixar a API pública sem credencial** — ver #17.
 - **Não escrever `UPDATE ... SET a=, b=` em SQL bruto.** Use
   `repositoryX.update(id, partial)` do Drizzle. Foi assim que #7 nasceu.
+
+---
+
+## Como a Fase 1 foi testada
+
+Contra a instância de produção, com a chave real do Gemini e os dados reais do
+banco. Nenhum dado seu foi perdido: os testes destrutivos usaram um registro
+descartável, e o que foi tocado voltou ao estado original.
+
+### "Melhorar com IA" — o texto que falhava
+
+Mesmo parágrafo do VanBora.AI que antes voltava cortado em "Implementou":
+
+| | Antes | Depois |
+|---|---|---|
+| `finishReason` | não era checado | `STOP` |
+| Saída | cortada no meio da palavra | 6 bullets completos |
+| Termos perdidos | contratos, faturamento, WhatsApp | **nenhum** |
+
+`totalTokenCount: 2531` confirma o diagnóstico: passava do teto antigo de 2048,
+que era exatamente por onde cortava.
+
+### Geração de currículo — o caminho completo
+
+`POST /api/jobfit/generate`, 71s, HTTP 200. Score 82, `historico_geracoes` id 50
+com status `concluido`, PDF de 92KB (`%PDF-1.4`) salvo em
+`/var/lib/bryanai/generated/`.
+
+**A proteção anti-alucinação funcionou:** 8 bullets voltaram marcados
+`metric_grounded: false`, com sugestões do tipo `[quantificar: ex. volume de
+eventos processados]` — a IA escreveu sem número e pediu para você preencher,
+em vez de inventar. Zero percentuais fabricados na saída inteira.
+
+### Kanban
+
+- **DELETE** numa candidatura descartável: `{"deleted":true}`, linha removida,
+  evento da timeline caiu junto pelo cascade, e as 6 candidaturas reais
+  intactas.
+- **PATCH parcial**, o bug de perda de dado:
+
+  | Requisição | `notes` | `follow_up_date` |
+  |---|---|---|
+  | `{notes, followUpDate}` | gravado | `2026-09-15` |
+  | `{notes}` só | atualizado | **`2026-09-15` preservado** ← antes virava NULL |
+  | `{followUpDate: null}` | intacto | `NULL` (limpeza explícita funciona) |
+  | `{}` | — | HTTP 400 "Nada para atualizar" |
+
+  Ausente e vazio passaram a ser coisas diferentes, que é o ponto.
+
+### O que não foi testado
+
+O comportamento de UI que depende de sessão no navegador: a reordenação (#4),
+o aviso de alteração não salva (#8) e o `white-space` da cover letter (#9).
+São mudanças de front que o typecheck e o build cobrem parcialmente, mas a
+confirmação real é você usando.
