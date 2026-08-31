@@ -85,7 +85,8 @@ export default async function DashboardPage() {
                   <th className="py-2 pr-4">Vaga</th>
                   <th className="py-2 pr-4">Score</th>
                   <th className="py-2 pr-4">Status</th>
-                  <th className="py-2">Data</th>
+                  <th className="py-2 pr-4">Data</th>
+                  <th className="py-2 sr-only">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,8 +97,32 @@ export default async function DashboardPage() {
                     <td className="py-2 pr-4">
                       <StatusBadge status={r.status} />
                     </td>
-                    <td className="py-2 text-content-subtle">
+                    <td className="py-2 pr-4 text-content-subtle">
                       {r.createdAt?.toLocaleDateString("pt-BR")}
+                    </td>
+                    {/* A tabela listava a geração sem dar como chegar nela: o
+                        PDF só aparecia navegando até Documentos. */}
+                    <td className="py-2 text-right whitespace-nowrap">
+                      {r.status === "concluido" && r.pdfPath ? (
+                        <>
+                          <a
+                            href={`/api/arquivos/${r.pdfPath}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-primary-600 hover:underline"
+                          >
+                            ver
+                          </a>
+                          <a
+                            href={`/api/arquivos/${r.pdfPath}?download=true`}
+                            className="ml-3 text-content-muted hover:underline"
+                          >
+                            baixar
+                          </a>
+                        </>
+                      ) : (
+                        <span className="text-content-subtle">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

@@ -17,6 +17,31 @@ import {
   regulatedProfessionGap,
 } from "@/server/domain/canada/rules";
 
+/**
+ * Corta um texto longo antes de mandar ao modelo, avisando quando corta.
+ *
+ * Os limites anteriores (1000 caracteres para a vaga, 10000 para o currículo)
+ * eram baixos e mudos: numa vaga de ATS corporativo os "must have" costumam vir
+ * no fim, então a análise rápida podia julgar o primeiro terço do anúncio e
+ * devolver um score com cara de definitivo. O corte agora acontece num limite
+ * folgado, no fim de um parágrafo, e deixa rastro no log.
+ *
+ * Não usa reticências silenciosas: o modelo é avisado no próprio texto de que
+ * houve corte, para não tratar o trecho como o documento inteiro.
+ */
+export function recortar(texto: string, limite: number, oQue: string): string {
+  if (texto.length <= limite) return texto;
+
+  // Prefere quebrar num parágrafo para não cortar uma frase pela metade.
+  const corte = texto.lastIndexOf("\n", limite);
+  const fim = corte > limite * 0.8 ? corte : limite;
+
+  console.warn(
+    `[AI] ${oQue} truncado: ${texto.length} → ${fim} caracteres (limite ${limite}).`,
+  );
+  return `${texto.slice(0, fim)}\n\n[...texto truncado por limite de tamanho...]`;
+}
+
 /** Monta o bloco de grounding canadense para o prompt (se houver perfil). */
 function canadaGrounding(curriculo: Curriculo): string {
   const c = curriculo.canada;
@@ -163,7 +188,7 @@ CANDIDATO:
 ${JSON.stringify(curriculo, null, 1)}
 
 VAGA: ${vaga.titulo}
-${vaga.descricao?.substring(0, 1000)}
+${recortar(vaga.descricao ?? "", 6000, "descrição da vaga (análise rápida)")}
 
 Retorne score (0-100), resumo (1-2 frases destacando pontos positivos e gaps) e
 fit (Baixo|Médio|Alto|Excelente).`;
@@ -191,7 +216,7 @@ ${ANALYZER_SYSTEM_PROMPT}
 
 CURRÍCULO DO CANDIDATO (texto extraído de arquivo):
 ---
-${textoExtraido.substring(0, 10000)}
+${recortar(textoExtraido, 24000, "currículo enviado")}
 ---
 
 VAGA ALVO:

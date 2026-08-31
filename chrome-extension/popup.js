@@ -58,6 +58,10 @@ function setupEventListeners() {
     // Generate Tab
     document.getElementById('btnGenPdf')?.addEventListener('click', () => generateResume('pdf'));
     document.getElementById('btnGenDocx')?.addEventListener('click', () => generateResume('docx'));
+    // Guarda a escolha na hora, sem depender do botão "Salvar" da aba Config —
+    // são preferências de uso, não credenciais.
+    document.getElementById('template')?.addEventListener('change', salvarPreferenciasGeracao);
+    document.getElementById('idioma')?.addEventListener('change', salvarPreferenciasGeracao);
     
     // Cover Letter Tab
     document.getElementById('btnGenLetter')?.addEventListener('click', generateCoverLetter);
@@ -75,14 +79,32 @@ function setupEventListeners() {
 
 async function loadConfig() {
     try {
-        const config = await chrome.storage.local.get(['serverUrl', 'apiToken', 'stats']);
+        const config = await chrome.storage.local.get([
+            'serverUrl', 'apiToken', 'stats', 'template', 'idioma',
+        ]);
         serverUrl = config.serverUrl || DEFAULT_SERVER_URL;
         apiToken = config.apiToken || '';
         stats = config.stats || { analyzeCount: 0, generateCount: 0 };
         document.getElementById('serverUrl').value = serverUrl;
         document.getElementById('apiToken').value = apiToken;
+        // Template e idioma eram lidos só na hora de gerar e nunca guardados,
+        // então toda vez que o popup abria voltavam ao primeiro da lista.
+        if (config.template) document.getElementById('template').value = config.template;
+        if (config.idioma) document.getElementById('idioma').value = config.idioma;
     } catch (e) {
         console.log('Usando configurações padrão');
+    }
+}
+
+/** Guarda a escolha de template/idioma assim que o usuário troca. */
+async function salvarPreferenciasGeracao() {
+    try {
+        await chrome.storage.local.set({
+            template: document.getElementById('template').value,
+            idioma: document.getElementById('idioma').value,
+        });
+    } catch (e) {
+        console.error('Erro ao guardar preferências:', e);
     }
 }
 

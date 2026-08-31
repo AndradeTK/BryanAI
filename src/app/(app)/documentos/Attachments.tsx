@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { SubmitButton } from "@/components/form";
+import { DocumentPreview } from "@/components/DocumentPreview";
 import {
   uploadDocument,
   linkDocumentToJob,
@@ -187,6 +188,24 @@ export function Attachments({
                     </pre>
                   </details>
                 )}
+
+                {/* Pré-visualização sob demanda. Aqui a lista é densa — vários
+                    anexos por tela — então um iframe sempre aberto por item
+                    pesaria; o mesmo <details> da transcrição resolve. */}
+                <details className="mt-2 group">
+                  <summary className="text-xs text-content-subtle cursor-pointer hover:text-content list-none">
+                    Pré-visualizar
+                    <span className="ml-1 opacity-60 group-open:hidden">▸</span>
+                    <span className="ml-1 opacity-60 hidden group-open:inline">▾</span>
+                  </summary>
+                  <div className="mt-2 rounded-lg overflow-hidden border border-line-soft">
+                    <DocumentPreview
+                      nome={d.filename}
+                      titulo={d.title}
+                      altura="h-80"
+                    />
+                  </div>
+                </details>
               </div>
 
               {/* Vincular a vaga */}
@@ -232,6 +251,14 @@ export function Attachments({
                 className="text-sm text-primary-600 hover:underline"
               >
                 Baixar
+              </a>
+              <a
+                href={`/api/arquivos/${d.filename}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-content-muted hover:underline"
+              >
+                Abrir
               </a>
               <form action={deleteDocument} className="inline">
                 <input type="hidden" name="id" value={d.id} />

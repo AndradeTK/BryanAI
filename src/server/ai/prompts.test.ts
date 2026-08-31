@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { contextoDeData } from "./prompts";
+import { contextoDeData, WRITER_SYSTEM_PROMPT } from "./prompts";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -35,5 +35,28 @@ describe("contextoDeData", () => {
     expect(agosto).toContain("2026-08-05");
     expect(janeiro).toContain("2027-01-15");
     expect(agosto).not.toBe(janeiro);
+  });
+});
+
+describe("WRITER_SYSTEM_PROMPT", () => {
+  /**
+   * Regressão que já aconteceu duas vezes. O prompt trazia
+   * "Impulsionei vendas em 40%" e "reduzindo tempo de resposta em 60%" como
+   * EXEMPLOS DE BULLET BOM, vinte linhas antes da regra que proíbe inventar
+   * números — e few-shot pesa mais que instrução.
+   *
+   * A Fase 2 do projeto removeu esse texto do aiWriter.js legado; a migração
+   * para TypeScript o trouxe de volta. Este teste existe para a terceira vez
+   * não acontecer em silêncio.
+   */
+  it("não ensina a inventar métrica pelo exemplo", () => {
+    const exemplos = WRITER_SYSTEM_PROMPT.split("REGRA CRÍTICA DE MÉTRICAS")[0];
+    expect(exemplos).not.toMatch(/✅ Bom:.*\d+\s*%/);
+    expect(exemplos).not.toContain("Impulsionei vendas em 40%");
+  });
+
+  it("mantém a regra de métricas fundamentadas", () => {
+    expect(WRITER_SYSTEM_PROMPT).toContain("metric_grounded");
+    expect(WRITER_SYSTEM_PROMPT).toMatch(/NUNCA invente/i);
   });
 });
