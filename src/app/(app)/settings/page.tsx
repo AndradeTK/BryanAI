@@ -1,13 +1,18 @@
 import Link from "next/link";
-import { settingsRepo } from "@/server/db/repositories";
+import { settingsRepo, publicTokenRepo } from "@/server/db/repositories";
 import { SettingsForm } from "./SettingsForm";
 import { SectionsOrderEditor } from "./SectionsOrderEditor";
 import { DadosBackup } from "./DadosBackup";
+import { LinksPerfil } from "./LinksPerfil";
+import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const settings = await settingsRepo.get();
+  const [settings, tokens] = await Promise.all([
+    settingsRepo.get(),
+    publicTokenRepo.list(),
+  ]);
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -40,6 +45,20 @@ export default async function SettingsPage() {
           Exporte todos os seus dados num arquivo JSON ou importe um backup.
         </p>
         <DadosBackup />
+      </div>
+
+      <div className="mt-6">
+        <LinksPerfil
+          appUrl={env.APP_URL}
+          tokens={tokens.map((t) => ({
+            id: t.id,
+            label: t.label,
+            redactContact: t.redactContact,
+            expiraEm: t.expiresAt?.toLocaleDateString("pt-BR") ?? null,
+            ultimoUso: t.lastUsedAt?.toLocaleDateString("pt-BR") ?? null,
+            usos: t.useCount,
+          }))}
+        />
       </div>
     </div>
   );

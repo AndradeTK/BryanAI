@@ -22,6 +22,18 @@ const PUBLIC_PATHS = ["/login"];
  */
 const BEARER_API_PREFIXES = ["/api/jobs", "/api/jobfit", "/api/cover-letter", "/api/answers", "/api/apply"];
 
+/**
+ * Leitura do perfil por token de link, para colar numa IA de terceiro. Não tem
+ * cookie nem usa o token da extensão: valida o próprio token contra a tabela
+ * public_profile_tokens, com o hash — a checagem está em
+ * app/api/public/perfil/route.ts, que responde 401 sem token válido.
+ *
+ * É a única entrada do sistema que dispensa sessão de painel. Qualquer rota
+ * nova sob /api/public precisa fazer a própria autenticação; passar por aqui
+ * não autoriza nada.
+ */
+const PUBLIC_API_PREFIX = "/api/public";
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -30,6 +42,10 @@ export function middleware(request: NextRequest) {
   }
 
   if (BEARER_API_PREFIXES.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith(PUBLIC_API_PREFIX)) {
     return NextResponse.next();
   }
 

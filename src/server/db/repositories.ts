@@ -15,9 +15,12 @@ import {
   profileEmbedding,
   answers,
   documents,
+  publicProfileTokens,
   type NewAnswer,
   type Answer,
   type NewDocument,
+  type NewPublicProfileToken,
+  type PublicProfileToken,
   type Document,
   type NewPerfil,
   type NewExperiencia,
@@ -570,4 +573,32 @@ export const profileEmbeddingRepo = {
       `);
     }
   },
+};
+
+// ---------- Tokens de leitura pública do perfil ----------
+export const publicTokenRepo = {
+  list: (): Promise<PublicProfileToken[]> =>
+    db.select().from(publicProfileTokens).orderBy(desc(publicProfileTokens.id)),
+  create: async (data: NewPublicProfileToken): Promise<PublicProfileToken> => {
+    const [row] = await db.insert(publicProfileTokens).values(data).returning();
+    return row;
+  },
+  remove: (id: number) =>
+    db.delete(publicProfileTokens).where(eq(publicProfileTokens.id, id)),
+  /** Resolve o hash para o token válido, ou null se não existe ou expirou. */
+  findValid: async (tokenHash: string): Promise<PublicProfileToken | null> => {
+    const [row] = await db
+      .select()
+      .from(publicProfileTokens)
+      .where(eq(publicProfileTokens.tokenHash, tokenHash));
+    if (!row) return null;
+    if (row.expiresAt && row.expiresAt.getTime() < Date.now()) return null;
+    return row;
+  },
+  /** Registra o uso — dá para ver no painel se um link vazou e está sendo usado. */
+  registrarUso: (id: number) =>
+    db
+      .update(publicProfileTokens)
+      .set({ lastUsedAt: new Date(), useCount: sql`${publicProfileTokens.useCount} + 1` })
+      .where(eq(publicProfileTokens.id, id)),
 };

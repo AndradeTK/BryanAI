@@ -193,6 +193,7 @@ export const DEFAULT_SECTIONS_ORDER = [
   "certifications",
   "languages",
   "projects",
+  "leadership",
 ] as const;
 
 export interface Preferencias {
@@ -393,6 +394,24 @@ export const sessions = pgTable("sessions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+// 16b. Tokens de leitura pública do perfil. Mesmo princípio das sessões — só o
+// SHA-256 fica guardado — porque o caso de uso é colar um link numa IA de
+// terceiro, e um link que vaza não pode virar acesso permanente aos dados de
+// contato. Vive no banco (e não numa variável de ambiente) para revogar sem
+// redeploy.
+export const publicProfileTokens = pgTable("public_profile_tokens", {
+  id: serial("id").primaryKey(),
+  tokenHash: varchar("token_hash", { length: 64 }).notNull().unique(),
+  label: varchar("label", { length: 100 }),
+  /** Sem contato por padrão: o link é para a IA ler o histórico, não o telefone. */
+  redactContact: boolean("redact_contact").notNull().default(true),
+  /** null = não expira. */
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  useCount: integer("use_count").notNull().default(0),
+});
+
 // 17. Tentativas de login, para travar força bruta. Uma linha por tentativa
 // falha; as bem-sucedidas limpam as do identificador. Fica no banco (e não em
 // memória) porque o processo reinicia a cada deploy e um atacante não deveria
@@ -440,3 +459,5 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
+export type PublicProfileToken = typeof publicProfileTokens.$inferSelect;
+export type NewPublicProfileToken = typeof publicProfileTokens.$inferInsert;
