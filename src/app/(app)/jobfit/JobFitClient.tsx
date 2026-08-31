@@ -30,6 +30,7 @@ export function JobFitClient({
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [template, setTemplate] = useState(defaultTemplate);
+  const [observacoes, setObservacoes] = useState("");
   const [idioma, setIdioma] = useState(defaultIdioma);
   const [loading, setLoading] = useState<null | "analyze" | "generate">(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -130,7 +131,14 @@ export function JobFitClient({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ titulo, descricao, formato, idioma, templateId: template }),
+          body: JSON.stringify({
+            titulo,
+            descricao,
+            formato,
+            idioma,
+            templateId: template,
+            observacoes: observacoes.trim() || undefined,
+          }),
         },
         // Análise + reescrita + Puppeteer somam ~50-60s, e o antigo limite de
         // 60s cortava a resposta bem no fim: o servidor terminava e salvava o
@@ -202,6 +210,28 @@ export function JobFitClient({
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label
+            htmlFor="observacoes"
+            className="block text-xs text-content-muted mb-1"
+          >
+            Instruções de formatação (opcional)
+          </label>
+          <textarea
+            id="observacoes"
+            className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+            rows={2}
+            maxLength={500}
+            placeholder="Ex.: só 2 páginas · focar em backend · tirar a experiência no restaurante"
+            value={observacoes}
+            onChange={(e) => setObservacoes(e.target.value)}
+          />
+          <p className="text-xs text-content-subtle mt-1">
+            Muda o formato e a ênfase. Não serve para acrescentar fatos — a IA só
+            usa o que está cadastrado no seu perfil.
+          </p>
         </div>
         {erro && (
           <div className="rounded-lg bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 px-4 py-2 text-sm">{erro}</div>

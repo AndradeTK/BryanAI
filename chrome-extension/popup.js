@@ -211,7 +211,16 @@ async function captureFromPage() {
             if (response && response.success) {
                 document.getElementById('titulo').value = response.titulo || '';
                 document.getElementById('descricao').value = response.descricao || '';
-                showToast('Dados capturados!', 'success');
+                // A captura por seletor CSS pega o que estiver no container, e
+                // nem sempre é só a vaga. O texto alimenta o prompt direto,
+                // então vale o usuário conferir antes de gastar uma geração.
+                const chars = (response.descricao || '').length;
+                showToast(
+                    response.source === 'jsonld'
+                        ? `Dados capturados (${chars} caracteres).`
+                        : `Capturado (${chars} caracteres) — confira o texto abaixo.`,
+                    response.source === 'jsonld' ? 'success' : 'info',
+                );
             } else {
                 showToast('Não foi possível capturar. Tente recarregar a página (F5)', 'error');
             }
@@ -438,7 +447,8 @@ async function generateResume(formato = 'pdf') {
     const descricao = document.getElementById('descricao').value.trim();
     const template = document.getElementById('template').value;
     const idioma = document.getElementById('idioma').value;
-    
+    const observacoes = document.getElementById('observacoes')?.value.trim() || undefined;
+
     if (!titulo || !descricao) {
         showToast('Preencha título e descrição na aba Analisar', 'error');
         return;
@@ -455,7 +465,7 @@ async function generateResume(formato = 'pdf') {
         const response = await fetch(`${serverUrl}/api/jobfit/generate`, {
             method: 'POST',
             headers: await authHeaders(),
-            body: JSON.stringify({ titulo, descricao, formato, idioma, template })
+            body: JSON.stringify({ titulo, descricao, formato, idioma, template, observacoes })
         });
         
         const data = await response.json();

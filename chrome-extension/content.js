@@ -112,6 +112,55 @@ function findText(selectors) {
   return "";
 }
 
+/**
+ * Marcadores de onde a descrição da vaga acaba e começa o resto da página.
+ * O innerText de um container do LinkedIn/Indeed costuma emendar a descrição
+ * com vagas parecidas, rodapé institucional e blocos de recomendação.
+ */
+const FIM_DA_VAGA = [
+  /vagas? (similares|parecidas|recomendadas)/i,
+  /similar jobs/i,
+  /more jobs (at|from)/i,
+  /people also viewed/i,
+  /pessoas também viram/i,
+  /set alert for similar/i,
+  /report this job/i,
+  /denunciar (esta )?vaga/i,
+];
+
+/**
+ * Limpa o texto raspado do DOM.
+ *
+ * O caminho JSON-LD já normalizava (tira HTML, colapsa espaço); o caminho por
+ * seletor CSS devolvia innerText cru. Como esse texto vai direto para o prompt,
+ * a mesma vaga capturada pela extensão e colada à mão no site produzia
+ * currículos diferentes — não por prompts diferentes, mas por insumos
+ * diferentes.
+ */
+function limparDescricao(texto) {
+  if (!texto) return "";
+
+  let t = texto.replace(/\r/g, "");
+
+  // Corta a partir do primeiro marcador de fim de conteúdo relevante.
+  // O marcador também pode aparecer num menu no topo da página, então só
+  // corta se o que sobra ainda for a maior parte do texto — cortar nos
+  // primeiros 30% quase certamente descartaria a vaga em vez do rodapé.
+  for (const marcador of FIM_DA_VAGA) {
+    const m = t.match(marcador);
+    if (m && m.index > t.length * 0.3) t = t.slice(0, m.index);
+  }
+
+  return t
+    .split("\n")
+    .map((l) => l.replace(/[ \t]+/g, " ").trim())
+    // "Ver mais"/"Show more" são botões que o innerText captura como texto.
+    .filter((l) => !/^(ver mais|mostrar mais|show more|see more|voir plus)$/i.test(l))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Extrai título/descrição via JSON-LD JobPosting (se houver). */
 function fromJsonLd() {
   const scripts = document.querySelectorAll('script[type="application/ld+json"]');
@@ -152,15 +201,19 @@ function captureJobData() {
   const site = detectSite();
   const sel = site ? SITE_SELECTORS[site] : null;
   const titulo = findText(sel?.titulo) || document.title;
-  let descricao = findText(sel?.descricao);
+  let descricao = limparDescricao(findText(sel?.descricao));
+  let source = site ? "css" : "selection";
   if (!descricao) {
     const selection = window.getSelection().toString().trim();
-    if (selection.length > 100) descricao = selection;
+    if (selection.length > 100) {
+      descricao = limparDescricao(selection);
+      source = "selection";
+    }
   }
 
   return {
     success: !!(titulo && descricao),
-    source: site ? "css" : "selection",
+    source,
     titulo,
     empresa: (jsonld && jsonld.empresa) || "",
     descricao,

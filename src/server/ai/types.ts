@@ -9,6 +9,15 @@ export interface Vaga {
   titulo: string;
   descricao: string;
   empresa?: string;
+  /**
+   * Instrução livre do candidato para ESTA geração ("só 2 páginas", "focar em
+   * backend", "tirar a experiência no restaurante").
+   *
+   * É preferência de FORMA, nunca fonte de fato: o writer trata este texto como
+   * entrada não confiável, mesmo vindo do dono do sistema — ver a contenção em
+   * writer.ts.
+   */
+  observacoes?: string;
 }
 
 export interface Curriculo {

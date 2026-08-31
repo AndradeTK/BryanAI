@@ -18,6 +18,12 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { titulo, descricao, formato = "pdf" } = body;
+    // Instrução livre de formatação ("só 2 páginas", "focar em backend").
+    // O writer trata como preferência de forma, nunca como fato novo.
+    const observacoes =
+      typeof body.observacoes === "string" && body.observacoes.trim()
+        ? body.observacoes.trim().slice(0, 500)
+        : undefined;
     // Vincula à candidatura quando a geração parte do kanban. Null na geração
     // avulsa pela tela de Job Fit — nem toda análise nasce de uma vaga salva.
     const applicationId =
@@ -43,7 +49,7 @@ export async function POST(request: Request) {
       const analise = await analyzeJobFit(curriculo, { titulo, descricao });
       const otimizado = await rewriteResume(
         curriculo,
-        { titulo, descricao },
+        { titulo, descricao, observacoes },
         analise,
         idioma,
       );
