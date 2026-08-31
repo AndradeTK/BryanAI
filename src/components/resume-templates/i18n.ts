@@ -8,6 +8,7 @@ export interface SectionTitles {
   languages: string;
   certifications: string;
   projects: string;
+  leadership: string;
 }
 
 // Títulos por idioma. en-CA/fr-CA seguem a nomenclatura canadense usual
@@ -21,6 +22,7 @@ const TITLES: Record<string, SectionTitles> = {
     languages: "Idiomas",
     certifications: "Certificações",
     projects: "Projetos",
+    leadership: "Atividades e Liderança",
   },
   en: {
     summary: "Professional Summary",
@@ -30,6 +32,7 @@ const TITLES: Record<string, SectionTitles> = {
     languages: "Languages",
     certifications: "Certifications",
     projects: "Projects",
+    leadership: "Leadership & Involvement",
   },
   "en-CA": {
     summary: "Professional Summary",
@@ -39,6 +42,7 @@ const TITLES: Record<string, SectionTitles> = {
     languages: "Languages",
     certifications: "Certifications & Professional Development",
     projects: "Projects",
+    leadership: "Leadership & Community Involvement",
   },
   fr: {
     summary: "Résumé Professionnel",
@@ -48,6 +52,7 @@ const TITLES: Record<string, SectionTitles> = {
     languages: "Langues",
     certifications: "Certifications",
     projects: "Projets",
+    leadership: "Engagement et Leadership",
   },
   "fr-CA": {
     summary: "Sommaire Professionnel",
@@ -57,6 +62,7 @@ const TITLES: Record<string, SectionTitles> = {
     languages: "Langues",
     certifications: "Certifications et Perfectionnement",
     projects: "Projets",
+    leadership: "Leadership et Engagement Communautaire",
   },
 };
 

@@ -54,6 +54,9 @@ export const experiencias = pgTable("experiencias", {
 export const tipoFormacaoEnum = pgEnum("tipo_formacao", [
   "educacao",
   "projeto",
+  // Monitoria, embaixador estudantil, voluntariado, representação. Vale como
+  // experiência canadense quando feita aqui, e é soft skill demonstrada.
+  "atividade",
 ]);
 
 export const formacaoEProjetos = pgTable("formacao_e_projetos", {
@@ -64,6 +67,17 @@ export const formacaoEProjetos = pgTable("formacao_e_projetos", {
   status: varchar("status", { length: 100 }),
   descricaoDetalhada: text("descricao_detalhada"),
   link: varchar("link", { length: 1000 }), // repo/demo do projeto ou diploma
+  /** Papel exercido na atividade: "Embaixador", "Monitor", "Voluntário". */
+  papel: varchar("papel", { length: 150 }),
+  /** Texto livre — o currículo imprime, não calcula. Fim null = em andamento. */
+  periodoInicio: varchar("periodo_inicio", { length: 20 }),
+  periodoFim: varchar("periodo_fim", { length: 20 }),
+  /**
+   * Atividade feita no Canadá. Separado de canada_profile.canadian_exp_months
+   * de propósito: voluntariado não é emprego, e somar os dois infla o número
+   * que o próprio usuário usa para decidir se concorre a uma vaga.
+   */
+  noCanada: boolean("no_canada").notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
 });
 

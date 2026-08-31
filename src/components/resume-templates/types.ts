@@ -56,6 +56,13 @@ export interface ProjetoItem {
   link?: string;
 }
 
+export interface AtividadeItem {
+  papel?: string;
+  organizacao?: string;
+  periodo?: string;
+  bullets?: string[];
+}
+
 /** Os dados reescritos pela IA. */
 export interface CurriculoOtimizado {
   titulo_profissional?: string;
@@ -71,13 +78,16 @@ export type SectionName =
   | "education"
   | "certifications"
   | "languages"
-  | "projects";
+  | "projects"
+  /** Monitoria, embaixador, voluntariado — "Leadership & Involvement". */
+  | "leadership";
 
 export interface ResumeTemplateProps {
   perfil?: Perfil | null;
   curriculo?: CurriculoOtimizado | null;
   formacao?: FormacaoItem[];
   projetos?: ProjetoItem[];
+  atividades?: AtividadeItem[];
   cursos?: CursoItem[];
   idiomas?: IdiomaItem[];
   lang?: string;
@@ -98,4 +108,8 @@ export const DEFAULT_SECTION_ORDER: SectionName[] = [
   "certifications",
   "languages",
   "projects",
+  // No fim por padrão: quem já tem histórico profissional lidera pela
+  // experiência. Quem quiser destacar (estudante, recém-chegado) sobe a seção
+  // em Configurações.
+  "leadership",
 ];

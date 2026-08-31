@@ -34,6 +34,12 @@ export interface Curriculo {
   experiencias?: Array<Record<string, unknown>>;
   formacao?: Array<Record<string, unknown>>;
   projetos?: Array<Record<string, unknown>>;
+  /**
+   * Atividades extracurriculares e de liderança (monitoria, embaixador,
+   * voluntariado). Não é emprego nem diploma — vale como experiência
+   * canadense quando feita aqui, e como soft skill demonstrada.
+   */
+  atividades?: Array<Record<string, unknown>>;
   cursos_certificacoes?: Array<Record<string, unknown>>;
   cursos?: Array<Record<string, unknown>>;
   idiomas?: Array<Record<string, unknown>>;

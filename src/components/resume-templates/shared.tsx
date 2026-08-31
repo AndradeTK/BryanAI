@@ -31,9 +31,18 @@ export function ca(text: string | undefined, lang: string): string {
   return canadianSpelling(text, lang);
 }
 
-/** Resolve a lista de seções na ordem (config do usuário ou padrão canadense). */
+/**
+ * Resolve a lista de seções na ordem (config do usuário ou padrão canadense).
+ *
+ * Uma ordem salva antes de uma seção existir não a menciona — e devolver a
+ * lista salva crua faria a seção nova nunca aparecer, sem erro nenhum, para
+ * quem já tinha mexido em Configurações. Seções desconhecidas pela config
+ * entram no fim, na ordem padrão, até o usuário escolher onde as quer.
+ */
 export function resolveOrder(order?: SectionName[]): SectionName[] {
-  return order?.length ? order : DEFAULT_SECTION_ORDER;
+  if (!order?.length) return DEFAULT_SECTION_ORDER;
+  const faltando = DEFAULT_SECTION_ORDER.filter((s) => !order.includes(s));
+  return [...order, ...faltando];
 }
 
 /** Todas as skills achatadas (principais + secundárias). */

@@ -146,6 +146,20 @@ export const ResumeSchema = z.object({
       link: z.string().optional(),
     }),
   ),
+  /**
+   * Atividades extracurriculares e de liderança. Bullets como nas
+   * experiências, para valer a mesma proteção anti-alucinação: liderança
+   * convida o modelo a inventar número ("liderei 15 pessoas, +30% de
+   * engajamento") mais que qualquer outra seção.
+   */
+  atividades: z.array(
+    z.object({
+      papel: z.string(),
+      organizacao: z.string(),
+      periodo: z.string(),
+      bullets: z.array(BulletSchema),
+    }),
+  ),
   diferenciais: z.array(z.string()),
   keywords_otimizadas: z.array(z.string()),
   // AUSENTES POR DESIGN (proteção jurídica dos Human Rights Codes provinciais):

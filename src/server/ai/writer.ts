@@ -83,6 +83,13 @@ CADA bullet é um objeto { text, metric_grounded, metric_placeholder }:
 Para CADA formação, preencha canadian_equivalency com a equivalência do diploma
 quando o candidato tiver ECA (${curriculo.canada?.eca_status ?? "none"}${curriculo.canada?.eca_equivalency ? `: ${curriculo.canada.eca_equivalency}` : ""}); use null se não aplica.
 
+ATIVIDADES (campo "atividades" dos dados, se houver): monitoria, embaixador
+estudantil, voluntariado, representação. Reescreva como as experiências —
+mesmos bullets com metric_grounded — usando papel, organizacao e periodo dos
+dados. É a seção que mais tenta puxar número inventado ("liderei uma equipe de
+15", "aumentei o engajamento em 30%"): se o número não está nos dados, ele NÃO
+existe. Devolva lista vazia se não houver atividades.
+
 CAMPOS OPCIONAIS (link do projeto, certificacao_exame, etc.): se o dado NÃO
 existir, OMITA o campo ou use null/string vazia. NUNCA escreva "N/A", "Not
 Applicable", "Não informado" ou similar — deixe realmente vazio.`;

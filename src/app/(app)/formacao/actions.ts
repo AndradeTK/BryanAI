@@ -18,7 +18,7 @@ export async function saveFormacao(
     return typeof v === "string" && v.trim() !== "" ? v.trim() : null;
   };
   const tipo = get("tipo");
-  if (tipo !== "educacao" && tipo !== "projeto")
+  if (tipo !== "educacao" && tipo !== "projeto" && tipo !== "atividade")
     return { error: "Tipo inválido." };
   const instituicaoProjeto = get("instituicaoProjeto");
   if (!instituicaoProjeto)
@@ -27,12 +27,16 @@ export async function saveFormacao(
   const idRaw = get("id");
   const id = idRaw ? Number(idRaw) : null;
   const data = {
-    tipo: tipo as "educacao" | "projeto",
+    tipo: tipo as "educacao" | "projeto" | "atividade",
     instituicaoProjeto,
     tituloCurso: get("tituloCurso"),
     status: get("status"),
     descricaoDetalhada: get("descricaoDetalhada"),
     link: get("link"),
+    papel: get("papel"),
+    periodoInicio: get("periodoInicio"),
+    periodoFim: get("periodoFim"),
+    noCanada: formData.get("noCanada") === "on" || formData.get("noCanada") === "true",
   };
 
   if (id) await formacaoRepo.update(id, data);

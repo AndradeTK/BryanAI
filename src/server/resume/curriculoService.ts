@@ -96,6 +96,22 @@ export async function getFullResume(): Promise<Curriculo> {
         descricao_detalhada: f.descricaoDetalhada,
         link: f.link ?? undefined,
       })),
+    // Monitoria, embaixador, voluntariado. Grupo próprio porque não é emprego
+    // (não entra em experiencias) nem diploma (não entra em formacao) — e sem
+    // isto o filtro por tipo acima descartaria a atividade em silêncio.
+    atividades: formacaoTudo
+      .filter((f) => f.tipo === "atividade")
+      .map((f) => ({
+        papel: f.papel,
+        organizacao: f.instituicaoProjeto,
+        titulo: f.tituloCurso,
+        periodo: f.periodoInicio
+          ? `${f.periodoInicio} — ${f.periodoFim ?? "atual"}`
+          : (f.status ?? null),
+        descricao_detalhada: f.descricaoDetalhada,
+        no_canada: f.noCanada,
+        link: f.link ?? undefined,
+      })),
     cursos_certificacoes: cursos.map((c) => ({
       titulo_do_curso: c.tituloDoCurso,
       emissor_instituicao: c.emissorInstituicao,

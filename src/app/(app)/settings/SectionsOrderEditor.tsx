@@ -11,6 +11,7 @@ const LABELS: Record<string, string> = {
   certifications: "Certificações",
   languages: "Idiomas",
   projects: "Projetos",
+  leadership: "Atividades e liderança",
 };
 
 export function SectionsOrderEditor({ initial }: { initial: string[] }) {

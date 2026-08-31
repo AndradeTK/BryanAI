@@ -8,7 +8,7 @@ import type { ResumeTemplateProps, SectionName } from "./types";
  * distintas do markup genérico. Single-column, ATS-safe.
  */
 export function Classico(props: ResumeTemplateProps) {
-  const { perfil, curriculo, formacao = [], projetos = [], cursos = [], idiomas = [] } = props;
+  const { perfil, curriculo, formacao = [], projetos = [], atividades = [], cursos = [], idiomas = [] } = props;
   const lang = props.lang ?? "pt-BR";
   const t = sectionTitles(lang);
 
@@ -112,6 +112,30 @@ export function Classico(props: ResumeTemplateProps) {
               </span>
             ))}
           </div>
+        );
+      }
+      case "leadership": {
+        if (atividades.length === 0) return null;
+        return (
+          <section key={name}>
+            <h2>{t.leadership}</h2>
+            {atividades.map((a, i) => (
+              <article className="experience-item" key={i}>
+                <div className="experience-header">
+                  <span className="job-title">{ca(a.papel, lang)}</span>
+                  <span className="period">{a.periodo}</span>
+                </div>
+                <div className="company">{a.organizacao}</div>
+                {a.bullets && a.bullets.length > 0 && (
+                  <ul className="bullets">
+                    {a.bullets.map((b, j) => (
+                      <li key={j}>{ca(b, lang)}</li>
+                    ))}
+                  </ul>
+                )}
+              </article>
+            ))}
+          </section>
         );
       }
       case "projects": {

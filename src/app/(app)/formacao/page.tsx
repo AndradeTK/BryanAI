@@ -13,14 +13,42 @@ const FIELDS: FieldSpec[] = [
     options: [
       { value: "educacao", label: "Educação" },
       { value: "projeto", label: "Projeto Pessoal / Freelance" },
+      { value: "atividade", label: "Atividade extracurricular / Liderança" },
     ],
   },
   { kind: "text", name: "instituicaoProjeto", label: "Instituição / Projeto", required: true },
   { kind: "text", name: "tituloCurso", label: "Título / Curso" },
-  { kind: "text", name: "status", label: "Status", placeholder: "Concluído / Em andamento" },
+  {
+    kind: "text",
+    name: "papel",
+    label: "Papel (atividades)",
+    placeholder: "Embaixador, Monitor, Voluntário...",
+    half: true,
+  },
+  { kind: "text", name: "status", label: "Status", placeholder: "Concluído / Em andamento", half: true },
+  { kind: "text", name: "periodoInicio", label: "Início", placeholder: "09/2025", half: true },
+  { kind: "text", name: "periodoFim", label: "Fim (vazio = atual)", placeholder: "12/2026", half: true },
   { kind: "url", name: "link", label: "Link (repo/demo/diploma)", placeholder: "https://..." },
   { kind: "textarea", name: "descricaoDetalhada", label: "Descrição detalhada" , ia: "descricao" },
+  {
+    kind: "checkbox",
+    name: "noCanada",
+    label: "Feito no Canadá (conta como experiência canadense)",
+  },
 ];
+
+/** "09/2025 — atual" quando não há fim; vazio quando não há período. */
+function periodoLabel(inicio: string | null, fim: string | null): string {
+  if (!inicio && !fim) return "";
+  if (inicio && !fim) return `${inicio} — atual`;
+  return [inicio, fim].filter(Boolean).join(" — ");
+}
+
+const TIPO_LABEL: Record<string, { text: string; tone: "primary" | "neutral" }> = {
+  projeto: { text: "Projeto", tone: "primary" },
+  atividade: { text: "Atividade", tone: "primary" },
+  educacao: { text: "Educação", tone: "neutral" },
+};
 
 export default async function FormacaoPage() {
   const items = await formacaoRepo.getAll();
@@ -43,13 +71,16 @@ export default async function FormacaoPage() {
         rows={items.map((f: FormacaoProjeto) => ({
           id: f.id,
           summary: {
-            title: f.tituloCurso || f.instituicaoProjeto || "",
-            badge: {
-              text: f.tipo === "projeto" ? "Projeto" : "Educação",
-              tone: (f.tipo === "projeto" ? "primary" : "neutral") as "primary" | "neutral",
-            },
+            title: f.papel
+              ? `${f.papel} — ${f.tituloCurso || f.instituicaoProjeto || ""}`
+              : f.tituloCurso || f.instituicaoProjeto || "",
+            badge: TIPO_LABEL[f.tipo] ?? TIPO_LABEL.educacao,
             subtitle: f.instituicaoProjeto ?? undefined,
-            meta: f.status ?? undefined,
+            meta:
+              [periodoLabel(f.periodoInicio, f.periodoFim), f.status]
+                .filter(Boolean)
+                .join(" · ") || undefined,
+            tags: f.noCanada ? ["Canadá"] : undefined,
             link: f.link,
           },
           values: {
@@ -59,6 +90,10 @@ export default async function FormacaoPage() {
             status: f.status ?? undefined,
             link: f.link ?? undefined,
             descricaoDetalhada: f.descricaoDetalhada ?? undefined,
+            papel: f.papel ?? undefined,
+            periodoInicio: f.periodoInicio ?? undefined,
+            periodoFim: f.periodoFim ?? undefined,
+            noCanada: f.noCanada,
           },
         }))}
       />

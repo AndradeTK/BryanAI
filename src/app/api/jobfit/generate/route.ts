@@ -138,6 +138,23 @@ export async function POST(request: Request) {
         },
         formacao: otimizado.formacao,
         projetos,
+        // Mesmo tratamento de bullet das experiências: liderança é a seção que
+        // mais convida o modelo a inventar número ("liderei 15 pessoas, +30%").
+        atividades: (otimizado.atividades ?? []).map((a) => ({
+          papel: a.papel,
+          organizacao: a.organizacao,
+          periodo: a.periodo,
+          bullets: a.bullets.map((b) => {
+            if (!b.metric_grounded && b.metric_placeholder) {
+              metricasAPreencher.push({
+                experiencia: `${a.papel} — ${a.organizacao}`,
+                bullet: b.text,
+                sugestao: b.metric_placeholder,
+              });
+            }
+            return b.text;
+          }),
+        })),
         cursos,
         idiomas: otimizado.idiomas,
         lang: idioma,
