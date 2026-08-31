@@ -22,7 +22,8 @@ Produção: **https://app.bryanandrade.dev** — instância de um usuário só, 
 | Testes | Vitest |
 
 A versão anterior (Express + EJS + MySQL) está na história do repositório, na tag
-`v2-legacy`.
+`v2-legacy`. O registro de como se chegou aqui — e por que certas decisões são
+como são — está em [`docs/`](docs/).
 
 ---
 
@@ -33,7 +34,14 @@ A versão anterior (Express + EJS + MySQL) está na história do repositório, n
 - **Job Fit** — analisa uma vaga contra o perfil e devolve score, palavras-chave
   faltantes e os veredictos canadenses (autorização, idioma, NOC sugerido).
 - **Geração de currículo** — 5 templates React. O mesmo componente alimenta a
-  pré-visualização na tela e o PDF, então os dois não divergem.
+  pré-visualização na tela e o PDF, então os dois não divergem. O currículo
+  gerado fica ligado à candidatura que o originou.
+- **Assistente** — um agente conversacional que lê o perfil, as candidaturas e os
+  documentos, e **propõe** alterações nos dados. Ver [Assistente](#assistente).
+- **Preparação para entrevista** — a partir da vaga e do perfil, monta o roteiro
+  de perguntas prováveis e os pontos a defender.
+- **Documentos** — anexos (diplomas, cartas, certificados) com extração de texto.
+  PDF escaneado, sem camada de texto, é transcrito por IA e marcado como tal.
 - **Cover letter** e **Skills Gap** com plano de estudo.
 - **Kanban de vagas** com matching semântico perfil × vaga via pgvector.
 - **Extensão Chrome** — captura a vaga aberta em 10 job boards (LinkedIn,
@@ -80,6 +88,29 @@ exigência dos Human Rights Codes provinciais. Isso não é instrução de promp
 campos **não existem no schema Zod de saída**, então o modelo não consegue
 emiti-los. A garantia é estrutural.
 
+O papel é **Letter** (8.5×11 pol), não A4 — o padrão norte-americano. Um
+currículo em A4 sai com margens erradas na impressora de um recrutador canadense.
+
+---
+
+## Assistente
+
+Um agente com function calling que conversa sobre os seus dados e propõe
+mudanças neles. As ferramentas são separadas em duas categorias, e a separação é
+o mecanismo de segurança:
+
+- **Leitura** (`lerPerfil`, `listarExperiencias`, `listarCandidaturas`,
+  `listarDocumentos`, …) — o modelo chama sozinho, durante a conversa.
+- **Escrita** (`salvarPerfil`, `salvarExperiencia`, `removerFormacao`, …) — o
+  modelo **não executa**. Ele emite uma proposta, que aparece na tela para você
+  aprovar ou descartar.
+
+Uma proposta aprovada volta ao servidor por `POST /api/chat/aplicar`, que trata
+o corpo como **entrada não confiável** mesmo numa instância de um usuário só: a
+proposta faz um ida-e-volta pelo navegador entre ser gerada e ser aceita. O nome
+da ferramenta é conferido contra a allowlist e os argumentos são revalidados por
+Zod antes de qualquer gravação. Nada é escrito com base na palavra do cliente.
+
 ---
 
 ## Rodando local
@@ -116,6 +147,8 @@ repositório não vira uma segunda cópia — desatualizada — do que está no 
 | `npm run build` | build de produção (saída `standalone`) |
 | `npm test` | Vitest |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint |
+| `npm run db:generate` | gera migration a partir do schema Drizzle |
 | `npm run db:migrate` | aplica migrations pendentes |
 | `npm run db:seed` | dados de exemplo (fictícios) |
 | `npm run db:seed-noc` | popula o catálogo NOC 2021 (516 grupos) |

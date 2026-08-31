@@ -23,6 +23,9 @@ next-env.d.ts
 # ferramental de agentes de IA — repositório à parte, não é parte do produto
 /agents/
 
+# cofre de credenciais — local, nunca versionado
+/docs/CREDENCIAIS_SISTEMA.md
+
 # versão Express/EJS pré-migração — vive na história do git (tag v2-legacy)
 /_legacy/
 
