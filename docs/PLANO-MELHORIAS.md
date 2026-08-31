@@ -4,10 +4,14 @@
 > por três agentes especializados (UX/UI, qualidade de IA, modelo de dados) e
 > **verificados no código** antes de entrar aqui. Cada item cita arquivo:linha.
 >
-> Próxima migration livre: `0013`.
+> Próxima migration livre: `0017`.
 >
-> **Fase 1 (os 9 P0) entregue em 2026-08-30**, commit `77915a0`, validada com
-> IA real em produção. Ver "Como a Fase 1 foi testada" no fim.
+> **Fases 1 a 4 entregues em 2026-08-30/31.** Os 9 P0 (`77915a0`), os ganhos
+> rápidos (`a49bec7`), observações e captura (`f2d99a6`, `758e998`), e os
+> quatro itens com migration (`0b9182e`, `0117b28`, `e45b18e`). Migrations
+> 0013 a 0016 aplicadas em produção. Resta a Fase 5 (P2).
+>
+> Ver "Como a Fase 1 foi testada" no fim.
 
 ---
 
@@ -343,19 +347,21 @@ da proteção canadense: estrutural, não por confiança.
    #1 métrica inventada · #2-3 truncamento · #4 race condition
    #5-8 kanban · #9 CSS inválido
 
-FASE 2 — ganhos rápidos, sem migration
-   P1 #12,13,14,18   configs da extensão, preview, link na home, truncamento
+✅ FASE 2 — ganhos rápidos (a49bec7)
+   #12 configs da extensão · #13 preview · #14 link na home · #18 truncamento
 
-FASE 3 — as duas maiores dores de uso
-   P1 #10-11         campo de observações + captura suja da extensão
+✅ FASE 3 — as duas maiores dores de uso (f2d99a6, 758e998)
+   #10 campo de observações · #11 captura limpa da extensão
 
-FASE 4 — precisam de migration
-   P1 #19            atividades extracurriculares  ← enum aditivo, o mais simples
-   P1 #15            anexos em experiências/formação
-   P1 #16            histórico do assistente no banco
-   P1 #17            API pública do perfil
+✅ FASE 4 — os quatro com migration
+   #19 atividades (0b9182e, migration 0013)
+   #17 API pública do perfil (0117b28, migration 0014)
+   #15 anexos de referência (e45b18e, migration 0015)
+   #16 histórico do assistente (e45b18e, migration 0016)
 
 FASE 5 — P2: polish da extensão, ícones, prompts editáveis, acessibilidade
+   Mais um item novo: o orçamento de thinking do 2.5-flash comendo o de
+   saída (visto em produção: 7863 tokens de raciocínio, 315 de resposta).
 ```
 
 Entre os itens com migration, #19 é o mais barato (`ALTER TYPE ... ADD VALUE`
