@@ -466,6 +466,29 @@ export const promptCustomizacoes = pgTable("prompt_customizacoes", {
   atualizadoEm: timestamp("atualizado_em", { withTimezone: true }).defaultNow(),
 });
 
+// 20. Propostas de escrita aguardando aprovação.
+//
+// O assistente propõe e o usuário aprova na tela — mas a proposta vivia só na
+// resposta do turno, e fechar a aba a perdia. Isso basta com a tela aberta;
+// deixa de bastar quando o pedido nasce noutro app (chat externo via MCP), onde
+// pedir e aprovar são momentos separados por horas.
+export const propostas = pgTable("propostas", {
+  id: serial("id").primaryKey(),
+  /** Chave de ARGS_SCHEMAS — o que aplicarEscrita() despacha. */
+  ferramenta: varchar("ferramenta", { length: 60 }).notNull(),
+  argumentos: jsonb("argumentos").$type<Record<string, unknown>>().notNull(),
+  /** "assistente" (chat interno) ou "mcp" (chat externo). */
+  origem: varchar("origem", { length: 20 }).notNull().default("assistente").$type<"assistente" | "mcp">(),
+  /** Rótulo de quem propôs — uma origem que você não reconhece é o alarme. */
+  origemRotulo: varchar("origem_rotulo", { length: 100 }),
+  estado: varchar("estado", { length: 12 }).notNull().default("pendente").$type<"pendente" | "aplicada" | "rejeitada">(),
+  resultado: text("resultado"),
+  criadaEm: timestamp("criada_em", { withTimezone: true }).notNull().defaultNow(),
+  resolvidaEm: timestamp("resolvida_em", { withTimezone: true }),
+  /** Sete dias. Proposta velha é pior que nenhuma — ver a migration 0018. */
+  expiraEm: timestamp("expira_em", { withTimezone: true }).notNull(),
+});
+
 // 17. Tentativas de login, para travar força bruta. Uma linha por tentativa
 // falha; as bem-sucedidas limpam as do identificador. Fica no banco (e não em
 // memória) porque o processo reinicia a cada deploy e um atacante não deveria
@@ -518,6 +541,8 @@ export type NewAnexoReferencia = typeof anexosReferencia.$inferInsert;
 export type ChatConversa = typeof chatConversas.$inferSelect;
 export type ChatMensagem = typeof chatMensagens.$inferSelect;
 export type NewChatMensagem = typeof chatMensagens.$inferInsert;
+export type Proposta = typeof propostas.$inferSelect;
+export type NewProposta = typeof propostas.$inferInsert;
 export type PromptCustomizacao = typeof promptCustomizacoes.$inferSelect;
 export type PublicProfileToken = typeof publicProfileTokens.$inferSelect;
 export type NewPublicProfileToken = typeof publicProfileTokens.$inferInsert;

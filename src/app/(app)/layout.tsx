@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { AppShell } from "@/components/AppShell";
 import { requireUser } from "@/server/auth";
-import { settingsRepo } from "@/server/db/repositories";
+import { settingsRepo, propostaRepo } from "@/server/db/repositories";
 
 /**
  * Layout de tudo que exige login.
@@ -16,16 +16,23 @@ export default async function AppLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const user = await requireUser();
 
-  const [cookieStore, settings] = await Promise.all([
+  const [cookieStore, settings, propostasPendentes] = await Promise.all([
     cookies(),
     settingsRepo.get(),
+    // COUNT sobre índice parcial — custo desprezível, e é o que avisa que há
+    // alteração esperando decisão sem você precisar procurar.
+    propostaRepo.contarPendentes(),
   ]);
 
   const cookieTheme = cookieStore.get("theme")?.value;
   const initialDark = cookieTheme ? cookieTheme === "dark" : settings.darkMode;
 
   return (
-    <AppShell initialDark={initialDark} userEmail={user.email}>
+    <AppShell
+      initialDark={initialDark}
+      userEmail={user.email}
+      propostasPendentes={propostasPendentes}
+    >
       {children}
     </AppShell>
   );

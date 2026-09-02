@@ -16,6 +16,7 @@ import {
   answers,
   documents,
   publicProfileTokens,
+  propostas,
   anexosReferencia,
   chatConversas,
   chatMensagens,
@@ -24,6 +25,8 @@ import {
   type NewDocument,
   type NewPublicProfileToken,
   type PublicProfileToken,
+  type Proposta,
+  type NewProposta,
   type NewAnexoReferencia,
   type ChatConversa,
   type ChatMensagem,
@@ -671,4 +674,69 @@ export const chatRepo = {
     await db.delete(chatMensagens).where(eq(chatMensagens.conversaId, conversaId));
     await db.delete(chatConversas).where(eq(chatConversas.id, conversaId));
   },
+};
+
+// ---------- Propostas de escrita aguardando aprovação ----------
+export const propostaRepo = {
+  /**
+   * Pendentes ainda válidas, da mais nova para a mais velha.
+   *
+   * A expiração é filtrada aqui, não marcada por job: uma proposta de sete dias
+   * atrás não deve aparecer para aprovação, e um cron para marcá-la seria
+   * infraestrutura que não se paga numa VPS compartilhada.
+   */
+  listarPendentes: (): Promise<Proposta[]> =>
+    db
+      .select()
+      .from(propostas)
+      .where(
+        sql`${propostas.estado} = 'pendente' AND ${propostas.expiraEm} > now()`,
+      )
+      .orderBy(desc(propostas.id)),
+  /** Só o número, para o badge da navegação em cada render. */
+  contarPendentes: async (): Promise<number> => {
+    const rows = await db.execute<{ n: number }>(
+      sql`SELECT COUNT(*)::int AS n FROM propostas
+          WHERE estado = 'pendente' AND expira_em > now()`,
+    );
+    return (rows as unknown as { n: number }[])[0]?.n ?? 0;
+  },
+  criar: async (data: NewProposta): Promise<Proposta> => {
+    const [row] = await db
+      .insert(propostas)
+      .values({
+        ...data,
+        // Sete dias — ver a migration 0018.
+        expiraEm:
+          data.expiraEm ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      })
+      .returning();
+    return row;
+  },
+  /** Uma proposta pendente e válida, ou null. Usada antes de aplicar. */
+  pegarPendente: async (id: number): Promise<Proposta | null> => {
+    const [row] = await db
+      .select()
+      .from(propostas)
+      .where(
+        sql`${propostas.id} = ${id} AND ${propostas.estado} = 'pendente'
+            AND ${propostas.expiraEm} > now()`,
+      );
+    return row ?? null;
+  },
+  resolver: (
+    id: number,
+    estado: "aplicada" | "rejeitada",
+    resultado?: string,
+  ) =>
+    db
+      .update(propostas)
+      .set({ estado, resultado: resultado ?? null, resolvidaEm: new Date() })
+      .where(eq(propostas.id, id)),
+  /** Rejeitar em massa é seguro; aprovar em massa não é — a assimetria é o desenho. */
+  rejeitarTodas: () =>
+    db
+      .update(propostas)
+      .set({ estado: "rejeitada", resolvidaEm: new Date() })
+      .where(sql`${propostas.estado} = 'pendente'`),
 };

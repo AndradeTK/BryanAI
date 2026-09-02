@@ -45,6 +45,7 @@ const NAV: {
   {
     section: "Sistema",
     items: [
+      { href: "/propostas", label: "Propostas", icon: "editar" },
       { href: "/aprendizado", label: "Aprendizado", icon: "aprendizado" },
       { href: "/settings", label: "Configurações", icon: "config" },
     ],
@@ -67,6 +68,7 @@ const TITLES: Record<string, string> = {
   "/skills-gap": "Skills Gap",
   "/documentos": "Documentos",
   "/historico": "Histórico",
+  "/propostas": "Propostas",
   "/aprendizado": "Aprendizado",
   "/settings": "Configurações",
 };
@@ -75,10 +77,13 @@ export function AppShell({
   children,
   initialDark,
   userEmail,
+  propostasPendentes = 0,
 }: {
   children: React.ReactNode;
   initialDark: boolean;
   userEmail?: string;
+  /** Contador do badge — o que avisa que há alteração esperando decisão. */
+  propostasPendentes?: number;
 }) {
   const pathname = usePathname();
   const [dark, setDark] = useState(initialDark);
@@ -148,6 +153,18 @@ export function AppShell({
                           className={active ? "" : "opacity-70"}
                         />
                         {item.label}
+                        {item.href === "/propostas" && propostasPendentes > 0 && (
+                          <span
+                            className={`ml-auto text-[11px] min-w-5 text-center px-1.5 py-0.5 rounded-full ${
+                              active
+                                ? "bg-on-accent/20 text-on-accent"
+                                : "bg-blue text-white"
+                            }`}
+                            aria-label={`${propostasPendentes} pendentes`}
+                          >
+                            {propostasPendentes}
+                          </span>
+                        )}
                       </Link>
                     </li>
                   );

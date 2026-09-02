@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
 import { Progresso } from "@/components/Progresso";
 import { Icone } from "@/components/Icone";
+import { CardProposta } from "@/components/CardProposta";
 import { Markdown } from "@/components/Markdown";
 
 interface Proposta {
@@ -27,33 +28,7 @@ const SUGESTOES = [
   "Resume o que você sabe sobre mim",
 ];
 
-const ROTULO_CAMPO: Record<string, string> = {
-  id: "Registro", empresa: "Empresa", cargo: "Cargo", dataInicio: "Início",
-  dataFim: "Fim", categoria: "Categoria", tagsTecnicas: "Tecnologias",
-  descricaoAtividades: "Atividades", principaisConquistas: "Conquistas",
-  nomeCompleto: "Nome", email: "E-mail", telefone: "Telefone",
-  localizacao: "Localização", linkedin: "LinkedIn", github: "GitHub",
-  resumoBase: "Resumo profissional", tipo: "Tipo", tituloCurso: "Título",
-  instituicaoProjeto: "Instituição", status: "Status",
-  descricaoDetalhada: "Descrição", link: "Link", tituloDoCurso: "Certificação",
-  emissorInstituicao: "Emissor", descricao: "Descrição", destaque: "Destaque",
-  idioma: "Idioma", nivelCefr: "Nível", certificacaoExame: "Exame",
-  historicoDeEscolas: "Escolas", workAuthorization: "Autorização de trabalho",
-  preferredProvinces: "Províncias", clbEnglish: "CLB inglês",
-  nclcFrench: "NCLC francês", languageTest: "Teste de idioma",
-  ecaStatus: "Status do ECA", ecaEquivalency: "Equivalência ECA",
-  regulatedProfession: "Profissão regulamentada", licenseStatus: "Licença",
-  canadianExpMonths: "Experiência canadense (meses)",
-  canadianCity: "Cidade no Canadá", canadianPhone: "Telefone canadense",
-  pergunta: "Pergunta", resposta: "Resposta",
-};
 
-function formatarValor(v: unknown): string {
-  if (v === null || v === undefined || v === "") return "—";
-  if (Array.isArray(v)) return v.join(", ");
-  if (typeof v === "boolean") return v ? "sim" : "não";
-  return String(v);
-}
 
 const ACEITA =
   "application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg,image/webp";
@@ -322,62 +297,19 @@ export function ChatClient() {
             )}
 
             {b.proposta && (
-              <div className="mt-3 max-w-[88%] rounded-xl border border-line bg-surface overflow-hidden">
-                <div className="px-4 py-2.5 border-b border-line-soft flex items-center gap-2">
-                  <Icone nome="editar" tamanho="1em" className="text-content-subtle" />
-                  <span className="text-[13px] font-medium text-content">
-                    {b.proposta.rotulo}
-                  </span>
-                  <span className="ml-auto text-[11px] text-content-subtle">
-                    nada foi salvo ainda
-                  </span>
-                </div>
-
-                <dl className="px-4 py-3 space-y-2">
-                  {Object.entries(b.proposta.argumentos).map(([campo, valor]) => (
-                    <div key={campo} className="grid grid-cols-[8.5rem_1fr] gap-3 text-sm">
-                      <dt className="text-content-subtle">{ROTULO_CAMPO[campo] ?? campo}</dt>
-                      <dd className="text-content break-words whitespace-pre-wrap">
-                        {formatarValor(valor)}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-
-                {b.decidida ? (
-                  <div
-                    className={`px-4 py-2.5 border-t border-line-soft text-[13px] ${
-                      b.decidida === "aplicada"
-                        ? "text-green-700 dark:text-green-300"
-                        : "text-content-subtle"
-                    }`}
-                  >
-                    {b.decidida === "aplicada"
-                      ? (b.resultado ?? "Aplicado.")
-                      : "Descartado — nada foi salvo."}
-                  </div>
-                ) : (
-                  <div className="px-4 py-3 border-t border-line-soft flex gap-2">
-                    <button
-                      onClick={() => aplicar(i, b.proposta!)}
-                      disabled={aplicando !== null}
-                      className="px-4 py-2 rounded-full bg-accent text-on-accent text-[13px] font-medium hover:bg-accent-hover disabled:opacity-50"
-                    >
-                      {aplicando === i ? "Aplicando…" : "Aplicar"}
-                    </button>
-                    <button
-                      onClick={() =>
-                        setBolhas((bb) =>
-                          bb.map((x, j) => (j === i ? { ...x, decidida: "descartada" } : x)),
-                        )
-                      }
-                      disabled={aplicando !== null}
-                      className="px-4 py-2 rounded-full border border-line text-content text-[13px] hover:bg-surface-3 disabled:opacity-50"
-                    >
-                      Descartar
-                    </button>
-                  </div>
-                )}
+              <div className="mt-3 max-w-[88%]">
+                <CardProposta
+                  proposta={b.proposta}
+                  decidida={b.decidida}
+                  resultado={b.resultado}
+                  aplicando={aplicando === i}
+                  onAplicar={() => aplicar(i, b.proposta!)}
+                  onDescartar={() =>
+                    setBolhas((bb) =>
+                      bb.map((x, j) => (j === i ? { ...x, decidida: "descartada" } : x)),
+                    )
+                  }
+                />
               </div>
             )}
           </div>
