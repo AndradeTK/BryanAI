@@ -34,6 +34,16 @@ const BEARER_API_PREFIXES = ["/api/jobs", "/api/jobfit", "/api/cover-letter", "/
  */
 const PUBLIC_API_PREFIX = "/api/public";
 
+/**
+ * Servidor MCP. Autentica por Bearer contra public_profile_tokens, dentro da
+ * própria rota — passar por aqui não autoriza nada, como em /api/public.
+ *
+ * Não pode ser redirecionado para /login: o cliente é outro servidor, não um
+ * navegador, e um HTML de login com status 200 seria interpretado como
+ * resposta válida.
+ */
+const MCP_PREFIX = "/api/mcp";
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -45,7 +55,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith(PUBLIC_API_PREFIX)) {
+  if (pathname.startsWith(PUBLIC_API_PREFIX) || pathname.startsWith(MCP_PREFIX)) {
     return NextResponse.next();
   }
 
