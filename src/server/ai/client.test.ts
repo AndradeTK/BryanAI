@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
-import { sanitizeForGemini } from "./client";
+import { sanitizeForGemini, comThinkingBudget } from "./client";
 import { JobFitAnalysisSchema, SkillsGapSchema } from "./schemas";
 
 /** Coleta chaves que o Gemini rejeita, recursivamente. */
@@ -44,5 +44,37 @@ describe("sanitizeForGemini — schema compatível com o responseSchema do Gemin
     };
     expect(clean.properties.noc.anyOf).toBeUndefined();
     expect(clean.properties.noc.nullable).toBe(true);
+  });
+});
+
+describe("comThinkingBudget", () => {
+  /**
+   * Regressão medida em produção: o raciocínio dos modelos 2.5 sai do mesmo
+   * orçamento da resposta. Sem teto, 7.863 tokens de raciocínio contra 315 de
+   * resposta — a geração voltou cortada. Com teto de 2.048 no mesmo prompt, o
+   * raciocínio caiu para 1.386 e a resposta subiu para 1.666.
+   */
+  it("acrescenta o teto de raciocínio ao config", () => {
+    const r = comThinkingBudget({ temperature: 0.4, maxOutputTokens: 8192 });
+    expect(r).toMatchObject({
+      thinkingConfig: { thinkingBudget: 2048 },
+    });
+  });
+
+  it("preserva o que já estava no config", () => {
+    const r = comThinkingBudget({
+      temperature: 0.7,
+      maxOutputTokens: 4096,
+      responseMimeType: "application/json",
+    });
+    expect(r.temperature).toBe(0.7);
+    expect(r.maxOutputTokens).toBe(4096);
+    expect(r.responseMimeType).toBe("application/json");
+  });
+
+  it("não muda o objeto original", () => {
+    const original = { temperature: 0.4 };
+    comThinkingBudget(original);
+    expect(original).not.toHaveProperty("thinkingConfig");
   });
 });

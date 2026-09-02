@@ -86,6 +86,40 @@ export const MODELS = {
 export { genAI };
 
 /**
+ * Teto de tokens de raciocínio dos modelos 2.5.
+ *
+ * O "thinking" sai do MESMO orçamento da resposta, e sem teto ele come o que
+ * sobraria para escrever. Aconteceu em produção: 7.863 tokens de raciocínio
+ * contra 315 de resposta, com maxOutputTokens de 8.192 — a geração voltou
+ * cortada.
+ *
+ * Medido com o perfil real e o schema da análise de vaga, mesmo prompt:
+ *   sem teto      → 4.883 de raciocínio, 1.311 de resposta
+ *   teto de 2.048 → 1.386 de raciocínio, 1.666 de resposta
+ *
+ * Ou seja: limitar o raciocínio não piora a análise, devolve espaço para a
+ * resposta. 2.048 é folgado para o que estes prompts pedem — são tarefas de
+ * extração e reescrita sobre dados já fornecidos, não de dedução em cadeia.
+ *
+ * Não é economia de custo: é o teto de SAÍDA sendo consumido antes de o modelo
+ * escrever. Vale igual em plano pago.
+ */
+const THINKING_BUDGET = 2048;
+
+/**
+ * O SDK 0.24.1 é anterior aos modelos 2.5 e não declara `thinkingConfig` no
+ * GenerationConfig — mas a API REST aceita (verificado: um budget de 128 foi
+ * respeitado, com 12 tokens de raciocínio). O cast leva o campo adiante sem
+ * mentir sobre o tipo do SDK.
+ */
+export function comThinkingBudget<T extends object>(config: T): T {
+  return {
+    ...config,
+    thinkingConfig: { thinkingBudget: THINKING_BUDGET },
+  } as T;
+}
+
+/**
  * Chama o Gemini forçando saída JSON que casa com o schema Zod, e revalida a
  * resposta com o mesmo schema (defesa em profundidade).
  *
@@ -102,7 +136,7 @@ export async function generateStructured<T>(opts: {
 }): Promise<T> {
   const model = genAI.getGenerativeModel({
     model: opts.model,
-    generationConfig: {
+    generationConfig: comThinkingBudget({
       temperature: opts.temperature ?? 0.4,
       maxOutputTokens: opts.maxOutputTokens ?? 8192,
       responseMimeType: "application/json",
@@ -111,7 +145,7 @@ export async function generateStructured<T>(opts: {
       responseSchema: sanitizeForGemini(
         z.toJSONSchema(opts.schema),
       ) as unknown as ResponseSchema,
-    },
+    }),
   });
 
   const t0 = Date.now();
@@ -186,10 +220,10 @@ export async function generateText(opts: {
 }): Promise<string> {
   const model = genAI.getGenerativeModel({
     model: opts.model,
-    generationConfig: {
+    generationConfig: comThinkingBudget({
       temperature: opts.temperature ?? 0.7,
       maxOutputTokens: opts.maxOutputTokens ?? 8192,
-    },
+    }),
   });
   const t0 = Date.now();
   const result = await withRetry(() => model.generateContent(opts.prompt));
