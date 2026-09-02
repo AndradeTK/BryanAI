@@ -11,6 +11,7 @@ histórico: por que as decisões do código são como são.
 | [FASE-2-PLANO.md](FASE-2-PLANO.md) | Domínio canadense (NOC, CLB, ECA, anti-alucinação) | histórico — concluído |
 | [FASES-4-6-ENTREGUE.md](FASES-4-6-ENTREGUE.md) | Postgres/Drizzle, pgvector, auth e deploy | registro do que existe |
 | [PLANO-MELHORIAS.md](PLANO-MELHORIAS.md) | Bugs e features levantados na auditoria de 30/08/2026 | **trabalho em aberto** |
+| [PLANO-MCP.md](PLANO-MCP.md) | Controlar os dados por um chat de IA externo, com escrita mediada por proposta | **planejado, não iniciado** |
 | `CREDENCIAIS_SISTEMA.md` | Acessos da VPS e do repositório | **local, fora do git** |
 
 ## A ordem das fases não é a ordem dos números
