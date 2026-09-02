@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { resolverAccess, RESOURCE } from "@/server/mcp/oauth";
 import { publicTokenRepo, propostaRepo } from "@/server/db/repositories";
 import {
   LEITURAS,
@@ -47,31 +48,43 @@ function json(r: Resposta): Response {
 }
 
 /**
- * Autentica pelo mesmo token de `public_profile_tokens`, com hash SHA-256.
+ * Aceita as duas credenciais, nesta ordem: o token de perfil direto (Bearer
+ * estático, que o Claude Code usa) e, se não bater, um access token OAuth
+ * (que o app do Claude emite).
  *
- * O 401 precisa ser de transporte, não um 200 com isError: um 200 faz o
- * cliente entregar o texto ao modelo e seguir, sem oferecer reconexão.
+ * Manter as duas não é indecisão: o Claude Code conecta por header fixo num
+ * comando de uma linha, e obrigá-lo a passar por OAuth seria atrito sem ganho.
  */
 async function autenticar(request: Request) {
   const header = request.headers.get("authorization");
   if (!header?.toLowerCase().startsWith("bearer ")) return null;
   const token = header.slice(7).trim();
   if (!token) return null;
-  const hash = createHash("sha256").update(token).digest("hex");
-  return publicTokenRepo.findValid(hash);
+
+  const direto = await publicTokenRepo.findValid(
+    createHash("sha256").update(token).digest("hex"),
+  );
+  if (direto) return direto;
+
+  return resolverAccess(token);
 }
 
+/**
+ * O 401 precisa ser de transporte E carregar o ponteiro para a metadata.
+ *
+ * A doc é explícita: o Claude não honra WWW-Authenticate num 200, e sem o
+ * resource_metadata ele não descobre onde fica o authorization server — a
+ * conexão falha com "Couldn't reach the MCP server" sem que o servidor de
+ * autorização veja tráfego nenhum.
+ */
 function naoAutorizado(): Response {
-  return new Response(
-    JSON.stringify({ error: "Token inválido ou ausente." }),
-    {
-      status: 401,
-      headers: {
-        "Content-Type": "application/json",
-        "WWW-Authenticate": 'Bearer realm="bryanai"',
-      },
+  return new Response(JSON.stringify({ error: "Token inválido ou ausente." }), {
+    status: 401,
+    headers: {
+      "Content-Type": "application/json",
+      "WWW-Authenticate": `Bearer resource_metadata="${RESOURCE.replace("/api/mcp", "/.well-known/oauth-protected-resource/mcp")}", scope="perfil"`,
     },
-  );
+  });
 }
 
 export async function POST(request: Request) {

@@ -44,6 +44,14 @@ const PUBLIC_API_PREFIX = "/api/public";
  */
 const MCP_PREFIX = "/api/mcp";
 
+/**
+ * Descoberta OAuth (RFC 9728 e RFC 8414). Precisa responder sem sessão: é o
+ * primeiro contato do cliente, antes de existir qualquer credencial. O
+ * conteúdo é público por natureza — só diz ONDE autenticar, nunca dado do
+ * usuário.
+ */
+const WELL_KNOWN = "/.well-known/";
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -55,7 +63,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith(PUBLIC_API_PREFIX) || pathname.startsWith(MCP_PREFIX)) {
+  if (
+    pathname.startsWith(PUBLIC_API_PREFIX) ||
+    pathname.startsWith(MCP_PREFIX) ||
+    pathname.startsWith(WELL_KNOWN)
+  ) {
     return NextResponse.next();
   }
 

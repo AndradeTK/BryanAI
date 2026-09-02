@@ -489,6 +489,30 @@ export const propostas = pgTable("propostas", {
   expiraEm: timestamp("expira_em", { withTimezone: true }).notNull(),
 });
 
+// 21. OAuth do conector MCP. Só o hash fica guardado, como em sessions.
+export const oauthCodes = pgTable("oauth_codes", {
+  codeHash: varchar("code_hash", { length: 64 }).primaryKey(),
+  clientId: varchar("client_id", { length: 500 }).notNull(),
+  redirectUri: varchar("redirect_uri", { length: 500 }).notNull(),
+  /** PKCE S256 — sem isto um code interceptado vira token. */
+  codeChallenge: varchar("code_challenge", { length: 128 }).notNull(),
+  tokenId: integer("token_id").references(() => publicProfileTokens.id, { onDelete: "cascade" }),
+  expiraEm: timestamp("expira_em", { withTimezone: true }).notNull(),
+  criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const oauthTokens = pgTable("oauth_tokens", {
+  id: serial("id").primaryKey(),
+  accessHash: varchar("access_hash", { length: 64 }).notNull().unique(),
+  /** Rotacionado a cada refresh — exigência da spec para cliente público. */
+  refreshHash: varchar("refresh_hash", { length: 64 }).unique(),
+  clientId: varchar("client_id", { length: 500 }).notNull(),
+  tokenId: integer("token_id").references(() => publicProfileTokens.id, { onDelete: "cascade" }),
+  expiraEm: timestamp("expira_em", { withTimezone: true }).notNull(),
+  criadoEm: timestamp("criado_em", { withTimezone: true }).notNull().defaultNow(),
+  ultimoUso: timestamp("ultimo_uso", { withTimezone: true }),
+});
+
 // 17. Tentativas de login, para travar força bruta. Uma linha por tentativa
 // falha; as bem-sucedidas limpam as do identificador. Fica no banco (e não em
 // memória) porque o processo reinicia a cada deploy e um atacante não deveria
@@ -541,6 +565,8 @@ export type NewAnexoReferencia = typeof anexosReferencia.$inferInsert;
 export type ChatConversa = typeof chatConversas.$inferSelect;
 export type ChatMensagem = typeof chatMensagens.$inferSelect;
 export type NewChatMensagem = typeof chatMensagens.$inferInsert;
+export type OauthCode = typeof oauthCodes.$inferSelect;
+export type OauthToken = typeof oauthTokens.$inferSelect;
 export type Proposta = typeof propostas.$inferSelect;
 export type NewProposta = typeof propostas.$inferInsert;
 export type PromptCustomizacao = typeof promptCustomizacoes.$inferSelect;
