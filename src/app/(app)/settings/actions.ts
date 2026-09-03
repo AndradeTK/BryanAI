@@ -91,6 +91,8 @@ export async function criarTokenPublico(
     label,
     redactContact,
     expiresAt,
+    // Propor é permissão concedida, nunca herdada.
+    podePropor: formData.get("podePropor") === "on",
   });
 
   revalidatePath("/settings");

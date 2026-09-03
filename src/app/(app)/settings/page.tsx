@@ -73,6 +73,7 @@ export default async function SettingsPage() {
             id: t.id,
             label: t.label,
             redactContact: t.redactContact,
+            podePropor: t.podePropor,
             expiraEm: t.expiresAt?.toLocaleDateString("pt-BR") ?? null,
             ultimoUso: t.lastUsedAt?.toLocaleDateString("pt-BR") ?? null,
             usos: t.useCount,

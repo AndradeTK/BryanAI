@@ -12,6 +12,7 @@ interface TokenRow {
   id: number;
   label: string | null;
   redactContact: boolean;
+  podePropor: boolean;
   expiraEm: string | null;
   ultimoUso: string | null;
   usos: number;
@@ -81,15 +82,40 @@ export function LinksPerfil({
             name="expiraEmDias"
             type="number"
             min={1}
-            placeholder="nunca"
+            max={365}
+            defaultValue={90}
             className="w-28 rounded-lg border border-line px-3 py-2 text-sm bg-surface"
           />
         </div>
-        <label className="flex items-center gap-2 text-sm text-content-muted pb-2">
-          <input type="checkbox" name="incluirContato" className="rounded" />
-          Incluir e-mail e telefone
-        </label>
         <SubmitButton label="Gerar link" />
+
+        {/* As duas permissões ficam abaixo, com o que cada uma significa
+            escrito por extenso. Antes eram checkboxes neutros ao lado do
+            botão — fácil demais marcar "incluir contato" sem pesar que isso
+            publica telefone e e-mail num link que vai para dentro de um chat
+            de terceiro. */}
+        <div className="w-full space-y-2 pt-1">
+          <label className="flex items-start gap-2 text-sm text-content-muted">
+            <input type="checkbox" name="podePropor" className="rounded mt-0.5" />
+            <span>
+              Pode propor alterações (conector MCP)
+              <span className="block text-xs text-content-subtle">
+                Necessário para conectar no Claude. Propor não é gravar — toda
+                alteração continua esperando sua aprovação em Propostas.
+              </span>
+            </span>
+          </label>
+          <label className="flex items-start gap-2 text-sm text-content-muted">
+            <input type="checkbox" name="incluirContato" className="rounded mt-0.5" />
+            <span>
+              Incluir e-mail e telefone
+              <span className="block text-xs text-content-subtle">
+                Publica seu contato no documento. Um chat de IA guarda o que
+                você cola nele — deixe desmarcado a menos que precise mesmo.
+              </span>
+            </span>
+          </label>
+        </div>
       </form>
 
       {tokens.length === 0 ? (
@@ -100,6 +126,11 @@ export function LinksPerfil({
             <li key={t.id} className="py-2 flex items-center gap-3 text-sm">
               <div className="min-w-0 flex-1">
                 <span className="text-content">{t.label || "sem descrição"}</span>
+                {t.podePropor && (
+                  <span className="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded">
+                    pode propor
+                  </span>
+                )}
                 <span className="text-content-subtle">
                   {" · "}
                   {t.redactContact ? "sem contato" : "com contato"}

@@ -740,3 +740,20 @@ export const propostaRepo = {
       .set({ estado: "rejeitada", resolvidaEm: new Date() })
       .where(sql`${propostas.estado} = 'pendente'`),
 };
+
+/**
+ * Quantas propostas este token criou na última hora.
+ *
+ * O teto de pendentes cobre o loop rápido; não cobre o lento — um modelo
+ * propondo de hora em hora ao longo de um dia nunca encosta nele. A spec do
+ * MCP põe o rate limit como obrigação do servidor, e não há proteção do lado
+ * do cliente.
+ */
+export async function propostasNaUltimaHora(origemRotulo: string): Promise<number> {
+  const rows = await db.execute<{ n: number }>(
+    sql`SELECT COUNT(*)::int AS n FROM propostas
+        WHERE origem = 'mcp' AND origem_rotulo = ${origemRotulo}
+          AND criada_em > now() - interval '1 hour'`,
+  );
+  return (rows as unknown as { n: number }[])[0]?.n ?? 0;
+}

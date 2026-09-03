@@ -410,6 +410,12 @@ export const publicProfileTokens = pgTable("public_profile_tokens", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
   useCount: integer("use_count").notNull().default(0),
+  /**
+   * Se este token pode PROPOR alterações pelo MCP (nunca gravar — proposta
+   * continua exigindo aprovação na tela). Falso por padrão: um link de leitura
+   * colado numa IA de terceiro não deve ganhar poder de escrita por herança.
+   */
+  podePropor: boolean("pode_propor").notNull().default(false),
 });
 
 

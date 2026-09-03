@@ -1,6 +1,10 @@
 import { createHash } from "node:crypto";
 import { resolverAccess, RESOURCE } from "@/server/mcp/oauth";
-import { publicTokenRepo, propostaRepo } from "@/server/db/repositories";
+import {
+  publicTokenRepo,
+  propostaRepo,
+  propostasNaUltimaHora,
+} from "@/server/db/repositories";
 import {
   LEITURAS,
   ARGS_SCHEMAS,
@@ -39,6 +43,16 @@ export const dynamic = "force-dynamic";
 
 /** Teto de propostas pendentes. Um modelo em loop enche a fila; um humano não. */
 const MAX_PENDENTES = 20;
+
+/**
+ * Teto por hora, por token.
+ *
+ * O de pendentes cobre o loop rápido; este cobre o lento — propor de hora em
+ * hora ao longo de um dia nunca encostaria naquele. Folgado o bastante para um
+ * import em lote (o do LinkedIn manda dezenas de uma vez) e apertado o
+ * bastante para conter um modelo em laço.
+ */
+const MAX_POR_HORA = 40;
 
 function json(r: Resposta): Response {
   return new Response(JSON.stringify(r.corpo), {
@@ -141,6 +155,38 @@ export async function POST(request: Request) {
       }
 
       // ---- Escrita: vira proposta, nunca grava ----
+
+      /**
+       * Escopo do token. Um link criado para uma IA LER o perfil não ganha
+       * poder de propor só porque o sistema passou a ter MCP — é permissão
+       * concedida, não herdada.
+       *
+       * Erro de ferramenta, não 401: 401 dispara reautenticação, e reautenticar
+       * não resolve falta de permissão. O modelo precisa entender que o
+       * caminho é o usuário mudar a configuração, não tentar de novo.
+       */
+      if (!token.podePropor) {
+        return json(
+          respostaTool(
+            req.id,
+            `Este token só tem permissão de leitura. Bryan precisa marcar "pode propor alterações" para este link em Configurações → Links do perfil. Não tente de novo até isso mudar.`,
+            true,
+          ),
+        );
+      }
+
+      const rotulo = token.label ?? "Assistente externo";
+      const naUltimaHora = await propostasNaUltimaHora(rotulo);
+      if (naUltimaHora >= MAX_POR_HORA) {
+        return json(
+          respostaTool(
+            req.id,
+            `Limite de ${MAX_POR_HORA} propostas por hora atingido. Aguarde antes de propor mais.`,
+            true,
+          ),
+        );
+      }
+
       const pendentes = await propostaRepo.contarPendentes();
       if (pendentes >= MAX_PENDENTES) {
         return json(
@@ -171,7 +217,7 @@ export async function POST(request: Request) {
         ferramenta: tool.interna,
         argumentos: parsed.data as Record<string, unknown>,
         origem: "mcp",
-        origemRotulo: token.label ?? "Assistente externo",
+        origemRotulo: rotulo,
         expiraEm: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
 
