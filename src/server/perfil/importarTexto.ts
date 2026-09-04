@@ -60,6 +60,15 @@ export async function importarPerfilComoPropostas(
     schema: ExtractedResumeSchema,
     prompt: `Extraia os dados estruturados deste perfil profissional.
 
+O texto pode ser a página inteira de um site, e não só o perfil: menu, rodapé,
+anúncios e — o que mais importa — BLOCOS DE OUTRAS PESSOAS ("pessoas que você
+talvez conheça", "perfis semelhantes", quem comentou, quem trabalha na mesma
+empresa). Extraia SOMENTE o histórico da pessoa de quem é o perfil: a primeira
+pessoa nomeada, dona das seções "Experiência" e "Formação". Cargo, empresa ou
+diploma que aparece embaixo do nome de outra pessoa NÃO é dela — descarte.
+Na dúvida sobre de quem é um item, descarte: o dono do perfil adiciona o que
+faltou, mas não tem como saber que um item alheio entrou como dele.
+
 NÃO INVENTE NADA: use "" para campo ausente e lista vazia para seção ausente.
 Datas no formato YYYY-MM (data_fim vazia significa "atual"). Copie os textos
 como estão — não reescreva nem resuma; quem vai revisar é o dono do perfil, e
