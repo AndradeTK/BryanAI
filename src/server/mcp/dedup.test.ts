@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
 import { chave } from "@/server/perfil/importarTexto";
 
 /**
@@ -27,5 +28,31 @@ describe("chave (deduplicação do import)", () => {
 
   it("aguenta string vazia", () => {
     expect(chave("")).toBe("");
+  });
+});
+
+/**
+ * O teto de entrada existe desde que o import passou a receber página inteira
+ * de LinkedIn, e não só PDF exportado. O que se trava aqui não é o número — é
+ * que o corte seja ANUNCIADO: se o texto passa do teto e a mensagem diz só
+ * "3 itens novos", quem lê conclui que o perfil tinha 3 itens novos, quando o
+ * que houve foi o fim do texto não ter sido lido.
+ */
+describe("teto de entrada do import", () => {
+  const fonte = readFileSync(
+    new URL("../perfil/importarTexto.ts", import.meta.url),
+    "utf8",
+  );
+
+  it("corta pelo teto, e não por um número solto no prompt", () => {
+    expect(fonte).toContain("texto.slice(0, MAX_ENTRADA)");
+    expect(fonte).not.toMatch(/slice\(0,\s*\d{4,}\)/);
+  });
+
+  it("todo retorno avisa quando o texto foi cortado", () => {
+    // Só as atribuições dentro de return — não o campo da interface.
+    const retornos = fonte.match(/mensagem:\s*(`|ignoradas >)[\s\S]*?,\n/g) ?? [];
+    expect(retornos.length).toBe(2);
+    for (const r of retornos) expect(r).toContain("${aviso}");
   });
 });

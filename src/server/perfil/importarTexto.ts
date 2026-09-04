@@ -42,10 +42,19 @@ export interface ResultadoImport {
   mensagem: string;
 }
 
+/**
+ * Teto de entrada. O flash aceita ~1M de tokens, então o limite não é do
+ * modelo: é para uma página inteira de LinkedIn (com menu, rodapé e "pessoas
+ * que você talvez conheça") não virar prompt gigante. 60k cobre um perfil
+ * longo com folga — um PDF exportado fica na casa dos 5k.
+ */
+const MAX_ENTRADA = 60000;
+
 export async function importarPerfilComoPropostas(
   texto: string,
   origemRotulo: string,
 ): Promise<ResultadoImport> {
+  const cortado = texto.length > MAX_ENTRADA;
   const extraido = await generateStructured({
     model: MODELS.fast,
     schema: ExtractedResumeSchema,
@@ -57,7 +66,7 @@ como estão — não reescreva nem resuma; quem vai revisar é o dono do perfil,
 ele precisa reconhecer o que escreveu.
 
 PERFIL:
-${texto.slice(0, 14000)}`,
+${texto.slice(0, MAX_ENTRADA)}`,
   });
 
   /**
@@ -146,14 +155,23 @@ ${texto.slice(0, 14000)}`,
     });
   }
 
+  /**
+   * Sem este aviso o corte é invisível: o texto passa do teto, as últimas
+   * experiências não chegam ao modelo, e a mensagem de sucesso não distingue
+   * "não tinha mais nada" de "não li o resto".
+   */
+  const aviso = cortado
+    ? " O texto era muito longo e foi lido só até certo ponto — confira se faltou algo do fim do perfil."
+    : "";
+
   if (novas.length === 0) {
     return {
       criadas: 0,
       ignoradas,
       mensagem:
         ignoradas > 0
-          ? `Nada de novo: os ${ignoradas} itens do texto já estão no perfil. Nada foi alterado.`
-          : "Não encontrei experiências, formação ou certificações nesse texto.",
+          ? `Nada de novo: os ${ignoradas} itens do texto já estão no perfil. Nada foi alterado.${aviso}`
+          : `Não encontrei experiências, formação ou certificações nesse texto.${aviso}`,
     };
   }
 
@@ -171,6 +189,6 @@ ${texto.slice(0, 14000)}`,
   return {
     criadas: novas.length,
     ignoradas,
-    mensagem: `${novas.length} ${novas.length === 1 ? "item novo" : "itens novos"} aguardando revisão em Propostas${sufixo}. Nada foi gravado ainda.`,
+    mensagem: `${novas.length} ${novas.length === 1 ? "item novo" : "itens novos"} aguardando revisão em Propostas${sufixo}. Nada foi gravado ainda.${aviso}`,
   };
 }
