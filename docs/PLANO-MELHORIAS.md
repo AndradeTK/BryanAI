@@ -482,3 +482,45 @@ no `icons.js` — um nome errado renderizaria vazio, sem erro.
 (salvar duas vezes atualiza a linha, não duplica).
 
 **Suíte:** 109 testes (eram 105), typecheck limpo, build de produção completo.
+
+---
+
+## Import do LinkedIn pelo navegador do Claude
+
+A ferramenta `bryanai_profile_import` existia desde a Fase 5 do MCP, mas a
+descrição dizia ao modelo, com todas as letras, que ele **não conseguia** obter
+o perfil sozinho — e mandava pedir o PDF. Com o Claude for Chrome isso é falso:
+ele abre o perfil na sessão já logada e lê a página.
+
+A mecânica nunca foi o problema. `importarPerfilComoPropostas()` sempre aceitou
+texto de qualquer origem; PDF e MCP já compartilhavam a mesma extração e a mesma
+deduplicação. O que bloqueava era a instrução.
+
+**O que mudou:**
+
+| | Antes | Depois |
+|---|---|---|
+| Caminho principal | você exporta o PDF | você pede, o Claude lê |
+| URL do perfil | — | vem de `bryanai_profile_read`, não fixa no código |
+| Teto de entrada | 14.000 caracteres, corte silencioso | 60.000, e o corte é anunciado |
+
+O teto importava mais do que parecia: com PDF exportado (~5k) o corte nunca
+aparecia. Lendo a página inteira, aparece — menu, rodapé e sugestões entram
+junto — e as últimas experiências sumiam sem aviso. Agora os dois retornos
+avisam, porque "3 itens novos" e "não encontrei nada" são indistinguíveis de
+"não li o resto".
+
+**Por que o navegador não é raspagem:** quem lê é o seu navegador, na sua
+sessão, sob um comando seu. Não há robô percorrendo perfis de terceiros.
+
+**Por que continua passando pela fila:** a Anthropic mede 11,2% de sucesso em
+prompt injection no navegador *com* as defesas ligadas. A página é conteúdo de
+terceiro virando entrada do modelo. Como o import só cria proposta, o pior caso
+é lixo numa fila que você rejeita — nunca dado gravado.
+
+**Travas de teste:** um teste falha se a descrição voltar a dizer que o modelo
+não consegue obter o perfil, ou se o PDF voltar a aparecer antes do navegador.
+Outro falha se qualquer retorno parar de avisar sobre o corte — verifiquei que
+ele pega a regressão, removendo o aviso e vendo o teste falhar.
+
+**Suíte:** 145 testes (eram 143), lint sem novos problemas, build completo.

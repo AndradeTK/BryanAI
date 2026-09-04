@@ -208,6 +208,11 @@ ALTER TABLE "public_profile_tokens"
 Cada uma deployável sozinha, no fluxo já estabelecido: pesquisa → plano → dev →
 teste local → push → actions → VPS.
 
+**Status: as cinco estão no ar.** 15 ferramentas — 8 de leitura, 6 de escrita e
+o import em lote. Nenhuma grava: escrita vira proposta. O texto abaixo é o
+plano como foi escrito; onde a execução divergiu, está anotado na própria
+fase.
+
 ### Fase 1 — Propostas pendentes, sem MCP nenhum
 
 Migration `0018`, `propostaRepo`, tela `/propostas`, `CardProposta` extraído do
@@ -394,3 +399,29 @@ significa que o modelo externo entendeu tão bem quanto o interno.
 
 Secundária: **propostas que ficam mais de 48h sem decisão.** Se acumular, a
 visibilidade da Fase 3 era necessária, não opcional.
+
+---
+
+## Importar o LinkedIn pelo Claude — na prática
+
+Requisito: o conector do BryanAI ligado no Claude, e a extensão **Claude for
+Chrome** com permissão para `linkedin.com`.
+
+1. Abra o LinkedIn no Chrome, logado.
+2. No Claude, peça: *"importa meu LinkedIn pro BryanAI"*.
+3. Ele abre o seu perfil, rola até o fim, expande as listas cortadas e lê a
+   página. O que ele leu vai para `bryanai_profile_import`.
+4. A resposta diz quantos itens novos entraram na fila. Nada foi gravado.
+5. Você revisa em **/propostas**, com o antes → depois de cada item.
+
+O que já está cadastrado é descartado antes de virar proposta — o import traz
+só o que falta.
+
+**Se ele disser que não consegue abrir a página:** a permissão do site não foi
+concedida, ou a conversa não é uma em que a extensão está ativa. O caminho
+manual continua valendo — More → Save to PDF, e subir em Configurações.
+
+**Por que a revisão não é burocracia.** A página é conteúdo que o modelo lê de
+fora, e a Anthropic mede 11,2% de sucesso em prompt injection no navegador
+mesmo com as defesas ligadas. Como o import só cria proposta, o pior caso é
+uma linha estranha na fila — não um perfil reescrito.
