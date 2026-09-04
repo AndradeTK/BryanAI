@@ -256,8 +256,13 @@ procurou e não encontrou.
 
 ### Fase 5 — Importar o perfil do LinkedIn
 
-Dois caminhos, e o PDF é o rápido:
+Três caminhos. O primeiro é o que você usa no dia a dia; os outros dois são
+manuais, para quando não há navegador controlável:
 
+- **Pedir ao Claude** (Claude for Chrome). Ele abre o seu perfil na sua sessão
+  já logada, lê a página e chama `bryanai_profile_import` com o texto. Nenhum
+  arquivo, nenhum copiar e colar. A URL do perfil ele tira de
+  `bryanai_profile_read` — não está fixa no código, então muda com o cadastro.
 - **Exportar perfil em PDF** (no seu perfil → More → Save to PDF). Sai na
   hora, e o sistema já sabe ler PDF: o importador de CV extrai texto e
   estrutura com IA. Traz o essencial — experiências, formação, certificações.
@@ -270,6 +275,16 @@ Dois caminhos, e o PDF é o rápido:
 nome, headline, foto e e-mail. Experiências, formação e skills ficam em
 programas de parceiro com aprovação comercial — inviável para um projeto
 pessoal. E raspar o site viola os termos.
+
+**Por que o caminho do navegador é diferente de raspar.** Quem lê é o seu
+navegador, na sua sessão, sob um comando seu — a mesma leitura que você faria
+com os olhos. Não há robô percorrendo perfis de terceiros nem coleta em escala.
+
+**E por que ele passa pela fila de propostas.** A Anthropic mede 11,2% de
+sucesso em ataques de prompt injection contra o Claude no navegador, *com* as
+defesas ligadas. Uma página de perfil é conteúdo de terceiro que vira entrada
+do modelo. Aqui isso não alcança o banco: o import cria proposta como qualquer
+escrita, então o pior caso continua sendo lixo numa fila que você rejeita.
 
 **Por que não reusar o importador de CV como está:** ele GRAVA direto. Você já
 tem 4 experiências cadastradas, e o LinkedIn traz as mesmas com texto

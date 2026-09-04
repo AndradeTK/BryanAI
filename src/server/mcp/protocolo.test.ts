@@ -186,6 +186,21 @@ describe("contrato", () => {
     expect(imp!.inputSchema).toHaveProperty("required", ["texto"]);
   });
 
+  /**
+   * O Claude com acesso ao navegador lê o LinkedIn logado dele e manda o texto.
+   * A descrição já disse o contrário uma vez — dizia que ele NÃO conseguia
+   * obter o perfil sozinho — e uma frase dessas desliga o caminho principal
+   * sem quebrar nenhum teste. Daí travar aqui.
+   */
+  it("o import ensina o caminho pelo navegador antes do PDF", () => {
+    const d = listarTools().find((t) => t.name === "bryanai_profile_import")!
+      .description;
+    expect(d).toContain("Claude for Chrome");
+    expect(d).not.toMatch(/NÃO consegue (baixar|obter)/i);
+    // O PDF continua listado, mas como alternativa — depois do navegador.
+    expect(d.indexOf("Claude for Chrome")).toBeLessThan(d.indexOf("Save to PDF"));
+  });
+
   it("o v1 não expõe nenhuma remoção", () => {
     for (const nome of Object.keys(TOOLS)) {
       expect(nome).not.toMatch(/delete|remove/i);

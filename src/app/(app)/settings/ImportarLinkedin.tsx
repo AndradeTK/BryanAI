@@ -9,6 +9,10 @@ import { fetchWithTimeout } from "@/lib/fetchWithTimeout";
  * Não grava: cada item novo vira uma proposta na fila, com o antes → depois.
  * O que você já tem cadastrado e refinado não é tocado — e o que o arquivo
  * repete é descartado antes mesmo de virar proposta.
+ *
+ * O upload é o caminho manual. Pelo MCP (bryanai_profile_import) o Claude com
+ * acesso ao navegador lê o perfil logado e manda o texto direto, sem arquivo —
+ * mesma extração, mesma deduplicação, mesma fila.
  */
 export function ImportarLinkedin() {
   const input = useRef<HTMLInputElement>(null);
@@ -44,10 +48,15 @@ export function ImportarLinkedin() {
       <h2 className="text-lg font-semibold text-content">
         Importar do LinkedIn
       </h2>
-      <p className="text-sm text-content-subtle mt-1 mb-4">
-        No seu perfil do LinkedIn: <strong>More → Save to PDF</strong>. Suba o
-        arquivo aqui e o que estiver faltando vira proposta para você revisar —
-        nada é gravado direto, e o que você já tem não é alterado.
+      <p className="text-sm text-content-subtle mt-1 mb-2">
+        Com o conector do BryanAI ligado, peça ao Claude para importar seu
+        LinkedIn: ele abre seu perfil no navegador, lê e manda para cá. O que
+        estiver faltando vira proposta para você revisar — nada é gravado
+        direto, e o que você já tem não é alterado.
+      </p>
+      <p className="text-sm text-content-subtle mb-4">
+        Sem isso, o caminho manual: no seu perfil do LinkedIn,{" "}
+        <strong>More → Save to PDF</strong>, e suba o arquivo aqui.
       </p>
 
       <input
