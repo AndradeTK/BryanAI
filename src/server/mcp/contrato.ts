@@ -107,7 +107,7 @@ export const TOOLS: Record<string, ToolLeitura | ToolEscrita | ToolImport> = {
     descricao: `Importa um perfil profissional inteiro a partir de TEXTO, criando uma proposta para cada item que ainda não existe no cadastro de Bryan. ${NAO_GRAVA}
 
 COMO OBTER O TEXTO, em ordem de preferência:
-1. Se você consegue controlar o navegador dele (Claude for Chrome), ABRA o perfil do LinkedIn dele — a URL está em bryanai_profile_read, campo "linkedin" — e LEIA a página. Role até o fim para carregar as seções de experiência, formação e licenças, e clique em "Ver mais"/"Show all" onde houver, porque o LinkedIn corta listas longas. Depois passe o que leu.
+1. Se você consegue controlar o navegador dele (Claude for Chrome), ABRA o perfil do LinkedIn dele — a URL está em bryanai_profile_read, campo "linkedin"; se vier vazio, pergunte a ele — e LEIA a página. Role até o fim para carregar as seções de experiência, formação e licenças, e clique em "Ver mais"/"Show all" onde houver, porque o LinkedIn corta listas longas. Depois passe o que leu.
 2. Se ele colou o conteúdo na conversa, use o que ele colou.
 3. Se nenhum dos dois, peça a ele: no perfil do LinkedIn, More → Save to PDF, e subir em Configurações do BryanAI.
 
