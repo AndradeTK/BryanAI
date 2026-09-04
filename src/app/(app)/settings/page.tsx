@@ -4,6 +4,7 @@ import { SettingsForm } from "./SettingsForm";
 import { SectionsOrderEditor } from "./SectionsOrderEditor";
 import { DadosBackup } from "./DadosBackup";
 import { LinksPerfil } from "./LinksPerfil";
+import { ImportarLinkedin } from "./ImportarLinkedin";
 import { PromptsEditor } from "./PromptsEditor";
 import { PROMPTS_EDITAVEIS, customizacoes } from "@/server/ai/promptsCustom";
 import { env } from "@/lib/env";
@@ -60,6 +61,10 @@ export default async function SettingsPage() {
           Exporte todos os seus dados num arquivo JSON ou importe um backup.
         </p>
         <DadosBackup />
+      </div>
+
+      <div className="mt-6">
+        <ImportarLinkedin />
       </div>
 
       <div className="mt-6">

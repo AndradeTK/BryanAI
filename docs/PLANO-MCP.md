@@ -254,6 +254,40 @@ procurou e não encontrou.
 
 ---
 
+### Fase 5 — Importar o perfil do LinkedIn
+
+Dois caminhos, e o PDF é o rápido:
+
+- **Exportar perfil em PDF** (no seu perfil → More → Save to PDF). Sai na
+  hora, e o sistema já sabe ler PDF: o importador de CV extrai texto e
+  estrutura com IA. Traz o essencial — experiências, formação, certificações.
+- **Arquivo de dados** (Settings → Data Privacy → Get a copy of your data).
+  CSVs por categoria, chega em minutos se você escolher categorias
+  específicas. Mais completo (50+ categorias, incluindo skills e
+  recomendações), mas exige ler CSV.
+
+**A API oficial não serve.** Verifiquei na doc: os escopos self-serve dão só
+nome, headline, foto e e-mail. Experiências, formação e skills ficam em
+programas de parceiro com aprovação comercial — inviável para um projeto
+pessoal. E raspar o site viola os termos.
+
+**Por que não reusar o importador de CV como está:** ele GRAVA direto. Você já
+tem 4 experiências cadastradas, e o LinkedIn traz as mesmas com texto
+diferente — importar assim duplicaria tudo e sobrescreveria o que você já
+refinou. Cada item importado vira **proposta**, com o antes → depois que o
+card já mostra.
+
+O que vem do LinkedIn é o que você escreveu lá: enxuto, às vezes com o
+vocabulário inflado da plataforma. Não é fonte melhor que o perfil atual — é
+fonte diferente, útil pelo que você esqueceu de trazer. Onde ganha de
+verdade: certificações e cursos, que costumam estar mais completos lá.
+
+O teto de 40 propostas/hora da Fase 4 foi calibrado para isto: um import em
+lote manda dezenas de uma vez.
+
+---
+
+
 ## Detalhes que quebram se errados
 
 Todos de fonte primária, via Atlas:

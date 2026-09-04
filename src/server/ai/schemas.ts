@@ -328,6 +328,14 @@ export const ExtractedResumeSchema = z.object({
     }),
   ),
   idiomas: z.array(z.object({ idioma: z.string(), nivel: z.string() })),
+  /**
+   * Certificações e cursos. É a seção onde o perfil do LinkedIn costuma estar
+   * mais completo que o cadastro — a pessoa registra o certificado lá no dia
+   * em que tira, e esquece de trazer para cá.
+   */
+  certificacoes: z
+    .array(z.object({ titulo: z.string(), emissor: z.string() }))
+    .default([]),
 });
 export type ExtractedResume = z.infer<typeof ExtractedResumeSchema>;
 
