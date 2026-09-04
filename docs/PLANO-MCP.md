@@ -417,6 +417,12 @@ Chrome** com permissão para `linkedin.com`.
 O que já está cadastrado é descartado antes de virar proposta — o import traz
 só o que falta.
 
+**Ao revisar, confira de quem é cada item.** A página traz "pessoas que você
+talvez conheça" e "perfis semelhantes" — blocos com cargo e empresa de outras
+pessoas. O prompt manda descartar o que não é seu e a descrição da ferramenta
+avisa antes, mas as duas coisas são instrução, não garantia. Um cargo que você
+não reconhece na fila provavelmente é de outra pessoa: rejeite.
+
 **Se ele disser que não consegue abrir a página:** a permissão do site não foi
 concedida, ou a conversa não é uma em que a extensão está ativa. O caminho
 manual continua valendo — More → Save to PDF, e subir em Configurações.

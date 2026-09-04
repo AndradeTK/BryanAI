@@ -518,9 +518,24 @@ prompt injection no navegador *com* as defesas ligadas. A página é conteúdo d
 terceiro virando entrada do modelo. Como o import só cria proposta, o pior caso
 é lixo numa fila que você rejeita — nunca dado gravado.
 
+**Um risco que só aparece pelo navegador:** a página traz perfis de OUTRAS
+pessoas — "pessoas que você talvez conheça", "perfis semelhantes", quem
+comentou. O prompt dizia apenas "extraia deste perfil profissional", sem dizer
+de quem; nada impedia a experiência de um terceiro de entrar como sua. Com PDF
+exportado o problema não existia, porque o arquivo só tem você.
+
+O estrago é assimétrico, e é isso que decide o tratamento: um item seu que
+ficou de fora você adiciona depois, mas um item alheio que entrou como seu você
+só descobre se reparar. Por isso a instrução manda **descartar na dúvida**, e a
+descrição da ferramenta avisa antes — para o Claude nem passar esses blocos
+adiante. Nenhuma das duas é garantia; a defesa que vale continua sendo a fila.
+
 **Travas de teste:** um teste falha se a descrição voltar a dizer que o modelo
 não consegue obter o perfil, ou se o PDF voltar a aparecer antes do navegador.
 Outro falha se qualquer retorno parar de avisar sobre o corte — verifiquei que
 ele pega a regressão, removendo o aviso e vendo o teste falhar.
 
-**Suíte:** 145 testes (eram 143), lint sem novos problemas, build completo.
+Outros dois falham se o prompt ou a descrição pararem de alertar sobre
+perfis de terceiros — verifiquei removendo o alerta e vendo os dois falharem.
+
+**Suíte:** 147 testes (eram 143), lint sem novos problemas, build completo.
