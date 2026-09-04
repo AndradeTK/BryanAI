@@ -11,6 +11,7 @@ import {
   ROTULO_ESCRITA,
 } from "@/server/chat/ferramentas";
 import { TOOLS, listarTools, SERVER_INFO } from "@/server/mcp/contrato";
+import { importarPerfilComoPropostas } from "@/server/perfil/importarTexto";
 import {
   validarHeaders,
   respostaDiscover,
@@ -196,6 +197,26 @@ export async function POST(request: Request) {
             true,
           ),
         );
+      }
+
+      /**
+       * Import em lote: mesmas travas de escrita, caminho diferente. Produz
+       * várias propostas de tipos distintos numa chamada, então não passa por
+       * ARGS_SCHEMAS — quem valida cada item é o próprio importador.
+       */
+      if (tool.tipo === "import") {
+        const texto = req.params?.arguments?.texto;
+        if (typeof texto !== "string" || texto.trim().length < 50) {
+          return json(
+            respostaTool(
+              req.id,
+              "Passe o texto do perfil em \"texto\" (pelo menos algumas linhas).",
+              true,
+            ),
+          );
+        }
+        const r = await importarPerfilComoPropostas(texto, rotulo);
+        return json(respostaTool(req.id, r.mensagem));
       }
 
       const parsed = ARGS_SCHEMAS[tool.interna].safeParse(

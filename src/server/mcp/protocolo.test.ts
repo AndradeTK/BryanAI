@@ -167,11 +167,23 @@ describe("contrato", () => {
    * O aviso existe porque, sem ele, o modelo recebe "proposta criada",
    * interpreta como sucesso parcial e chama a ferramenta de novo.
    */
-  it("toda escrita avisa que não grava", () => {
+  it("tudo que não é leitura avisa que não grava", () => {
     for (const t of listarTools()) {
-      if (TOOLS[t.name].tipo !== "escrita") continue;
+      if (TOOLS[t.name].tipo === "leitura") continue;
       expect(t.description).toContain("NÃO grava");
     }
+  });
+
+  /**
+   * O import cria várias propostas numa chamada só, então é escrita para todas
+   * as travas — escopo, limite por hora, teto de pendentes. Se um dia ele for
+   * marcado como readOnly por engano, passaria por cima de todas elas.
+   */
+  it("o import não é readOnly", () => {
+    const imp = listarTools().find((t) => t.name === "bryanai_profile_import");
+    expect(imp).toBeDefined();
+    expect(imp!.annotations.readOnlyHint).toBe(false);
+    expect(imp!.inputSchema).toHaveProperty("required", ["texto"]);
   });
 
   it("o v1 não expõe nenhuma remoção", () => {

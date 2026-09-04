@@ -33,6 +33,17 @@ interface ToolLeitura {
   interna: NomeLeitura;
   descricao: string;
 }
+/**
+ * Importação em lote: recebe o TEXTO de um perfil e cria uma proposta por item
+ * que ainda não existe. É escrita para todos os efeitos — passa pelas mesmas
+ * travas de escopo e limite — mas não mapeia para uma chave de ARGS_SCHEMAS,
+ * porque produz várias propostas de tipos diferentes numa chamada só.
+ */
+interface ToolImport {
+  tipo: "import";
+  descricao: string;
+}
+
 interface ToolEscrita {
   tipo: "escrita";
   interna: NomeEscrita;
@@ -41,7 +52,7 @@ interface ToolEscrita {
   destrutiva?: boolean;
 }
 
-export const TOOLS: Record<string, ToolLeitura | ToolEscrita> = {
+export const TOOLS: Record<string, ToolLeitura | ToolEscrita | ToolImport> = {
   // ---------- Leitura: executa direto ----------
   bryanai_profile_read: {
     tipo: "leitura",
@@ -90,6 +101,16 @@ export const TOOLS: Record<string, ToolLeitura | ToolEscrita> = {
       "Lista os documentos anexados (cartas de recomendação, comprovantes) com o texto extraído de cada um. As cartas costumam descrever conquistas que ainda não estão cadastradas no perfil — consulte antes de concluir que algo não existe no histórico dele.",
   },
 
+  // ---------- Importação em lote ----------
+  bryanai_profile_import: {
+    tipo: "import",
+    descricao: `Importa um perfil profissional inteiro a partir de TEXTO, criando uma proposta para cada item que ainda não existe no cadastro de Bryan. ${NAO_GRAVA}
+
+Use quando ele colar na conversa o conteúdo do perfil do LinkedIn (ou de um currículo). Passe o texto COMPLETO e SEM REESCREVER em "texto" — a extração acontece do lado do servidor, e resumir aqui perde informação que ele quer revisar.
+
+Itens que já estão no perfil são descartados automaticamente, então não é preciso consultar as listas antes. Você NÃO consegue baixar o perfil do LinkedIn sozinho: é Bryan que exporta (no perfil dele, More → Save to PDF) e cola o conteúdo.`,
+  },
+
   // ---------- Escrita: cria proposta, não grava ----------
   bryanai_experience_save: {
     tipo: "escrita",
@@ -132,6 +153,19 @@ export const TOOLS: Record<string, ToolLeitura | ToolEscrita> = {
  */
 function inputSchemaDe(nome: string): Record<string, unknown> {
   const tool = TOOLS[nome];
+  if (tool.tipo === "import") {
+    return {
+      type: "object",
+      properties: {
+        texto: {
+          type: "string",
+          description:
+            "O conteúdo do perfil, copiado como está. Não resuma nem reescreva.",
+        },
+      },
+      required: ["texto"],
+    };
+  }
   if (tool.tipo === "leitura") {
     // Sem parâmetros: a spec recomenda declarar que só aceita objeto vazio.
     return { type: "object", additionalProperties: false };
@@ -139,6 +173,12 @@ function inputSchemaDe(nome: string): Record<string, unknown> {
   return sanitizeForGemini(
     z.toJSONSchema(ARGS_SCHEMAS[tool.interna]),
   ) as Record<string, unknown>;
+}
+
+function tituloDe(t: ToolLeitura | ToolEscrita | ToolImport): string {
+  if (t.tipo === "escrita") return ROTULO_ESCRITA[t.interna];
+  if (t.tipo === "import") return "Importar perfil";
+  return t.interna;
 }
 
 /** A lista que o `tools/list` devolve. Ordem estável — a spec pede determinismo. */
@@ -149,13 +189,11 @@ export function listarTools() {
       const t = TOOLS[nome];
       return {
         name: nome,
-        title:
-          t.tipo === "escrita" ? ROTULO_ESCRITA[t.interna] : t.interna,
+        title: tituloDe(t),
         description: t.descricao,
         inputSchema: inputSchemaDe(nome),
         annotations: {
-          title:
-            t.tipo === "escrita" ? ROTULO_ESCRITA[t.interna] : t.interna,
+          title: tituloDe(t),
           readOnlyHint: t.tipo === "leitura",
           /**
            * Nenhuma escrita apaga: no v1 o MCP só adiciona ou reposiciona, e
@@ -165,7 +203,7 @@ export function listarTools() {
            */
           destructiveHint: false,
           /** Rechamar com os mesmos argumentos não deve duplicar a proposta. */
-          idempotentHint: t.tipo === "escrita",
+          idempotentHint: t.tipo !== "leitura",
         },
       };
     });

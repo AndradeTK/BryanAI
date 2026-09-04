@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { chave } from "@/app/api/perfil/importar-linkedin/route";
+import { chave } from "@/server/perfil/importarTexto";
 
 /**
  * O import só vale se trouxer o que FALTA. Sem essa comparação, você tem 4
